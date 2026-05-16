@@ -1411,6 +1411,22 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
 .version-ts{font-size:.72rem;color:var(--brushed-silver)}.version-note{font-size:.68rem;color:var(--text-muted)}
 </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.3/math.min.js"></script>
+  <!-- Firebase SDK (compat — works with regular script tags) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script>
+    firebase.initializeApp({
+      apiKey: "AIzaSyA0fCGsowR9NDD3aKynRUPXb5EoGtPXvz0",
+      authDomain: "sirius-8c655.firebaseapp.com",
+      projectId: "sirius-8c655",
+      storageBucket: "sirius-8c655.firebasestorage.app",
+      messagingSenderId: "498976578013",
+      appId: "1:498976578013:web:cf5bd43afe3b7a645dfe34"
+    });
+    var db   = firebase.firestore();
+    var auth = firebase.auth();
+  </script>
 </head>
 <body>
 
