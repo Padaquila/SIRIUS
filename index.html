@@ -1767,9 +1767,10 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
         <!-- INVEST WITH CLARITY tagline -->
         <p class="sirius-tagline">Invest with Clarity</p>
       </div>
-      <p class="hero-sub">Institutional-grade investment analysis for Dubai real estate. Model acquisitions, calculate yields, and stress-test returns in minutes.</p>
+      <p class="hero-sub">Your client just asked if it's a good investment. You have minutes, not hours.</p>
+      <p id="heroSecondaryLine" style="font-size:.88rem;color:rgba(191,198,209,.5);margin-bottom:2rem;font-weight:300;max-width:480px;line-height:1.7">Full investment analysis for any Dubai property.</p>
       <div class="hero-actions">
-        <button class="btn btn-primary btn-lg" onclick="goToEval('Pro')">Start Evaluating Free</button>
+        <button class="btn btn-primary btn-lg" id="heroCtaBtn" onclick="openAuthModal()">Start free — no charge for 7 days</button>
         <button class="btn btn-outline btn-lg" onclick="openModal()">Request Demo</button>
       </div>
     </div>
@@ -1780,10 +1781,12 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
     </div>
   </section>
 
+
+  <section style="padding:5rem 2rem"><div style="max-width:1100px;margin:0 auto"><div style="text-align:center;margin-bottom:3rem"><div class="section-label">The Cost of Getting It Wrong</div><div class="gold-line"></div><h2 class="section-title">What happens when you don't have <em class="gold">the numbers</em></h2></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem"><style>.barespgrid{} @media(max-width:700px){.barespgrid{grid-template-columns:1fr!important}}</style><div class="ba-before barespgrid" style="border-radius:16px;padding:2rem;border:1px solid rgba(231,76,60,.18);background:rgba(231,76,60,.03)"><div style="font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:rgba(231,76,60,.65);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(231,76,60,.7)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>Without Sirius</div><p id="baStory1" style="font-size:.95rem;line-height:1.75;color:rgba(191,198,209,.72);font-style:italic;margin-bottom:1.1rem;border-left:2px solid rgba(231,76,60,.15);padding-left:1rem">"By the time I ran the numbers and called back, they had already signed with another agent."</p><div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.25rem"><div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.82rem;color:rgba(191,198,209,.55);line-height:1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(231,76,60,.45)" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Client asks a question, you say "let me get back to you"</div><div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.82rem;color:rgba(191,198,209,.55);line-height:1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(231,76,60,.45)" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Hours on a spreadsheet that looks unprofessional</div><div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.82rem;color:rgba(191,198,209,.55);line-height:1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(231,76,60,.45)" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Someone else answered on the spot. The deal went elsewhere.</div></div><div style="height:1px;background:rgba(231,76,60,.1);margin:1.1rem 0"></div><p id="baStory2" style="font-size:.95rem;line-height:1.75;color:rgba(191,198,209,.72);font-style:italic;margin-bottom:1.1rem;border-left:2px solid rgba(231,76,60,.15);padding-left:1rem">"I bought the property based on my gut. No analysis. Two years later I'm sitting on negative equity, no tenant, and no exit."</p><div style="display:flex;flex-direction:column;gap:.5rem"><div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.82rem;color:rgba(191,198,209,.55);line-height:1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(231,76,60,.45)" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>No cap rate, no yield, no exit strategy modelled</div><div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.82rem;color:rgba(191,198,209,.55);line-height:1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(231,76,60,.45)" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>The numbers looked good on a WhatsApp message</div><div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.82rem;color:rgba(191,198,209,.55);line-height:1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(231,76,60,.45)" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>The exit you planned doesn't exist anymore.</div></div></div><div style="border-radius:16px;padding:2rem;border:1px solid rgba(39,174,96,.2);background:rgba(39,174,96,.03)"><div style="font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:rgba(39,174,96,.8);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(39,174,96,.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>With Sirius</div><p id="baStoryRight" style="font-size:.95rem;line-height:1.75;color:rgba(191,198,209,.72);font-style:italic;margin-bottom:1.1rem;border-left:2px solid rgba(39,174,96,.18);padding-left:1rem">"I opened Sirius in front of my client. Three minutes later they had a full breakdown. They signed the same week."</p><div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.5rem"><div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.82rem;color:rgba(191,198,209,.78);line-height:1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(39,174,96,.7)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg>Answer any investment question on the spot</div><div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.82rem;color:rgba(191,198,209,.78);line-height:1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(39,174,96,.7)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg>Cap rate, IRR, net yield, mortgage, exit value — all calculated</div><div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.82rem;color:rgba(191,198,209,.78);line-height:1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(39,174,96,.7)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg>Professional report ready to share immediately</div><div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.82rem;color:rgba(191,198,209,.78);line-height:1.5"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(39,174,96,.7)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg>Confident decision. No guesswork. No regret.</div></div><button class="btn btn-primary" onclick="openAuthModal()" style="width:100%">Start free — no charge for 7 days</button></div></div></div></section>
   <section id="features">
     <div class="section-label">What We Offer</div><div class="gold-line"></div>
-    <h2 class="section-title">Close with <em class="gold">Confidence</em></h2>
-    <p class="section-sub">Built specifically for Dubai with DLD fees, RERA rules, and local conventions baked in.</p>
+    <h2 class="section-title" id="featuresSectionTitle">Everything you need to decide with <em class="gold">confidence</em></h2>
+    <p class="section-sub" id="featuresSectionSub">Because in Dubai, the difference between a good investment and a costly mistake is the quality of your analysis — not your gut feeling.</p>
     <div class="features-grid">
       <div class="feature-card reveal reveal-delay-1"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="13"/><polyline points="3 9 12 3 21 9"/><line x1="9" y1="22" x2="9" y2="12"/><line x1="15" y1="22" x2="15" y2="12"/></svg></div><div class="feature-title">Acquisition Cost Engine</div><div class="feature-desc">DLD fees, agency commissions, trustee costs, service charge reimbursements — down to the dirham.</div></div>
       <div class="feature-card reveal reveal-delay-2"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div><div class="feature-title">Dual Rental Yield Models</div><div class="feature-desc">Separate Long-Term and Airbnb models with occupancy adjustments and multi-year projections.</div></div>
@@ -2869,14 +2872,11 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
 ============================================================ */
 const PLANS={
   individual:{
-    starter:{name:'Starter',desc:'For individual investors who evaluate properties occasionally.',features:[{t:'10 evaluations / month',on:true},{t:'Acquisition cost calculator',on:true},{t:'Basic rental yield analysis',on:true},{t:'5 PDF report downloads / month',on:true},{t:'Capital appreciation & Net ROI',on:false},{t:'Short-term (Airbnb) model',on:false},{t:'Team seats',on:false}],price:{monthly:199,biannual:159,yearly:129}},
-    pro:{name:'Pro',desc:'Full suite for active brokers and serious investors.',featured:true,features:[{t:'Unlimited evaluations',on:true},{t:'Full acquisition + yield engine',on:true},{t:'Short-term & long-term models',on:true},{t:'Capital appreciation & Net ROI',on:true},{t:'25 PDF report downloads / month',on:true},{t:'Priority support',on:true},{t:'Team seats',on:false}],price:{monthly:499,biannual:399,yearly:329}},
-    elite:{name:'Elite',desc:'For high-volume professionals and portfolio managers.',features:[{t:'Everything in Pro',on:true},{t:'Unlimited PDF report downloads',on:true},{t:'Up to 5 team seats',on:true},{t:'White-label client reports',on:true},{t:'Dedicated account manager',on:true},{t:'Custom branding',on:true}],price:{monthly:999,biannual:799,yearly:649}}
+    starter:{name:'Starter',tagline:'For agents and investors getting started with smarter analysis',featured:false,price:{monthly:49,yearly:399},monthlyEq:33,intro:'First 2 months at AED 25',valueAnchor:'Less than 0.2% of one commission',features:[{t:'30 calculations / month',on:true},{t:'15 saved reports / month',on:true},{t:'20 PDF downloads / month',on:true},{t:'5 property comparisons / month',on:true},{t:'3 active shareable links',on:true},{t:'Name + phone on reports',on:true},{t:'7-day full access trial',on:true}]},
+    pro:{name:'Professional',tagline:'For serious brokers and investors who close deals with data',featured:true,price:{monthly:79,yearly:649},monthlyEq:54,intro:'First 2 months at AED 39',valueAnchor:'Less than 0.4% of one commission',features:[{t:'Unlimited calculations',on:true},{t:'Unlimited saved reports',on:true},{t:'Unlimited PDF downloads',on:true},{t:'20 property comparisons / month',on:true},{t:'20 active shareable links',on:true},{t:'Full branding — logo, photo, bio',on:true},{t:'In-app profile page',on:true},{t:'Priority support',on:true},{t:'7-day full access trial',on:true}]}
   },
   company:{
-    business:{name:'Business',desc:'For boutique agencies and small investment firms.',features:[{t:'Up to 10 team seats',on:true},{t:'Unlimited evaluations',on:true},{t:'Full acquisition + yield engine',on:true},{t:'Capital appreciation & Net ROI',on:true},{t:'25 PDF report downloads / month',on:true},{t:'Team dashboard',on:true},{t:'Admin panel',on:false}],price:{monthly:1999,biannual:1599,yearly:1299}},
-    enterprise:{name:'Enterprise',desc:'For large brokerages and institutional investors.',featured:true,features:[{t:'Unlimited team seats',on:true},{t:'Unlimited PDF report downloads',on:true},{t:'Full feature access',on:true},{t:'White-label platform',on:true},{t:'Admin panel + user management',on:true},{t:'API access & webhooks',on:true}],price:{monthly:4999,biannual:3999,yearly:3299}},
-    custom:{name:'Custom',desc:'Fully tailored solution for your requirements.',features:[{t:'Everything in Enterprise',on:true},{t:'Custom feature development',on:true},{t:'On-premise deployment option',on:true},{t:'Dedicated infrastructure',on:true},{t:'Custom SLA & contracts',on:true}],price:{monthly:null,biannual:null,yearly:null}}
+    agency:{name:'Agency',tagline:'For brokerages that want every agent performing at their best',featured:false,price:{monthly:29,yearly:239},monthlyEq:20,perUser:true,intro:'Min. 3 seats · Admin seat included',valueAnchor:'Less than AED 1 per agent per day',features:[{t:'Everything in Professional',on:true},{t:'Unlimited calculations & reports',on:true},{t:'Agency dashboard + usage analytics',on:true},{t:'White-label — remove Sirius branding',on:true},{t:'Company + individual agent branding',on:true},{t:'Dedicated account manager',on:true},{t:'Priority support',on:true},{t:'7-day full access trial',on:true}]}
   }
 };
 
@@ -3079,20 +3079,21 @@ function openPPView(){
 
 /* PRICING */
 function setPlanType(t,el){S.planType=t;document.querySelectorAll('.plan-type-tab').forEach(function(x){x.classList.remove('active');});el.classList.add('active');renderPricing();}
-function setBilling(b,el){S.billing=b;document.querySelectorAll('.billing-tab').forEach(function(x){x.classList.remove('active');});el.classList.add('active');var m=document.getElementById('savings-msg');if(b==='biannual'){m.textContent='Save 15%';m.classList.remove('hidden');}else if(b==='yearly'){m.textContent='Save 30%';m.classList.remove('hidden');}else{m.classList.add('hidden');}renderPricing();}
+function setBilling(b,el){setBillingCard(b);}
+function setBillingCard(b){S.billing=b;var aE=document.getElementById('billAnnual'),mE=document.getElementById('billMonthly');if(aE){aE.style.borderColor=b==='yearly'?'rgba(39,174,96,.6)':'rgba(191,198,209,.12)';aE.style.background=b==='yearly'?'rgba(39,174,96,.09)':'rgba(191,198,209,.03)';}if(mE){mE.style.borderColor=b==='monthly'?'rgba(191,198,209,.45)':'rgba(191,198,209,.12)';mE.style.background=b==='monthly'?'rgba(191,198,209,.08)':'rgba(191,198,209,.03)';}renderPricing();updateBillingCardPrices();}
+function updateBillingCardPrices(){var plans=Object.values(PLANS[S.planType]);if(!plans.length)return;var ref=S.planType==='company'?plans[0]:(plans[1]||plans[0]);var aE=document.getElementById('billAnnualPrice'),mE=document.getElementById('billMonthlyPrice');if(aE)aE.textContent='AED '+(ref.monthlyEq||Math.round(ref.price.yearly/12))+(ref.perUser?'/user':'');if(mE)mE.textContent='AED '+ref.price.monthly+(ref.perUser?'/user':'');}
 function renderPricing(){
-  var g=document.getElementById('pricingGrid'),plans=PLANS[S.planType];g.innerHTML='';
-  Object.entries(plans).forEach(function(e){
-    var plan=e[1],price=plan.price[S.billing];
-    var pH=price?'<div class="plan-price"><span class="currency">AED</span><span class="amount">'+price.toLocaleString()+'</span><span class="period">/ month</span></div>':'<div class="plan-price" style="align-items:center"><span class="amount" style="font-size:2rem">Custom</span></div>';
-    var fH=plan.features.map(function(f){return '<li class="'+(f.on?'on':'')+'"><span class="check">'+(f.on?'&#10003;':'&#9675;')+'</span>'+f.t+'</li>';}).join('');
-    var c=document.createElement('div');c.className='plan-card'+(plan.featured?' featured':'');
-    c.innerHTML=(plan.featured?'<div class="plan-badge">Most Popular</div>':'')+'<div class="plan-name '+(plan.featured?'gold':'')+'">'+plan.name+'</div><div class="plan-desc">'+plan.desc+'</div>'+pH+'<ul class="plan-features">'+fH+'</ul><button class="btn '+(plan.featured?'btn-primary':'btn-outline')+'" style="width:100%" onclick="goToEval(\''+plan.name+'\')">'+( price?'Get Started':'Contact Sales')+'</button>';
-    g.appendChild(c);
-  });
+  var ia=S.billing==='yearly',g=document.getElementById('pricingGrid');if(!g)return;
+  g.innerHTML=Object.values(PLANS[S.planType]).map(function(p){
+    var pu=p.perUser?'/user':'';
+    var px=ia
+      ?'<div style="text-align:center;margin:1rem 0"><div style="font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.42);margin-bottom:.3rem">Billed annually</div><div style="font-family:Inter,system-ui,sans-serif;font-size:2.1rem;font-weight:700;color:var(--white);letter-spacing:-.02em">AED '+(p.monthlyEq||Math.round(p.price.yearly/12))+pu+'</div><div style="font-size:.7rem;color:rgba(191,198,209,.52);margin-top:.25rem">AED '+p.price.yearly+pu+'/year &middot; 2 months free</div><div style="font-size:.68rem;color:rgba(191,198,209,.32);margin-top:.1rem">Full price AED '+p.price.monthly+pu+'/mo if monthly</div></div>'
+      :'<div style="text-align:center;margin:1rem 0"><div style="font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.42);margin-bottom:.3rem">Billed monthly</div><div style="font-family:Inter,system-ui,sans-serif;font-size:2.1rem;font-weight:700;color:var(--white);letter-spacing:-.02em">AED '+p.price.monthly+pu+'</div><div style="font-size:.7rem;color:rgba(191,198,209,.52);margin-top:.25rem">Switch to annual &mdash; 2 months free</div><div style="font-size:.68rem;color:rgba(191,198,209,.32);margin-top:.1rem">&nbsp;</div></div>';
+    var fH=p.features.map(function(f){return '<li style="display:flex;align-items:flex-start;gap:.55rem;font-size:.83rem;color:'+(f.on?'rgba(191,198,209,.85)':'rgba(191,198,209,.28)')+';margin-bottom:.5rem;line-height:1.45"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="'+(f.on?'#BFC6D1':'rgba(191,198,209,.22)')+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg>'+f.t+'</li>';}).join('');
+    return '<div class="plan-card'+(p.featured?' featured':'')+'" style="display:flex;flex-direction:column">'+(p.featured?'<div class="plan-badge">Most Popular</div>':'')+'<div class="plan-name '+(p.featured?'gold':'')+'">'+p.name+'</div><div style="font-size:.78rem;color:rgba(191,198,209,.75);line-height:1.5;min-height:2.5rem;margin-bottom:.35rem">'+p.tagline+'</div>'+px+(p.intro?'<div style="font-size:.72rem;color:rgba(212,175,55,.8);font-weight:600;text-align:center;margin-top:.25rem">'+p.intro+'</div>':'')+'<div style="font-size:.7rem;color:rgba(39,174,96,.75);font-weight:600;text-align:center;margin:.4rem 0 0">'+p.valueAnchor+'</div><div class="plan-divider" style="margin:1rem 0"></div><ul style="list-style:none;padding:0;margin:0;flex:1">'+fH+'</ul><button class="btn '+(p.featured?'btn-primary':'btn-outline')+'" style="width:100%;margin-top:1.5rem" onclick="openAuthModal()">Start free &mdash; 7 days on us</button></div>';
+  }).join('');
 }
 
-/* STEPPER */
 function goStep(n){
   if(n===3)calc();
   S.step=n;
@@ -5637,5 +5638,1122 @@ function updateBillingCardPrices(){
 }
 
 </script>
+</body>
+</html><section id="pricing" style="background:rgba(17,43,77,.2);padding:5rem 2rem">
+    <div style="max-width:1100px;margin:0 auto">
+      <div style="text-align:center;margin-bottom:2rem">
+        <div class="section-label">Simple Pricing</div><div class="gold-line"></div>
+        <h2 class="section-title" id="pricingSectionTitle">Start free. <em class="gold">Upgrade when you're ready.</em></h2>
+        <p id="pricingSectionSub" style="color:rgba(191,198,209,.78);font-size:.95rem;margin-top:.75rem;max-width:480px;margin-left:auto;margin-right:auto;font-weight:300;line-height:1.7">Every plan includes a 7-day full-access trial. No charge until day 8. Cancel anytime.</p>
+      </div>
+      <div style="display:flex;justify-content:center;margin-bottom:1.5rem">
+        <div style="display:flex;gap:.5rem">
+          <button class="plan-type-tab active" onclick="setPlanType('individual',this)">Individual</button>
+          <button class="plan-type-tab" onclick="setPlanType('company',this)">Agency</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:2.5rem">
+        <div id="billAnnual" onclick="setBillingCard('yearly')" style="cursor:pointer;border-radius:12px;border:2px solid rgba(39,174,96,.55);background:rgba(39,174,96,.07);padding:.9rem 1.5rem;min-width:190px;text-align:center;transition:all .2s ease">
+          <div style="font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(39,174,96,.85);font-weight:700;margin-bottom:.3rem">Annual billing</div>
+          <div style="font-family:Inter,system-ui,sans-serif;font-size:1.1rem;font-weight:700;color:var(--ivory)" id="billAnnualPrice">—</div>
+          <div style="font-size:.7rem;color:rgba(191,198,209,.55);margin-top:.2rem">per month · billed yearly</div>
+          <div style="margin-top:.4rem;display:inline-block;background:rgba(39,174,96,.2);color:rgba(39,174,96,.9);font-size:.6rem;font-weight:700;padding:.18rem .55rem;border-radius:99px;letter-spacing:.06em">2 MONTHS FREE</div>
+        </div>
+        <div id="billMonthly" onclick="setBillingCard('monthly')" style="cursor:pointer;border-radius:12px;border:2px solid rgba(191,198,209,.12);background:rgba(191,198,209,.03);padding:.9rem 1.5rem;min-width:190px;text-align:center;transition:all .2s ease">
+          <div style="font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.5);font-weight:700;margin-bottom:.3rem">Monthly billing</div>
+          <div style="font-family:Inter,system-ui,sans-serif;font-size:1.1rem;font-weight:700;color:var(--ivory)" id="billMonthlyPrice">—</div>
+          <div style="font-size:.7rem;color:rgba(191,198,209,.55);margin-top:.2rem">per month · no commitment</div>
+          <div style="margin-top:.4rem;display:inline-block;border:1px solid rgba(191,198,209,.15);color:rgba(191,198,209,.35);font-size:.6rem;padding:.18rem .55rem;border-radius:99px;letter-spacing:.06em">FLEXIBLE</div>
+        </div>
+      </div>
+      <div class="pricing-grid" id="pricingGrid"></div>
+      <p style="text-align:center;font-size:.72rem;color:rgba(191,198,209,.25);margin-top:2rem">All prices in AED &middot; Cancel anytime &middot; No hidden fees</p>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="section-label">What We Offer</div><div class="gold-line"></div>
+    <h2 class="section-title" id="featuresSectionTitle">Everything you need to decide with <em class="gold">confidence</em></h2>
+    <p class="section-sub" id="featuresSectionSub">Because in Dubai, the difference between a good investment and a costly mistake is the quality of your analysis — not your gut feeling.</p>
+    <div class="features-grid">
+      <div class="feature-card reveal reveal-delay-1"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="13"/><polyline points="3 9 12 3 21 9"/><line x1="9" y1="22" x2="9" y2="12"/><line x1="15" y1="22" x2="15" y2="12"/></svg></div><div class="feature-title">Acquisition Cost Engine</div><div class="feature-desc">DLD fees, agency commissions, trustee costs, service charge reimbursements — down to the dirham.</div></div>
+      <div class="feature-card reveal reveal-delay-2"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div><div class="feature-title">Dual Rental Yield Models</div><div class="feature-desc">Separate Long-Term and Airbnb models with occupancy adjustments and multi-year projections.</div></div>
+      <div class="feature-card reveal reveal-delay-3"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><path d="M9 12h6M9 16h6"/></svg></div><div class="feature-title">Mortgage Intelligence</div><div class="feature-desc">Synced slider and manual input. LTV ratios, down payments, and full mortgage calculator placeholder.</div></div>
+      <div class="feature-card reveal reveal-delay-4"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></div><div class="feature-title">Payment Plan Table</div><div class="feature-desc">Full off-plan and transferable plan tracking with auto percentage-to-amount and amount-to-percentage.</div></div>
+      <div class="feature-card reveal reveal-delay-5"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div><div class="feature-title">Step-by-Step Wizard</div><div class="feature-desc">Guided 4-step flow from property details to full results — no clutter, no scrolling.</div></div>
+      <div class="feature-card reveal"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div><div class="feature-title">Custom Fee Builder</div><div class="feature-desc">Add any cost line — mortgage registration, NOC fees, inspection — everything captured.</div></div>
+    </div>
+  </section>
+
+  
+
+  <section class="demo-section" id="demo">
+    <div class="demo-wrap">
+      <div>
+        <div class="section-label">Live Demo</div><div class="gold-line"></div>
+        <h2 class="section-title">See It In <em class="gold">Action</em></h2>
+        <p class="section-sub" style="margin-bottom:2rem">Our team walks you through a live deal using your own property data.</p>
+        <div style="display:flex;flex-direction:column;gap:1rem">
+          <div style="display:flex;align-items:center;gap:1rem"><div style="width:32px;height:32px;border-radius:50%;background:rgba(191,198,209,.1);border:1px solid rgba(191,198,209,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span style="font-size:.88rem;color:var(--text-muted)">Personalised 30-minute session with our product team</span></div>
+          <div style="display:flex;align-items:center;gap:1rem"><div style="width:32px;height:32px;border-radius:50%;background:rgba(191,198,209,.1);border:1px solid rgba(191,198,209,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span style="font-size:.88rem;color:var(--text-muted)">Use a real property deal for the walkthrough</span></div>
+          <div style="display:flex;align-items:center;gap:1rem"><div style="width:32px;height:32px;border-radius:50%;background:rgba(191,198,209,.1);border:1px solid rgba(191,198,209,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span style="font-size:.88rem;color:var(--text-muted)">Configure it for your team's workflow</span></div>
+        </div>
+      </div>
+      <div class="demo-form-card">
+        <div class="form-title">Request Your <span class="gold">Demo</span></div>
+        <div class="lnd-form-row">
+          <div class="lnd-fg"><label>First Name</label><input type="text" placeholder="Ahmad"></div>
+          <div class="lnd-fg"><label>Last Name</label><input type="text" placeholder="Al-Rashid"></div>
+        </div>
+        <div class="lnd-fg"><label>Work Email</label><input type="text" placeholder="ahmad@brokerage.ae"></div>
+        <div class="lnd-fg"><label>Phone</label><input type="text" placeholder="+971 50 000 0000"></div>
+        <div class="lnd-fg"><label>I am a</label><select><option>Individual Investor</option><option>Real Estate Broker</option><option>Investment Company</option></select></div>
+        <div class="lnd-fg"><label>Preferred Demo Time</label><select><option>Morning (9&#8211;12pm GST)</option><option>Afternoon (12&#8211;5pm GST)</option><option>Evening (5&#8211;8pm GST)</option></select></div>
+        <button class="btn btn-primary" style="width:100%;margin-top:.5rem" onclick="alert('Demo request submitted! Our team will be in touch within 24 hours.')">Submit Request</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-logo nav-logo-sirius">
+      <svg width="13" height="13" viewBox="0 0 60 60" fill="none" aria-hidden="true">
+        <defs><radialGradient id="starFootGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff"/><stop offset="40%" stop-color="#e0e8f0"/><stop offset="100%" stop-color="#8a959e" stop-opacity="0.6"/></radialGradient></defs>
+        <path d="M30 1 L32.8 27.2 L59 30 L32.8 32.8 L30 59 L27.2 32.8 L1 30 L27.2 27.2 Z" fill="url(#starFootGrad)"/>
+        <path d="M30 18 L31.5 28.5 L42 30 L31.5 31.5 L30 42 L28.5 31.5 L18 30 L28.5 28.5 Z" fill="white" opacity="0.8"/>
+      </svg>
+      <span class="nav-sirius-text" style="font-size:1.1rem">SIRIUS</span>
+      <span style="font-family:var(--font-body);font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;color:#6e7b87;font-weight:300;margin-left:.3rem;align-self:flex-end;padding-bottom:.1rem">Invest with Clarity</span>
+    </div>
+    <div class="footer-copy">&#169; 2025 Sirius &nbsp;&middot;&nbsp; Invest with Clarity</div>
+    <div style="display:flex;gap:1rem">
+      <a href="#" style="font-size:.78rem;color:var(--text-muted);text-decoration:none">Privacy</a>
+      <a href="#" style="font-size:.78rem;color:var(--text-muted);text-decoration:none">Terms</a>
+    </div>
+  </footer>
+</div>
+
+<!-- ===== EVALUATION ===== -->
+<div id="evaluation" class="page">
+  <div class="eval-header">
+    <div class="eval-header-logo nav-logo-sirius"><svg width="13" height="13" viewBox="0 0 60 60" fill="none" aria-hidden="true"><defs><radialGradient id="starEvalGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff"/><stop offset="40%" stop-color="#e0e8f0"/><stop offset="100%" stop-color="#8a959e" stop-opacity="0.6"/></radialGradient></defs><path d="M30 1 L32.8 27.2 L59 30 L32.8 32.8 L30 59 L27.2 32.8 L1 30 L27.2 27.2 Z" fill="url(#starEvalGrad)"/><path d="M30 18 L31.5 28.5 L42 30 L31.5 31.5 L30 42 L28.5 31.5 L18 30 L28.5 28.5 Z" fill="white" opacity="0.8"/></svg><span class="nav-sirius-text" style="font-size:1.1rem">SIRIUS</span></div>
+    <div class="eval-header-actions">
+      <div class="plan-chip" id="planChip">Pro Plan</div>
+      <button class="btn btn-ghost btn-sm" onclick="goToLanding()">&#8592; Back</button>
+      <button class="btn btn-outline btn-sm" onclick="openModal()">Request Demo</button>
+    </div>
+  </div>
+
+  <div class="stepper-nav">
+    <div class="step-item active" onclick="goStep(0)"><div class="step-num">1</div><div class="step-label">Property</div></div>
+    <div class="step-sep"></div>
+    <div class="step-item" onclick="goStep(1)"><div class="step-num">2</div><div class="step-label">Acquisition</div></div>
+    <div class="step-sep"></div>
+    <div class="step-item" onclick="goStep(2)"><div class="step-num">3</div><div class="step-label">Returns</div></div>
+    <div class="step-sep"></div>
+    <div class="step-item" onclick="goStep(3);setTimeout(calc,50)"><div class="step-num">4</div><div class="step-label">Results</div></div>
+  </div>
+
+  <div class="step-content">
+
+    <!-- STEP 1 -->
+    <div class="step-page active" id="step-0">
+      <div class="step-title">Property <span class="gold">Details</span></div>
+      <div class="step-sub">Property status, financing method, size, price and payment structure.</div>
+
+      <div class="field">
+        <div class="field-label">Property Status</div>
+        <div class="toggle-wrap">
+          <button class="toggle-btn active" onclick="setStatus('Ready',this)">Ready</button>
+          <button class="toggle-btn" onclick="setStatus('Off-Plan',this)">Off-Plan</button>
+        </div>
+      </div>
+
+      <div class="field hidden" id="f-handover">
+        <div class="field-label field-label-date"><span class="label-text">Handover Date</span><span class="unit-tag">DD/MM/YYYY</span></div>
+        <div class="date-input-wrap" onclick="document.getElementById('handoverDate').showPicker&&document.getElementById('handoverDate').showPicker()">
+          <span class="date-display placeholder" id="handoverDateDisplay">DD / MM / YYYY</span>
+          <div class="date-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <input type="date" id="handoverDate" class="date-hidden"
+            onchange="updateDateDisplay('handoverDate','handoverDateDisplay')">
+        </div>
+      </div>
+
+      <div class="field" id="f-financing">
+        <div class="field-label">Financing Method</div>
+        <div class="toggle-wrap">
+          <button class="toggle-btn active" onclick="setFinancing('Cash',this)">Cash</button>
+          <button class="toggle-btn" onclick="setFinancing('Mortgage',this)">Mortgage</button>
+        </div>
+      </div>
+
+      <!-- Loan % — slider + manual input in sync -->
+      <div class="field hidden" id="f-loanPct">
+        <div class="field-label">Bank Loan Percentage <span class="unit-tag">%</span></div>
+        <div class="slider-input-row">
+          <input type="range" min="5" max="85" value="75" step="5" id="loanSlider" oninput="syncLoan('s',this.value)">
+          <div class="pct-box">
+            <input type="text" id="loanInput" value="75" oninput="syncLoan('i',this.value)">
+            <div class="unit-suf">%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transferable plan toggle (hidden for Off-Plan since it's always yes) -->
+      <div class="field" id="f-transferableToggle">
+        <div class="field-label" id="transferableLabel">Post-handover transferable payment plan?</div>
+        <div class="toggle-wrap">
+          <button class="toggle-btn active" onclick="setTransferable(false,this)">No</button>
+          <button class="toggle-btn" onclick="setTransferable(true,this)">Yes</button>
+        </div>
+      </div>
+
+      <!-- Payment Split (Off-Plan always, Ready+Yes) -->
+      <div class="hidden" id="f-split">
+        <div class="field-row" style="margin-bottom:.5rem">
+          <div class="field">
+            <div class="field-label">Payment to Seller <span class="unit-tag">AED</span></div>
+            <div class="input-box"><div class="unit-pre">AED</div><input type="text" id="payToSeller" placeholder="0" oninput="maskNum(this);autoPrice()"></div>
+          </div>
+          <div class="field">
+            <div class="field-label">Remaining to Developer <span class="unit-tag">AED</span></div>
+            <div class="input-box"><div class="unit-pre">AED</div><input type="text" id="payToDev" placeholder="0" oninput="maskNum(this);autoPrice()"></div>
+          </div>
+        </div>
+        <div class="info-note" style="margin-bottom:1rem"><span class="dot">&#9679;</span>Entering both amounts auto-fills Property Price below. You can override it manually at any time.</div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">Purpose</div>
+        <div class="input-box">
+          <select id="purpose" onchange="setPurpose(this.value)">
+            <option value="Self-use">Self-use</option>
+            <option value="Rent Out">Rent Out</option>
+            <option value="Flip">Flip</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field hidden" id="f-rentalType">
+        <div class="field-label">Rental Type</div>
+        <div class="toggle-wrap">
+          <button class="toggle-btn active" onclick="setRentalType('Long-Term',this)">Long-Term Rental</button>
+          <button class="toggle-btn" onclick="setRentalType('Short-Term',this)">Short-Term (Airbnb)</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">Holding Period <span class="unit-tag">Years</span></div>
+        <div class="slider-wrap">
+          <input type="range" min="1" max="25" value="5" step="1" id="holdingPeriod" oninput="onHolding(this.value)">
+          <div class="slider-val" id="holdingVal">5 Years</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">Property Size</div>
+        <div class="dual-size">
+          <div class="input-box"><input type="text" id="sizeF" placeholder="0" oninput="cvtSize('f');maskNum(this);updateMarketGap()"><div class="unit-suf">ft&#178;</div></div>
+          <div class="swap-icon">&#8596;</div>
+          <div class="input-box"><input type="text" id="sizeM" placeholder="0" oninput="cvtSize('m');maskNum(this)"><div class="unit-suf">m&#178;</div></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">Market Price / ft&#178; <span class="unit-tag">AED / ft&#178; · Optional</span></div>
+        <div class="input-box"><div class="unit-pre">AED</div><input type="text" id="marketPricePerSqFt" placeholder="e.g. 1,800" oninput="maskNum(this);updateMarketGap()"></div>
+      </div>
+      <!-- pricePerSqFt kept as hidden element so calc() references don't break -->
+      <input type="hidden" id="pricePerSqFt" value="">
+      <div id="marketGapNote" class="info-note hidden" style="margin-top:-.4rem;margin-bottom:.6rem">
+        <span class="dot">&#9679;</span><span id="marketGapText"></span>
+      </div>
+      <div id="marketGapCheckWrap" class="hidden" style="margin-bottom:1rem;padding:.65rem .85rem;background:rgba(191,198,209,.06);border:1px solid rgba(191,198,209,.15);border-radius:var(--r)">
+        <label style="display:flex;align-items:flex-start;gap:.65rem;cursor:pointer">
+          <input type="checkbox" id="chk-includeGap" style="accent-color:var(--brushed-silver);width:14px;height:14px;flex-shrink:0;margin-top:2px;cursor:pointer">
+          <span style="font-size:.8rem;color:rgba(191,198,209,.85);line-height:1.55;font-weight:300">
+            Include the market price gap in appreciation calculations<br>
+            <span style="font-size:.72rem;color:var(--text-muted)">When checked, appreciation compounds on market value and the day-1 gap is added to total capital gain. When unchecked, only your purchase price is used.</span>
+          </span>
+        </label>
+      </div>
+
+      <div class="field">
+        <div class="field-label">Property Price <span class="unit-tag">AED</span></div>
+        <div class="input-box"><div class="unit-pre">AED</div><input type="text" id="propPrice" placeholder="2,000,000" oninput="maskNum(this);onPriceManual();updateMarketGap()"></div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">Service Charge Rate <span class="unit-tag">AED / ft&#178; / Year</span></div>
+        <div class="input-box"><input type="text" id="svcRate" placeholder="15" oninput="maskNum(this)"><div class="unit-suf">AED / ft&#178;</div></div>
+      </div>
+
+
+      <div class="field">
+        <div class="field-label">Agency Commission <span class="unit-tag">% + 5% VAT · Min 2%</span></div>
+        <div class="num-stepper">
+          <button class="stepper-btn" id="agencyMinus" onclick="stepAgency(-0.25)" aria-label="Decrease">&#8722;</button>
+          <input class="stepper-input" type="text" id="agencyFeePct" value="2.00" readonly>
+          <button class="stepper-btn" id="agencyPlus" onclick="stepAgency(0.25)" aria-label="Increase">&#43;</button>
+          <div class="stepper-unit">%</div>
+        </div>
+        <div style="font-size:.7rem;color:var(--text-muted);margin-top:.35rem;letter-spacing:.02em">
+          Minimum 2% · VAT (5%) applied automatically · Steps of 0.25%
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label field-label-date"><span class="label-text">Estimated Transfer Date</span><span class="unit-tag">DD/MM/YYYY</span></div>
+        <div class="date-input-wrap" onclick="document.getElementById('transferDate').showPicker&&document.getElementById('transferDate').showPicker()">
+          <span class="date-display placeholder" id="transferDateDisplay">DD / MM / YYYY</span>
+          <div class="date-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <input type="date" id="transferDate" class="date-hidden"
+            onchange="updateDateDisplay('transferDate','transferDateDisplay')">
+        </div>
+      </div>
+
+      <!-- Payment Plan Table -->
+      <div class="hidden" id="f-ppTable">
+        <div class="field" style="margin-top:.25rem">
+          <div class="field-label">Original Price (OP) <span class="unit-tag">AED &#183; Used for % Calculation</span></div>
+          <div class="input-box"><div class="unit-pre">AED</div><input type="text" id="origPrice" placeholder="2,000,000" oninput="maskNum(this);rebuildPP()"></div>
+        </div>
+        <div class="field">
+          <div class="field-label">Payment Plan Schedule <span class="unit-tag">Add / Edit / Remove Milestones</span></div>
+          <div class="pp-table-wrap">
+            <table class="pp-table">
+              <thead>
+                <tr>
+                  <th style="width:20%">% of OP</th>
+                  <th style="width:38%">Amount (AED)</th>
+                  <th style="width:30%">Due Date</th>
+                  <th style="width:12%"></th>
+                </tr>
+              </thead>
+              <tbody id="ppBody"></tbody>
+            </table>
+            <button class="add-pp-btn" onclick="addPPRow()">+ Add Payment Milestone</button>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:.45rem;font-size:.75rem;color:var(--text-muted)">
+            <span>Total %: <strong id="ppTotalPct" style="color:var(--gold)">0%</strong></span>
+            <span>Total amount: <strong id="ppTotalAmt" style="color:var(--gold)">AED 0</strong></span>
+          </div>
+        </div>
+      </div>
+    </div><!-- /step-0 -->
+
+    <!-- STEP 2 -->
+    <div class="step-page" id="step-1">
+      <div class="step-title">Acquisition <span class="gold">Costs</span></div>
+      <div class="step-sub">Additional costs beyond the purchase price. DLD, agency and trustee fees are calculated automatically in Results.</div>
+
+      <!-- ── SECTION A: FEES ── -->
+      <div class="acq-section-label">Fees</div>
+      <div class="field">
+        <div class="field-label">Legal Fees at Purchase <span class="unit-tag">AED</span></div>
+        <div class="input-box"><div class="unit-pre">AED</div><input type="text" id="legalFees" value="0" data-default="0" oninput="maskNum(this)"></div>
+      </div>
+
+      <!-- Mortgage fees — all auto-calculated, hidden from inputs, shown in results only -->
+      <input type="hidden" id="mortRegFee" value="0">
+      <input type="hidden" id="bankProcessFee" value="0">
+      <input type="hidden" id="valuationFee" value="3000">
+      <input type="hidden" id="mortInsurance" value="0">
+      <input type="hidden" id="lifeInsurance" value="0">
+      <span id="mortRegFeeDisplay" style="display:none"></span>
+      <span id="bankProcessFeeDisplay" style="display:none"></span>
+      <span id="mortInsuranceDisplay" style="display:none"></span>
+      <span id="lifeInsuranceDisplay" style="display:none"></span>
+
+      <!-- ── SECTION B: SETUP ── -->
+      <div class="acq-section-label" style="margin-top:1.25rem">Setup</div>
+      <div class="field-row">
+        <div class="field">
+          <div class="field-label">Renovation &amp; Upgrades <span class="unit-tag">AED Total</span></div>
+          <div class="input-box"><div class="unit-pre">AED</div><input type="text" id="renovCost" value="0" data-default="0" oninput="maskNum(this);syncRenovPsf('total')"></div>
+        </div>
+        <div class="field">
+          <div class="field-label">Renovation / ft² <span class="unit-tag">AED · Auto-fills total</span></div>
+          <div class="input-box"><div class="unit-pre">AED</div><input type="text" id="renovPsf" placeholder="e.g. 150" oninput="maskNum(this);syncRenovPsf('psf')"><div class="unit-suf">/ft²</div></div>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Furnishing Cost <span class="unit-tag">AED</span></div>
+        <div class="input-box"><div class="unit-pre">AED</div><input type="text" id="furnCost" value="0" data-default="0" oninput="maskNum(this)"></div>
+      </div>
+      <div class="field" id="f-utility">
+        <div class="field-label">Utility Setup &#8212; DEWA + Gas + AC <span class="unit-tag">AED</span></div>
+        <div class="input-box"><div class="unit-pre">AED</div><input type="text" id="utilityCost" value="4,000" oninput="maskNum(this)"></div>
+      </div>
+
+      <!-- ── SECTION C: EXTRA FEES ── -->
+      <div class="acq-section-label" style="margin-top:1.25rem">Extra Fees</div>
+      <div class="field">
+        <div id="extraFeesList"></div>
+        <button class="add-fee-btn" onclick="addFee()">+ Add Custom Fee</button>
+      </div>
+
+      <!-- ── EXIT COSTS ── -->
+      <div class="acq-section-label" style="margin-top:1.25rem">Exit Costs <span style="font-size:.6rem;font-weight:400;letter-spacing:.04em;text-transform:none;opacity:.6">(At resale — excluded from acquisition total)</span></div>
+      <div class="info-note" style="margin-bottom:.85rem">
+        <span class="dot">&#9679;</span>NOC (AED 525 ready / AED 5,250 off-plan) and agency commission (2% + 5% VAT on resale price) are calculated automatically.
+      </div>
+      <div class="field">
+        <div class="field-label">Legal Fees at Resale <span class="unit-tag">AED</span></div>
+        <div class="input-box"><div class="unit-pre">AED</div><input type="text" id="legalFeesResale" value="0" data-default="0" oninput="maskNum(this)"></div>
+      </div>
+      <!-- hidden ghost elements so calc() writes don't crash -->
+      <input type="hidden" id="nocFee" value="525">
+      <input type="hidden" id="resaleAgency" value="0">
+      <!-- Mortgage exit costs — shown when financing = Mortgage -->
+      <!-- Early settlement + liability letter: auto-calculated, hidden from inputs -->
+      <input type="hidden" id="earlySettleFee" value="0">
+      <input type="hidden" id="liabilityLetter" value="300">
+
+      <!-- Mortgage Placeholder (only shown if financing = Mortgage) -->
+      <div class="hidden" id="f-mortgageCard">
+        <div class="mortgage-card">
+          <div class="mortgage-card-title">Mortgage Calculator</div>
+          <div class="field-row">
+            <div class="field">
+              <div class="field-label">Mortgage Amount <span class="unit-tag">AED &#183; Auto</span></div>
+              <div class="input-box"><div class="unit-pre">AED</div><input type="text" id="mortgageAmt" placeholder="Auto-calculated" readonly style="color:var(--text-muted)"></div>
+            </div>
+            <div class="field">
+              <div class="field-label">Interest Rate <span class="unit-tag">% p.a.</span></div>
+              <div class="input-box"><input type="text" id="interestRate" placeholder="4.5" oninput="maskNum(this)"><div class="unit-suf">%</div></div>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <div class="field-label">Fixed Rate Period <span class="unit-tag">Years</span></div>
+              <div class="input-box"><select id="fixedPeriod"><option value="1">1 Year</option><option value="3" selected>3 Years</option><option value="5">5 Years</option></select></div>
+            </div>
+            <div class="field">
+              <div class="field-label">Total Mortgage Duration <span class="unit-tag">Years</span></div>
+              <div class="input-box"><select id="mortgageDuration"><option value="5">5 Years</option><option value="10">10 Years</option><option value="15">15 Years</option><option value="20" selected>20 Years</option><option value="25">25 Years</option></select></div>
+            </div>
+          </div>
+          <div class="mortgage-coming"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:.4rem;opacity:.7"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Monthly payment output and integration into net rental yield — coming in the next phase.</div>
+        </div>
+      </div>
+    </div><!-- /step-1 -->
+
+    <!-- STEP 3 -->
+    <div class="step-page" id="step-2">
+      <div class="step-title">Returns <span class="gold">Inputs</span></div>
+      <div class="step-sub">Enter rental projections and appreciation assumptions.</div>
+
+      <!-- Self-use inputs — shown when Purpose = Self-use -->
+      <div id="f-noRental">
+        <div class="info-note" style="margin-bottom:1.5rem"><span class="dot">&#9679;</span>Enter the details below to evaluate your home as a long-term ownership decision.</div>
+
+        <div class="field">
+          <div class="field-label" style="color:var(--warm-silver);letter-spacing:.12em">Home Ownership Context</div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <div class="field-label">Yearly Maintenance Fees <span class="unit-tag">AED / Year</span></div>
+            <div class="input-box"><div class="unit-pre">AED</div><input type="text" id="suYearlyMaint" value="5,000" oninput="maskNum(this)"></div>
+          </div>
+          <div class="field">
+            <div class="field-label">Annual Insurance <span class="unit-tag">AED / Year</span></div>
+            <div class="input-box"><div class="unit-pre">AED</div><input type="text" id="insuranceCost" value="0" data-default="0" oninput="maskNum(this)"></div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">Equivalent Market Rent <span class="unit-tag">AED / Year · What this home rents for</span></div>
+          <div class="input-box"><div class="unit-pre">AED</div><input type="text" id="suMarketRent" placeholder="120,000" oninput="maskNum(this)"></div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Estimated Annual Rental Increase <span class="unit-tag">% / Year · For holding period projections</span></div>
+          <div class="input-box"><input type="text" id="suRentIncrease" value="3" oninput="maskNum(this)"><div class="unit-suf">%</div></div>
+        </div>
+      </div>
+
+      <!-- Long-Term -->
+      <div id="f-ltRental" class="hidden">
+        <div class="field">
+          <div class="field-label">Yearly Rental Price <span class="unit-tag">AED / Year</span></div>
+          <div class="input-box"><div class="unit-pre">AED</div><input type="text" id="yearlyRent" placeholder="120,000" oninput="maskNum(this)"></div>
+        </div>
+        <div class="field">
+          <div class="field-label">Yearly Maintenance Fees <span class="unit-tag">AED / Year</span></div>
+          <div class="input-box"><div class="unit-pre">AED</div><input type="text" id="yearlyMaint" value="5,000" oninput="maskNum(this)"></div>
+        </div>
+        <div class="field">
+          <div class="field-label">Property Management Fee</div>
+          <div class="toggle-wrap" style="margin-bottom:.6rem">
+            <button class="toggle-btn active" onclick="setPM('pct',this,'lt')">% of Yearly Rent</button>
+            <button class="toggle-btn" onclick="setPM('fixed',this,'lt')">Fixed AED Amount</button>
+          </div>
+          <div id="lt-pct"><div class="field-label" style="margin-bottom:.38rem">Rate <span class="unit-tag">%</span></div><div class="input-box"><input type="text" id="ltPMPct" value="8" oninput="maskNum(this)"><div class="unit-suf">%</div></div></div>
+          <div id="lt-fixed" class="hidden"><div class="field-label" style="margin-bottom:.38rem">Fixed Amount <span class="unit-tag">AED / Year</span></div><div class="input-box"><div class="unit-pre">AED</div><input type="text" id="ltPMFixed" value="0" oninput="maskNum(this)"></div></div>
+        </div>
+        <div class="field" id="f-ltAppreciation">
+          <div class="field-label">Yearly Rental Value Appreciation <span class="unit-tag">% / Year</span></div>
+          <div class="input-box"><input type="text" id="ltAppreciation" value="3" oninput="maskNum(this)"><div class="unit-suf">%</div></div>
+        </div>
+      </div>
+
+      <!-- Short-Term -->
+      <div id="f-stRental" class="hidden">
+        <div class="field">
+          <div class="field-label">Monthly Rental Price <span class="unit-tag">AED / Month</span></div>
+          <div class="input-box"><div class="unit-pre">AED</div><input type="text" id="monthlyRent" placeholder="15,000" oninput="maskNum(this)"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><div class="field-label">Monthly Utilities <span class="unit-tag">AED</span></div><div class="input-box"><div class="unit-pre">AED</div><input type="text" id="monthlyUtil" value="0" data-default="0" oninput="maskNum(this)"></div></div>
+          <div class="field"><div class="field-label">Monthly Maintenance <span class="unit-tag">AED</span></div><div class="input-box"><div class="unit-pre">AED</div><input type="text" id="monthlyMaint" value="500" oninput="maskNum(this)"></div></div>
+        </div>
+        <div class="field">
+          <div class="field-label">Property Management Fee</div>
+          <div class="toggle-wrap" style="margin-bottom:.6rem">
+            <button class="toggle-btn active" onclick="setPM('pct',this,'st')">% of Monthly Rent</button>
+            <button class="toggle-btn" onclick="setPM('fixed',this,'st')">Fixed AED Amount</button>
+          </div>
+          <div id="st-pct"><div class="field-label" style="margin-bottom:.38rem">Rate <span class="unit-tag">%</span></div><div class="input-box"><input type="text" id="stPMPct" value="15" oninput="maskNum(this)"><div class="unit-suf">%</div></div></div>
+          <div id="st-fixed" class="hidden"><div class="field-label" style="margin-bottom:.38rem">Fixed Amount <span class="unit-tag">AED / Month</span></div><div class="input-box"><div class="unit-pre">AED</div><input type="text" id="stPMFixed" value="0" oninput="maskNum(this)"></div></div>
+        </div>
+        <div class="field">
+          <div class="field-label">Occupancy Rate <span class="unit-tag">%</span></div>
+          <div class="slider-wrap">
+            <input type="range" min="40" max="100" value="75" step="5" id="occupancyRate" oninput="document.getElementById('occupancyVal').textContent=this.value+'%'">
+            <div class="slider-val" id="occupancyVal">75%</div>
+          </div>
+        </div>
+        <div class="field" id="f-stAppreciation">
+          <div class="field-label">Yearly Rental Value Appreciation <span class="unit-tag">% / Year</span></div>
+          <div class="input-box"><input type="text" id="stAppreciation" value="3" oninput="maskNum(this)"><div class="unit-suf">%</div></div>
+        </div>
+      </div>
+
+      <!-- Capital Appreciation & Cash Available — always shown -->
+      <div class="field" style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border-subtle)">
+        <div class="field-label" style="color:var(--warm-silver);letter-spacing:.12em">Capital Appreciation</div>
+      </div>
+      <div class="field">
+        <div class="field-label">Capital Appreciation <span class="unit-tag">% / Year</span></div>
+        <div class="input-box"><input type="text" id="capAppPct" value="5" oninput="maskNum(this)"><div class="unit-suf">%</div></div>
+      </div>
+    </div><!-- /step-2 -->
+
+    <!-- STEP 4: RESULTS -->
+    <div class="step-page" id="step-3">
+      <div class="step-title">Evaluation <span class="gold">Results</span></div>
+      <div class="step-sub">Full breakdown based on your inputs. All figures in AED.</div>
+
+      <div class="info-note hidden" id="out-offplanNote">
+        <span class="dot">&#9679;</span><span id="out-offplanNoteText">Service charges apply from handover date only, not purchase date.</span>
+      </div>
+
+      <div class="results-section">
+        <div class="results-section-title">Acquisition Fee Breakdown</div>
+        <table class="fee-table" style="background:rgba(17,43,77,.3);border-radius:var(--r)">
+          <tbody id="feeTableBody">
+            <!-- Down payment — not checkable, not editable (computed) -->
+            <tr>
+              <td class="fee-label">Down Payment</td>
+              <td class="fee-val">
+                <div class="fee-edit-wrap">
+                  <span style="font-size:.7rem;color:rgba(191,198,209,.45);font-weight:400">AED</span>
+                  <input class="fee-edit-input" id="br-dp" type="text" value="0" readonly>
+                </div>
+              </td>
+            </tr>
+            <tr id="br-dpNote" style="display:none">
+              <td class="fee-label" colspan="2" style="color:rgba(136,153,170,.6);font-size:.78rem;padding:.25rem 1rem .5rem 1.5rem">&#8627; Payment to Seller only (transferable plan)</td>
+            </tr>
+
+            <!-- DLD — checkable, not editable -->
+            <tr id="br-dldRow">
+              <td class="fee-label"><div class="fee-label-wrap"><label><input type="checkbox" class="fee-row-check" id="chk-dld" checked onchange="onFeeToggle('br-dldRow','br-dld',this)">DLD Fee (4% of Property Price)</label></div></td>
+              <td class="fee-val"><div class="fee-edit-wrap"><span style="font-size:.7rem;color:rgba(191,198,209,.45);font-weight:400">AED</span><input class="fee-edit-input" id="br-dld" type="text" value="0" readonly></div></td>
+            </tr>
+
+            <!-- Payment plan row -->
+            <tr id="br-ppRow" style="display:none">
+              <td class="fee-label" style="display:flex;align-items:center;gap:.6rem">
+                Payment Plan
+                <button class="btn btn-outline btn-sm" id="ppViewBtn" onclick="openPPView()" style="padding:.18rem .55rem;font-size:.62rem">View &#8594;</button>
+              </td>
+              <td class="fee-val" id="br-ppSummary" style="color:var(--text-muted);font-size:.8rem"></td>
+            </tr>
+
+            <!-- Title Deed — checkable, editable -->
+            <tr id="br-titleDeedRow">
+              <td class="fee-label"><div class="fee-label-wrap"><label><input type="checkbox" class="fee-row-check" id="chk-titleDeed" checked onchange="onFeeToggle('br-titleDeedRow','br-titleDeed',this)">Title Deed Fees</label></div></td>
+              <td class="fee-val"><div class="fee-edit-wrap"><span style="font-size:.7rem;color:rgba(191,198,209,.45);font-weight:400">AED</span><input class="fee-edit-input" id="br-titleDeed" type="text" value="580" oninput="onFeeEdit('br-titleDeed')"></div></td>
+            </tr>
+
+            <!-- Trustee — checkable, editable -->
+            <tr id="br-trusteeRow">
+              <td class="fee-label"><div class="fee-label-wrap"><label><input type="checkbox" class="fee-row-check" id="chk-trustee" checked onchange="onFeeToggle('br-trusteeRow','br-trustee',this)">Trustee Fees</label></div></td>
+              <td class="fee-val"><div class="fee-edit-wrap"><span style="font-size:.7rem;color:rgba(191,198,209,.45);font-weight:400">AED</span><input class="fee-edit-input" id="br-trustee" type="text" value="0" oninput="onFeeEdit('br-trustee')"></div></td>
+            </tr>
+
+            <!-- Agency — checkable, editable -->
+            <tr id="br-agencyRow">
+              <td class="fee-label"><div class="fee-label-wrap"><label><input type="checkbox" class="fee-row-check" id="chk-agency" checked onchange="onFeeToggle('br-agencyRow','br-agency',this)">Agency Fees (2% + 5% VAT)</label></div></td>
+              <td class="fee-val"><div class="fee-edit-wrap"><span style="font-size:.7rem;color:rgba(191,198,209,.45);font-weight:400">AED</span><input class="fee-edit-input" id="br-agency" type="text" value="0" oninput="onFeeEdit('br-agency')"></div></td>
+            </tr>
+
+            <!-- Service charge reimbursement — checkable, not editable -->
+            <tr id="br-svcRow">
+              <td class="fee-label"><div class="fee-label-wrap"><label><input type="checkbox" class="fee-row-check" id="chk-svc" checked onchange="onFeeToggle('br-svcRow','br-svc',this)">Service Charge Reimbursement</label></div></td>
+              <td class="fee-val"><div class="fee-edit-wrap"><span style="font-size:.7rem;color:rgba(191,198,209,.45);font-weight:400">AED</span><input class="fee-edit-input" id="br-svc" type="text" value="0" readonly></div></td>
+            </tr>
+
+            <!-- ── FEES SECTION ── -->
+            <tr><td class="fee-label" colspan="2" style="font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--brushed-silver);padding-top:.75rem;opacity:.7">Fees</td></tr>
+
+            <!-- Legal — checkable, editable -->
+            <tr id="br-legalRow">
+              <td class="fee-label"><div class="fee-label-wrap"><label><input type="checkbox" class="fee-row-check" id="chk-legal" checked onchange="onFeeToggle('br-legalRow','br-legal',this)">Legal Fees at Purchase</label></div></td>
+              <td class="fee-val"><div class="fee-edit-wrap"><span style="font-size:.7rem;color:rgba(191,198,209,.45);font-weight:400">AED</span><input class="fee-edit-input" id="br-legal" type="text" value="0" oninput="onFeeEdit('br-legal')"></div></td>
+            </tr>
+
+            <!-- Mortgage fees — checkable, not editable (auto-calculated) -->
+            <tr id="br-mortRegRow" style="display:none">
+              <td class="fee-label"><div class="fee-label-wrap"><label><input type="checkbox" class="fee-row-check" id="chk-mortReg" checked onchange="onFeeToggle('br-mortRegRow','br-mortReg',this)">Mortgage Registration Fee</label></div></td>
+              <td class="fee-val"><div class="fee-edit-wrap"><span style="font-size:.7rem;color:rgba(191,198,209,.45);font-weight:400">AED</span><input class="fee-edit-input" id="br-mortReg" type="text" value="0" readonly></div></td>
+            </tr>
+            <tr id="br-bankProcRow" style="display:none">
+              <td class="fee-label"><div class="fee-label-wrap"><label><input type="checkbox" class="fee-row-check" id="chk-bankProc" checked onchange="onFeeToggle('br-bankProcRow','br-bankProc',this)">Bank Processing Fee</label></div></td>
+              <td class="fee-val"><div class="fee-edit-wrap"><span style="font-size:.7rem;color:rgba(191,198,209,.45);font-weight:400">AED</span><input class="fee-edit-input" id="br-bankProc" type="text" value="0" readonly></div></td>
+            </tr>
+            <tr id="br-valuationRow" style="display:none">
+              <td class="fee-label"><div class="fee-label-wrap"><label><input type="checkbox" class="fee-row-check" id="chk-valuation" checked onchange="onFeeToggle('br-valuationRow','br-valuation',this)">Property Valuation Fee</label></div></td>
+              <td class="fee-val"><div class="fee-edit-wrap"><span style="font-size:.7rem;color:rgba(191,198,209,.45);font-weight:400">AED</span><input class="fee-edit-input" id="br-valuation" type="text" value="0" readonly></div></td>
+            </tr>
+            <tr id="br-mortInsRow" style="display:none">
+              <td class="fee-label"><div class="fee-label-wrap"><label><input type="checkbox" class="fee-row-check" id="chk-mortIns" checked onchange="onFeeToggle('br-mortInsRow','br-mortIns',this)">Mortgage Insurance (Annual)</label></div></td>
+              <td class="fee-val"><div class="fee-edit-wrap"><span style="font-size:.7rem;color:rgba(191,198,209,.45);font-weight:400">AED</span><input class="fee-edit-input" id="br-mortIns" type="text" value="0" readonly></div></td>
+            </tr>
+            <tr id="br-lifeInsRow" style="display:none">
+              <td class="fee-label"><div class="fee-label-wrap"><label><input type="checkbox" class="fee-row-check" id="chk-lifeIns" checked onchange="onFeeToggle('br-lifeInsRow','br-lifeIns',this)">Life Insurance (Annual)</label></div></td>
+              <td class="fee-val"><div class="fee-edit-wrap"><span style="font-size:.7rem;color:rgba(191,198,209,.45);font-weight:400">AED</span><input class="fee-edit-input" id="br-lifeIns" type="text" value="0" readonly></div></td>
+            </tr>
+
+            <!-- Annual insurance — checkable, editable -->
+            <tr id="br-insuranceRow">
+              <td class="fee-label"><div class="fee-label-wrap"><label><input type="checkbox" class="fee-row-check" id="chk-insurance" checked onchange="onFeeToggle('br-insuranceRow','br-insurance',this)">Annual Insurance</label></div></td>
+              <td class="fee-val"><div class="fee-edit-wrap"><span style="font-size:.7rem;color:rgba(191,198,209,.45);font-weight:400">AED</span><input class="fee-edit-input" id="br-insurance" type="text" value="0" oninput="onFeeEdit('br-insurance')"></div></td>
+            </tr>
+
+            <!-- ── SETUP SECTION ── -->
+            <tr><td class="fee-label" colspan="2" style="font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--brushed-silver);padding-top:.75rem;opacity:.7">Setup</td></tr>
+            <tr id="br-renovRow">
+              <td class="fee-label"><div class="fee-label-wrap"><label><input type="checkbox" class="fee-row-check" id="chk-renov" checked onchange="onFeeToggle('br-renovRow','br-renov',this)">Renovation &amp; Upgrades</label></div></td>
+              <td class="fee-val"><div class="fee-edit-wrap"><span style="font-size:.7rem;color:rgba(191,198,209,.45);font-weight:400">AED</span><input class="fee-edit-input" id="br-renov" type="text" value="0" oninput="onFeeEdit('br-renov')"></div></td>
+            </tr>
+            <tr id="br-furnRow">
+              <td class="fee-label"><div class="fee-label-wrap"><label><input type="checkbox" class="fee-row-check" id="chk-furn" checked onchange="onFeeToggle('br-furnRow','br-furn',this)">Furnishing</label></div></td>
+              <td class="fee-val"><div class="fee-edit-wrap"><span style="font-size:.7rem;color:rgba(191,198,209,.45);font-weight:400">AED</span><input class="fee-edit-input" id="br-furn" type="text" value="0" oninput="onFeeEdit('br-furn')"></div></td>
+            </tr>
+            <tr id="br-utilRow">
+              <td class="fee-label"><div class="fee-label-wrap"><label><input type="checkbox" class="fee-row-check" id="chk-util" checked onchange="onFeeToggle('br-utilRow','br-util',this)">Utility Setup — DEWA + Gas + AC</label></div></td>
+              <td class="fee-val"><div class="fee-edit-wrap"><span style="font-size:.7rem;color:rgba(191,198,209,.45);font-weight:400">AED</span><input class="fee-edit-input" id="br-util" type="text" value="0" readonly></div></td>
+            </tr>
+            <tr style="background:rgba(191,198,209,.05)">
+              <td class="fee-label" style="font-weight:600;color:var(--warm-silver)">Total Setup Cost</td>
+              <td class="fee-val"><div class="fee-edit-wrap"><span style="font-size:.7rem;color:rgba(191,198,209,.45);font-weight:400">AED</span><input class="fee-edit-input" id="br-setup" type="text" value="0" readonly style="color:var(--warm-silver);font-weight:600"></div></td>
+            </tr>
+
+            <!-- Extra fees -->
+            <tbody id="br-extraRows"></tbody>
+
+            <!-- Totals -->
+            <tr class="total-row">
+              <td class="fee-label">Total Acquisition Cost</td>
+              <td class="fee-val"><div class="fee-edit-wrap"><span style="font-size:.7rem;color:rgba(212,175,55,.6);font-weight:400">AED</span><input class="fee-edit-input" id="br-total" type="text" value="0" readonly style="color:var(--gold)"></div></td>
+            </tr>
+            <tr style="background:rgba(191,198,209,.08)">
+              <td class="fee-label" style="font-weight:700;color:var(--ivory)">Total Capital Invested</td>
+              <td class="fee-val"><div class="fee-edit-wrap"><span style="font-size:.7rem;color:rgba(191,198,209,.45);font-weight:400">AED</span><input class="fee-edit-input" id="br-totalCapital" type="text" value="0" readonly style="color:var(--ivory);font-weight:700"></div></td>
+            </tr>
+          </tbody></table>
+      </div>
+
+
+      <!-- ═══ SCENARIO A: Ready · Cash · No Plan · Self-Use ═══ -->
+      <div class="results-section" id="out-selfUseSec">
+
+        <!-- ── MONTHLY ── -->
+        <div class="results-section-title">Monthly Ownership</div>
+        <div class="kpi-grid" style="margin-bottom:1.5rem">
+          <div class="kpi-card neutral">
+            <div class="kpi-label">Monthly Cost of Ownership</div>
+            <div class="kpi-value cost-val" id="su-mCost">AED 0</div>
+            <div class="kpi-sub">Maintenance + Service Charge + Insurance</div>
+          </div>
+          <div class="kpi-card highlight light-highlight">
+            <div class="kpi-label">Total Capital Invested</div>
+            <div class="kpi-value success-val" id="su-mTotalCapital">AED 0</div>
+            <div class="kpi-sub">Acquisition + Setup + Insurance</div>
+          </div>
+        </div>
+        <!-- hidden ghost elements so calc() writes don't crash -->
+        <span id="su-mSvc" style="display:none"></span>
+        <span id="su-mMaint" style="display:none"></span>
+        <span id="su-mIns" style="display:none"></span>
+
+        <!-- ── YEARLY ── -->
+        <div class="results-section-title">Yearly Results</div>
+        <div class="kpi-grid" style="margin-bottom:1.5rem">
+          <div class="kpi-card neutral">
+            <div class="kpi-label">Cost of Ownership (Year 1)</div>
+            <div class="kpi-value cost-val" id="su-yCost">AED 0</div>
+            <div class="kpi-sub">Maintenance + Service Charge + Insurance</div>
+          </div>
+          <div class="kpi-card highlight light-highlight">
+            <div class="kpi-label">Equivalent Rental Value Saved</div>
+            <div class="kpi-value success-val" id="su-yRentSaved">AED 0</div>
+            <div class="kpi-sub">Market Rent − Cost of Ownership</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Yearly Home Value Appreciation</div>
+            <div class="kpi-value gold-val" id="su-yCapGain">AED 0</div>
+            <div class="kpi-sub" id="su-yCapGainSub">At 5% p.a. (Year 1)</div>
+          </div>
+        </div>
+
+        <!-- ── HOLDING PERIOD ── -->
+        <div class="results-section-title">Over Holding Period</div>
+        <div class="kpi-grid" style="margin-bottom:1.5rem">
+          <div class="kpi-card neutral">
+            <div class="kpi-label">Total Cost of Ownership</div>
+            <div class="kpi-value cost-val" id="su-hpCost">AED 0</div>
+            <div class="kpi-sub" id="su-hpCostSub">With 2% annual cost inflation</div>
+          </div>
+          <div class="kpi-card highlight light-highlight">
+            <div class="kpi-label">Equivalent Rental Value Saved</div>
+            <div class="kpi-value success-val" id="su-hpRentSaved">AED 0</div>
+            <div class="kpi-sub" id="su-hpRentSavedSub">Cumulative rent − ownership cost</div>
+          </div>
+          <div class="kpi-card highlight light-highlight">
+            <div class="kpi-label">Estimated Exit Value</div>
+            <div class="kpi-value success-val" id="su-exitValue">AED 0</div>
+            <div class="kpi-sub">Purchase + Setup (1.4×) + Total Appreciation</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Total Home Value Appreciation</div>
+            <div class="kpi-value gold-val" id="su-hpCapGain">AED 0</div>
+            <div class="kpi-sub">Compound over holding period</div>
+          </div>
+        </div>
+
+        <!-- ── ADVANCED METRICS ── -->
+        <div class="results-section-title">Advanced Metrics</div>
+        <div class="kpi-grid" style="margin-bottom:1rem">
+          <div class="kpi-card">
+            <div class="kpi-label">Implied Net Rental Yield <span style="font-size:.6rem;opacity:.6;margin-left:.3rem" title="Market rent minus property mgmt (8%), service charges, maintenance and insurance, divided by purchase price">?</span></div>
+            <div class="kpi-value gold-val" id="su-hypYield">0.00%</div>
+            <div class="kpi-sub">Net of Mgmt + Svc + Maint + Insurance</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Price vs Market / ft²</div>
+            <div class="kpi-value metric-val" id="su-psfVsMarket">—</div>
+            <div class="kpi-sub" id="su-psfVsMarketSub">Enter market price/ft² above</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Annual Running Cost <span style="font-size:.6rem;opacity:.6;margin-left:.3rem" title="Service charge + maintenance + insurance as a % of purchase price. Low = lean property to hold. Dubai range: 0.5%–3%.">?</span></div>
+            <div class="kpi-value" id="su-runningCostPct">0.00%</div>
+            <div class="kpi-sub" id="su-runningCostSub">of Property Value / Year</div>
+          </div>
+          <!-- ghost elements so calc() doesn't crash -->
+          <span id="su-effRatio" style="display:none"></span>
+          <span id="su-effRatioSub" style="display:none"></span>
+          <span id="su-effBar" style="display:none"></span>
+          <div class="kpi-card">
+            <div class="kpi-label">Capital Growth Multiple</div>
+            <div class="kpi-value success-val" id="su-capMultiple">0.00×</div>
+            <div class="kpi-sub">Exit Value ÷ Purchase Price</div>
+          </div>
+        </div>
+
+        <!-- ghost elements for calc() -->
+        <span id="su-breakEvenYrs" style="display:none"></span>
+        <span id="su-breakEvenSub" style="display:none"></span>
+        <div id="su-breakEvenVerdict" style="display:none"></div>
+        <span id="su-netRoi" style="display:none"></span>
+
+
+        <!-- ── CHARTS (Scenario A) ── -->
+        <div class="results-section-title" style="margin-top:.5rem">Visual Dashboard</div>
+
+        <!-- Cost Recovery Progress Circle -->
+        <div style="display:flex;gap:1.5rem;flex-wrap:wrap;align-items:flex-start;margin-bottom:1.5rem">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:.65rem;min-width:140px">
+            <svg width="130" height="130" viewBox="0 0 130 130" id="su-recoverySvg">
+              <defs>
+                <linearGradient id="recoveryGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#BFC6D1"/>
+                  <stop offset="100%" stop-color="#F7F6F2"/>
+                </linearGradient>
+              </defs>
+              <!-- Track -->
+              <circle cx="65" cy="65" r="54" fill="none" stroke="rgba(191,198,209,.1)" stroke-width="10"/>
+              <!-- Progress arc -->
+              <circle cx="65" cy="65" r="54" fill="none" stroke="url(#recoveryGrad)" stroke-width="10"
+                stroke-linecap="round" stroke-dasharray="339.3 339.3" stroke-dashoffset="339.3"
+                transform="rotate(-90 65 65)" id="su-recoveryArc"
+                style="transition:stroke-dashoffset .9s cubic-bezier(.4,0,.2,1)"/>
+              <!-- Centre text -->
+              <text x="65" y="60" text-anchor="middle" font-size="22" font-weight="700"
+                fill="#F7F6F2" font-family="Nunito Sans,sans-serif" id="su-recoveryPct">0%</text>
+              <text x="65" y="78" text-anchor="middle" font-size="10"
+                fill="rgba(191,198,209,.7)" font-family="Nunito Sans,sans-serif">recovered</text>
+            </svg>
+            <div style="text-align:center">
+              <div style="font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--brushed-silver)">Cost Recovery</div>
+              <div style="font-size:.62rem;color:var(--text-muted);margin-top:.2rem" id="su-recoveryLabel">Rent saved + appreciation<br>vs total capital</div>
+            </div>
+          </div>
+
+          <div id="su-barChart" style="display:none"></div>
+        </div>
+      </div><!-- /out-selfUseSec -->
+
+      <!-- ═══ SCENARIO B: Ready · Cash · No Plan · Flip ═══ -->
+      <div class="results-section" id="out-flipSec" style="display:none">
+
+        <!-- Flip P&L -->
+        <div class="results-section-title">Flip P&amp;L</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem">
+          <div class="kpi-card neutral">
+            <div class="kpi-label">Total Capital Deployed</div>
+            <div class="kpi-value cost-val" id="fl-capitalIn">AED 0</div>
+            <div class="kpi-sub">Acquisition + Renovation + Furnishing</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Estimated Resale Price</div>
+            <div class="kpi-value gold-val" id="fl-resalePrice">AED 0</div>
+            <div class="kpi-sub">Purchase + Appreciation + Reno (1.4×)</div>
+          </div>
+          <div class="kpi-card neutral">
+            <div class="kpi-label">Total Exit Costs</div>
+            <div class="kpi-value cost-val" id="fl-exitCosts">AED 0</div>
+            <div class="kpi-sub" id="fl-exitCostsSub">NOC + Agency + Legal</div>
+          </div>
+          <div class="kpi-card highlight light-highlight">
+            <div class="kpi-label">Net Proceeds</div>
+            <div class="kpi-value success-val" id="fl-netProceeds">AED 0</div>
+            <div class="kpi-sub">Resale − Exit Costs</div>
+          </div>
+          <div class="kpi-card highlight light-highlight" style="border:1px solid rgba(191,198,209,.28)">
+            <div class="kpi-label">Net Profit</div>
+            <div class="kpi-value success-val" id="fl-netProfit">AED 0</div>
+            <div class="kpi-sub">Net Proceeds − Total Capital Deployed</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Net Profit Margin</div>
+            <div class="kpi-value" id="fl-profitMargin">0.00%</div>
+            <div class="kpi-sub">Net Profit ÷ Resale Price</div>
+          </div>
+        </div>
+
+        <!-- Exit Costs Breakdown -->
+        <div class="results-section-title">Exit Costs Breakdown</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem">
+          <div class="kpi-card">
+            <div class="kpi-label">NOC Fee</div>
+            <div class="kpi-value" id="fl-noc">AED 0</div>
+            <div class="kpi-sub" id="fl-nocSub">Ready / Off-Plan</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Agency at Resale</div>
+            <div class="kpi-value" id="fl-resaleAgencyOut">AED 0</div>
+            <div class="kpi-sub">2% + 5% VAT on resale price</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Legal Fees at Resale</div>
+            <div class="kpi-value" id="fl-legalResale">AED 0</div>
+            <div class="kpi-sub">As entered</div>
+          </div>
+          <div class="kpi-card" id="fl-mortExitCard" style="display:none">
+            <div class="kpi-label">Early Settlement + Liability Letter</div>
+            <div class="kpi-value" id="fl-mortExit">AED 0</div>
+            <div class="kpi-sub">Mortgage exit costs</div>
+          </div>
+        </div>
+
+        <!-- Returns -->
+        <div class="results-section-title">Returns</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem">
+          <div class="kpi-card highlight light-highlight">
+            <div class="kpi-label">Simple ROI</div>
+            <div class="kpi-value success-val" id="fl-roi">0.00%</div>
+            <div class="kpi-sub">Net Profit ÷ Total Capital Deployed</div>
+          </div>
+          <div class="kpi-card highlight light-highlight">
+            <div class="kpi-label">Annualised Return</div>
+            <div class="kpi-value success-val" id="fl-annualisedRoi">0.00%</div>
+            <div class="kpi-sub" id="fl-annualisedSub">Simple ROI adjusted for holding period</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Equity Multiple</div>
+            <div class="kpi-value" id="fl-equityMultiple">0.00×</div>
+            <div class="kpi-sub">Net Proceeds ÷ Capital Deployed</div>
+          </div>
+        </div>
+
+        <!-- Capital Safety -->
+        <div class="results-section-title">Capital Safety</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem">
+          <div class="kpi-card">
+            <div class="kpi-label">Break-Even Resale Price</div>
+            <div class="kpi-value" id="fl-breakEven">AED 0</div>
+            <div class="kpi-sub">Min. sale price to not lose money</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Buffer Above Break-Even</div>
+            <div class="kpi-value" id="fl-buffer">AED 0</div>
+            <div class="kpi-sub" id="fl-bufferSub">Price can fall this much before loss</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Buffer %</div>
+            <div class="kpi-value" id="fl-bufferPct">0.00%</div>
+            <div class="kpi-sub">Of estimated resale price</div>
+          </div>
+        </div>
+
+        <!-- Renovation Breakdown -->
+        <div class="results-section-title">Renovation Breakdown</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem">
+          <div class="kpi-card">
+            <div class="kpi-label">Renovation Cost</div>
+            <div class="kpi-value" id="fl-renovCost">AED 0</div>
+            <div class="kpi-sub" id="fl-renovPsf">— / ft²</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Renovation Multiplier</div>
+            <div class="kpi-value" id="fl-renovMultiplier">1.40×</div>
+            <div class="kpi-sub">Value added vs cost</div>
+          </div>
+          <div class="kpi-card highlight light-highlight">
+            <div class="kpi-label">Net Value-Add from Renovation</div>
+            <div class="kpi-value success-val" id="fl-renovUplift">AED 0</div>
+            <div class="kpi-sub">Reno × 0.4 — net gain above cost</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Renovation as % of Purchase</div>
+            <div class="kpi-value" id="fl-renovPct">0.00%</div>
+            <div class="kpi-sub">Budget proportionality check</div>
+          </div>
+        </div>
+
+        <!-- Waterfall Chart -->
+        <div class="results-section-title">Profit Waterfall</div>
+        <div style="background:rgba(17,43,77,.3);border:1px solid var(--border-subtle);border-radius:var(--r);padding:1.25rem 1rem;margin-bottom:1rem">
+          <div class="waterfall-bar-wrap" id="fl-waterfall">
+            <!-- Injected by calc() -->
+          </div>
+          <div style="display:flex;gap:1.25rem;margin-top:.75rem;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:.4rem;font-size:.7rem;color:var(--brushed-silver)"><div style="width:12px;height:3px;background:rgba(191,198,209,.6);border-radius:2px"></div>Gain</div>
+            <div style="display:flex;align-items:center;gap:.4rem;font-size:.7rem;color:rgba(231,76,60,.7)"><div style="width:12px;height:3px;background:rgba(231,76,60,.55);border-radius:2px"></div>Cost</div>
+            <div style="display:flex;align-items:center;gap:.4rem;font-size:.7rem;color:rgba(46,204,113,.7)"><div style="width:12px;height:3px;background:rgba(46,204,113,.45);border-radius:2px"></div>Net</div>
+          </div>
+        </div>
+
+      </div><!-- /out-flipSec -->
+
+      <!-- ═══ RENTAL SCENARIOS: C/D/G/H/K/L/O/O2/R/S ═══ -->
+      <div class="results-section" id="out-rentalScenarioSec" style="display:none">
+
+        <div class="results-section-title" style="margin-top:1rem">Monthly</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card"><div class="kpi-label">Monthly Gross Rent</div><div class="kpi-value success-val" id="rs-mGross">—</div><div class="kpi-sub">Before expenses</div></div><div class="kpi-card highlight light-highlight"><div class="kpi-label">Monthly Net Rental Income</div><div class="kpi-value success-val" id="rs-mNet">—</div><div class="kpi-sub">After all operating costs</div></div><div class="kpi-card"><div class="kpi-label">Monthly Service Charge</div><div class="kpi-value success-val" id="rs-mSvc">—</div><div class="kpi-sub">Annual ÷ 12</div></div><div class="kpi-card"><div class="kpi-label">Monthly Property Management</div><div class="kpi-value success-val" id="rs-mMgmt">—</div><div class="kpi-sub">Default 8% of monthly gross</div></div></div>
+        <!-- ST only extras -->
+        <div id="rs-stExtras" style="display:none">
+
+        <div class="results-section-title" style="margin-top:1rem">Short-Term Monthly</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card"><div class="kpi-label">Occupancy Rate Applied</div><div class="kpi-value success-val" id="rs-occApplied">—</div><div class="kpi-sub">User-entered target</div></div><div class="kpi-card"><div class="kpi-label">Revenue at Full Occupancy</div><div class="kpi-value success-val" id="rs-fullOcc">—</div><div class="kpi-sub">Monthly if 100% occupied</div></div><div class="kpi-card"><div class="kpi-label">Break-Even Occupancy</div><div class="kpi-value success-val" id="rs-beo">—</div><div class="kpi-sub">Min. to cover all costs</div></div></div>
+        </div>
+        <!-- Mortgage monthly -->
+        <div id="rs-mortMonthly" style="display:none">
+
+        <div class="results-section-title" style="margin-top:1rem">Monthly Mortgage</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card"><div class="kpi-label">Monthly Mortgage Payment</div><div class="kpi-value success-val" id="rs-mMortgage">—</div><div class="kpi-sub">From loan inputs</div></div><div class="kpi-card"><div class="kpi-label">Rent vs Mortgage</div><div class="kpi-value success-val" id="rs-mRentVsMort">—</div><div class="kpi-sub">Monthly net − mortgage payment</div></div><div class="kpi-card"><div class="kpi-label">Monthly Surplus / Top-up</div><div class="kpi-value success-val" id="rs-mSurplus">—</div><div class="kpi-sub">Positive = surplus, negative = top-up</div></div></div>
+        </div>
+
+        <div class="results-section-title" style="margin-top:1rem">Annual</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card"><div class="kpi-label">Gross Rental Yield %</div><div class="kpi-value success-val" id="rs-yGross" style="color:var(--gold)">—</div><div class="kpi-sub">Annual gross ÷ purchase price</div></div><div class="kpi-card highlight light-highlight"><div class="kpi-label">Net Rental Yield %</div><div class="kpi-value success-val" id="rs-yNet">—</div><div class="kpi-sub">After all operating costs</div></div><div class="kpi-card"><div class="kpi-label">Net Rental Income / Year</div><div class="kpi-value success-val" id="rs-yNetAED">—</div><div class="kpi-sub">Annual net in AED</div></div><div class="kpi-card"><div class="kpi-label">NOI</div><div class="kpi-value success-val" id="rs-noi">—</div><div class="kpi-sub">Before mortgage</div></div><div class="kpi-card"><div class="kpi-label">Cap Rate</div><div class="kpi-value success-val" id="rs-capRate" style="color:var(--gold)">—</div><div class="kpi-sub">NOI ÷ purchase price. Dubai: 5–7.5%</div></div></div>
+        <!-- Mortgage annual -->
+        <div id="rs-mortAnnual" style="display:none">
+
+        <div class="results-section-title" style="margin-top:1rem">Annual After Mortgage</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card"><div class="kpi-label">Net Yield After Mortgage / Year</div><div class="kpi-value success-val" id="rs-yNetAfterMort">—</div><div class="kpi-sub">NOI − annual mortgage payments</div></div><div class="kpi-card"><div class="kpi-label">DSCR</div><div class="kpi-value success-val" id="rs-dscr">—</div><div class="kpi-sub">NOI ÷ annual debt service. Bank min: 1.25</div></div></div>
+        </div>
+        <!-- Off-plan note -->
+        <div id="rs-offplanNote" class="info-note hidden" style="margin-bottom:1rem">
+          <span class="dot">&#9679;</span><span id="rs-offplanNoteText">Service charges apply from handover only.</span>
+        </div>
+
+        <div class="results-section-title" style="margin-top:1rem">Holding Period</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card"><div class="kpi-label">Total Gross Rental Income</div><div class="kpi-value success-val" id="rs-tGross" style="color:var(--gold)">—</div><div class="kpi-sub">Across holding period</div></div><div class="kpi-card highlight light-highlight"><div class="kpi-label">Total Net Rental Income</div><div class="kpi-value success-val" id="rs-tNet">—</div><div class="kpi-sub">Across holding period</div></div><div class="kpi-card highlight light-highlight"><div class="kpi-label">Total Capital Gain</div><div class="kpi-value success-val" id="rs-capTotal">—</div><div class="kpi-sub">Compound appreciation over holding period</div></div><div class="kpi-card highlight light-highlight"><div class="kpi-label">Estimated Resale Price</div><div class="kpi-value success-val" id="rs-resale">—</div><div class="kpi-sub">Purchase + appreciation + setup (1.4×)</div></div><div class="kpi-card"><div class="kpi-label">Total Exit Costs</div><div class="kpi-value success-val" id="rs-exitCosts">—</div><div class="kpi-sub">NOC + agency + legal + mortgage exit</div></div><div class="kpi-card highlight light-highlight"><div class="kpi-label">Net ROI</div><div class="kpi-value success-val" id="rs-netRoi">—</div><div class="kpi-sub">(Net rental + capital gain) ÷ purchase price</div></div><div class="kpi-card"><div class="kpi-label">ROI on Total Capital</div><div class="kpi-value success-val" id="rs-roiCapital">—</div><div class="kpi-sub">Gains ÷ total capital invested</div></div></div>
+        <!-- Mortgage holding period -->
+        <div id="rs-mortHP" style="display:none">
+
+        <div class="results-section-title" style="margin-top:1rem">Mortgage — Holding Period</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card"><div class="kpi-label">Total Mortgage Payments</div><div class="kpi-value success-val" id="rs-totalMortPayments">—</div><div class="kpi-sub">Monthly payment × months held</div></div><div class="kpi-card"><div class="kpi-label">Early Settlement Fee</div><div class="kpi-value success-val" id="rs-earlySettle">—</div><div class="kpi-sub">1% of outstanding balance, max AED 10,000</div></div><div class="kpi-card"><div class="kpi-label">Mortgage Insurance Total</div><div class="kpi-value success-val" id="rs-mortInsTotal">—</div><div class="kpi-sub">0.5% × declining balance, year by year</div></div><div class="kpi-card"><div class="kpi-label">Life Insurance Total</div><div class="kpi-value success-val" id="rs-lifeInsTotal">—</div><div class="kpi-sub">0.36% × declining balance, year by year</div></div></div>
+        </div>
+        <!-- Off-plan holding period extras -->
+        <div id="rs-offplanHP" style="display:none">
+
+        <div class="results-section-title" style="margin-top:1rem">Off-Plan Specifics</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card"><div class="kpi-label">Service Charges From Handover</div><div class="kpi-value success-val" id="rs-svcFromHandover">—</div><div class="kpi-sub">Applies only post-handover years</div></div><div class="kpi-card"><div class="kpi-label">Appreciation to Handover</div><div class="kpi-value success-val" id="rs-capToHandover">—</div><div class="kpi-sub">Capital gain to handover date</div></div><div class="kpi-card"><div class="kpi-label">Estimated Value at Handover</div><div class="kpi-value success-val" id="rs-valAtHandover">—</div><div class="kpi-sub">Purchase price + appreciation</div></div></div>
+        </div>
+
+        <div class="results-section-title" style="margin-top:1rem">Advanced</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card highlight light-highlight"><div class="kpi-label">Equity Multiple</div><div class="kpi-value success-val" id="rs-equityMult">—</div><div class="kpi-sub">(Net rental + resale) ÷ total capital</div></div><div class="kpi-card"><div class="kpi-label">Gross Rent Multiplier</div><div class="kpi-value success-val" id="rs-grm">—</div><div class="kpi-sub">Price ÷ annual gross rent. Dubai: 12–16</div></div><div class="kpi-card"><div class="kpi-label">Operating Expense Ratio</div><div class="kpi-value success-val" id="rs-oer">—</div><div class="kpi-sub">Running costs ÷ gross rent %</div></div><div class="kpi-card"><div class="kpi-label">Payback Period</div><div class="kpi-value success-val" id="rs-payback">—</div><div class="kpi-sub">Total capital ÷ annual net income</div></div><div class="kpi-card highlight light-highlight"><div class="kpi-label">Estimated IRR</div><div class="kpi-value success-val" id="rs-irr">—</div><div class="kpi-sub">Annualised return on all cash flows</div></div></div>
+        <!-- Mortgage advanced -->
+        <div id="rs-mortAdv" style="display:none">
+
+        <div class="results-section-title" style="margin-top:1rem">Leverage</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card"><div class="kpi-label">Cash-on-Cash Return</div><div class="kpi-value success-val" id="rs-coc">—</div><div class="kpi-sub">Annual cash flow after mortgage ÷ equity invested</div></div><div class="kpi-card"><div class="kpi-label">Leverage Verdict</div><div class="kpi-value success-val" id="rs-leverage">—</div><div class="kpi-sub">Cap rate vs interest rate comparison</div></div><div class="kpi-card"><div class="kpi-label">Levered IRR</div><div class="kpi-value success-val" id="rs-irrLev">—</div><div class="kpi-sub">IRR on equity only after mortgage payments</div></div></div>
+        </div>
+      </div><!-- /out-rentalScenarioSec -->
+
+      <!-- ═══ SELF-USE SCENARIOS: E/I/M/P ═══ -->
+      <div class="results-section" id="out-selfUseOtherSec" style="display:none">
+
+        <div class="results-section-title" style="margin-top:1rem">Monthly</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card"><div class="kpi-label">Monthly Cost of Ownership</div><div class="kpi-value success-val" id="suo-mCost">—</div><div class="kpi-sub">Service charge + maintenance + insurance ÷ 12</div></div><div class="kpi-card highlight light-highlight"><div class="kpi-label">Total Capital Invested</div><div class="kpi-value success-val" id="suo-mTotalCapital">—</div><div class="kpi-sub">Acquisition + setup + insurance</div></div></div>
+        <div id="suo-mortMonthly" style="display:none">
+
+        <div class="results-section-title" style="margin-top:1rem">Monthly Mortgage</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card"><div class="kpi-label">Monthly Mortgage Payment</div><div class="kpi-value success-val" id="suo-mMortgage">—</div><div class="kpi-sub">From loan inputs</div></div><div class="kpi-card"><div class="kpi-label">Total Monthly Outgoing</div><div class="kpi-value success-val" id="suo-mAfterMort">—</div><div class="kpi-sub">Ownership cost + mortgage payment</div></div></div>
+        </div>
+
+        <div class="results-section-title" style="margin-top:1rem">Annual</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card"><div class="kpi-label">Cost of Ownership — Year 1</div><div class="kpi-value success-val" id="suo-yCost">—</div><div class="kpi-sub">Service charges + maintenance + insurance</div></div><div class="kpi-card"><div class="kpi-label">Home Value Appreciation / Year</div><div class="kpi-value success-val" id="suo-yCapGain">—</div><div class="kpi-sub">Year 1 at selected % p.a.</div></div><div class="kpi-card"><div class="kpi-label">Implied Net Rental Yield</div><div class="kpi-value success-val" id="suo-impliedYield">—</div><div class="kpi-sub">Market rent net of mgmt + costs ÷ purchase price</div></div><div class="kpi-card"><div class="kpi-label">Annual Running Cost %</div><div class="kpi-value success-val" id="suo-runningCostPct">—</div><div class="kpi-sub">Year 1 cost ÷ purchase price</div></div></div>
+        <div class="results-section-title" style="margin-top:1rem">Holding Period</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card"><div class="kpi-label">Total Cost of Ownership</div><div class="kpi-value success-val" id="suo-hpCost">—</div><div class="kpi-sub">Year 1 cost compounded at 2% annual inflation</div></div><div class="kpi-card highlight light-highlight"><div class="kpi-label">Equivalent Rental Value Saved</div><div class="kpi-value success-val" id="suo-hpRentSaved">—</div><div class="kpi-sub">Cumulative rent − ownership cost</div></div><div class="kpi-card highlight light-highlight"><div class="kpi-label">Total Capital Gain</div><div class="kpi-value success-val" id="suo-hpCapGain">—</div><div class="kpi-sub">Compound appreciation over holding period</div></div><div class="kpi-card highlight light-highlight"><div class="kpi-label">Estimated Exit Value</div><div class="kpi-value success-val" id="suo-exitValue">—</div><div class="kpi-sub">Purchase + appreciation + setup (1.4×)</div></div></div>
+        <!-- Off-plan holding period -->
+        <div id="suo-offplanHP" style="display:none">
+
+        <div class="results-section-title" style="margin-top:1rem">Off-Plan Specifics</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card"><div class="kpi-label">Appreciation to Handover</div><div class="kpi-value success-val" id="suo-capToHandover">—</div><div class="kpi-sub">Capital gain to handover date</div></div><div class="kpi-card"><div class="kpi-label">Value at Handover</div><div class="kpi-value success-val" id="suo-valAtHandover">—</div><div class="kpi-sub">Purchase price + appreciation</div></div></div>
+        </div>
+
+        <div class="results-section-title" style="margin-top:1rem">Advanced</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card"><div class="kpi-label">Implied Net Rental Yield</div><div class="kpi-value success-val" id="suo-impliedYieldAdv">—</div><div class="kpi-sub">Net of 8% mgmt + costs ÷ price</div></div><div class="kpi-card"><div class="kpi-label">Capital Growth Multiple</div><div class="kpi-value success-val" id="suo-cgMult">—</div><div class="kpi-sub">Exit value ÷ purchase price</div></div><div class="kpi-card"><div class="kpi-label">ROI on Total Capital</div><div class="kpi-value success-val" id="suo-roiCapital">—</div><div class="kpi-sub">Capital gain + rent saved ÷ total capital</div></div></div>
+      </div><!-- /out-selfUseOtherSec -->
+
+      <!-- ═══ FLIP SCENARIOS: F/J/N/Q ═══ -->
+      <div class="results-section" id="out-flipOtherSec" style="display:none">
+
+        <div class="results-section-title" style="margin-top:1rem">Summary</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card"><div class="kpi-label">Total Capital Deployed</div><div class="kpi-value success-val" id="fo-capitalIn" style="color:var(--danger)">—</div><div class="kpi-sub">Acquisition + renovation + furnishing</div></div><div class="kpi-card"><div class="kpi-label">Estimated Resale Price</div><div class="kpi-value success-val" id="fo-resalePrice" style="color:var(--gold)">—</div><div class="kpi-sub">Purchase + appreciation + reno (1.4×)</div></div><div class="kpi-card"><div class="kpi-label">Total Exit Costs</div><div class="kpi-value success-val" id="fo-exitCosts">—</div><div class="kpi-sub">NOC + agency + legal + mortgage exit</div></div><div class="kpi-card highlight light-highlight"><div class="kpi-label">Net Proceeds</div><div class="kpi-value success-val" id="fo-netProceeds">—</div><div class="kpi-sub">Resale − exit costs</div></div><div class="kpi-card highlight light-highlight"><div class="kpi-label">Net Profit</div><div class="kpi-value success-val" id="fo-netProfit">—</div><div class="kpi-sub">Net proceeds − capital deployed</div></div><div class="kpi-card"><div class="kpi-label">Net Profit Margin %</div><div class="kpi-value success-val" id="fo-profitMargin">—</div><div class="kpi-sub">Net profit ÷ resale price</div></div></div>
+        <div class="results-section-title" style="margin-top:1rem">Returns</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card highlight light-highlight"><div class="kpi-label">Simple ROI</div><div class="kpi-value success-val" id="fo-roi">—</div><div class="kpi-sub">Net profit ÷ capital deployed × 100</div></div><div class="kpi-card highlight light-highlight"><div class="kpi-label">Annualised Return</div><div class="kpi-value success-val" id="fo-annualised">—</div><div class="kpi-sub">Compound-adjusted for holding period</div></div><div class="kpi-card"><div class="kpi-label">Equity Multiple</div><div class="kpi-value success-val" id="fo-equityMult">—</div><div class="kpi-sub">Net proceeds ÷ capital deployed</div></div></div>
+        <div class="results-section-title" style="margin-top:1rem">Capital Safety</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card"><div class="kpi-label">Break-Even Resale Price</div><div class="kpi-value success-val" id="fo-breakEven">—</div><div class="kpi-sub">Min. sale price to not lose money</div></div><div class="kpi-card"><div class="kpi-label">Buffer Above Break-Even</div><div class="kpi-value success-val" id="fo-buffer">—</div><div class="kpi-sub">Price can fall this much before loss</div></div><div class="kpi-card"><div class="kpi-label">Buffer %</div><div class="kpi-value success-val" id="fo-bufferPct">—</div><div class="kpi-sub">Of estimated resale price</div></div></div>
+        <div class="results-section-title" style="margin-top:1rem">Renovation</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card"><div class="kpi-label">Renovation Cost</div><div class="kpi-value success-val" id="fo-renovCost">—</div><div class="kpi-sub">As entered</div></div><div class="kpi-card highlight light-highlight"><div class="kpi-label">Net Value-Add</div><div class="kpi-value success-val" id="fo-renovUplift">—</div><div class="kpi-sub">Reno × 0.4 — net gain above cost</div></div><div class="kpi-card"><div class="kpi-label">Renovation as % of Purchase</div><div class="kpi-value success-val" id="fo-renovPct">—</div><div class="kpi-sub">Proportionality check</div></div></div>
+        <div id="fo-mortHP" style="display:none">
+
+        <div class="results-section-title" style="margin-top:1rem">Mortgage at Exit</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card"><div class="kpi-label">Early Settlement Fee</div><div class="kpi-value success-val" id="fo-earlySettle">—</div><div class="kpi-sub">1% of outstanding balance, max AED 10,000</div></div><div class="kpi-card"><div class="kpi-label">Liability Letter</div><div class="kpi-value success-val" id="fo-liabilityLetter">—</div><div class="kpi-sub">AED 300 fixed</div></div></div>
+        </div>
+        <!-- Off-plan specifics -->
+        <div id="fo-offplanHP" style="display:none">
+
+        <div class="results-section-title" style="margin-top:1rem">Off-Plan Specifics</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem"><div class="kpi-card"><div class="kpi-label">Appreciation to Handover</div><div class="kpi-value success-val" id="fo-capToHandover">—</div><div class="kpi-sub">Capital gain to handover</div></div><div class="kpi-card"><div class="kpi-label">Value at Handover</div><div class="kpi-value success-val" id="fo-valAtHandover">—</div><div class="kpi-sub">Purchase + appreciation</div></div></div>
+        </div>
+      </div><!-- /out-flipOtherSec -->
+
+
+
+      <div class="results-section" id="out-rentalSec" style="display:none">
+        <div class="results-section-title">Returns — Rental Yield</div>
+        <div id="out-svcNote" style="display:none;margin-bottom:1rem">
+          <div class="info-note"><span class="dot">&#9679;</span><span id="out-svcNoteText"></span></div>
+        </div>
+        <!-- MORTGAGE SECTION — shown when financing=Mortgage -->
+        <div id="out-mortgageSection" style="display:none;margin-bottom:1.5rem">
+          <div style="font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.55rem;font-weight:600">Mortgage</div>
+          <div class="kpi-grid">
+            <div class="kpi-card"><div class="kpi-label">Monthly Mortgage Payment</div><div class="kpi-value" id="out-monthlyMortgage">AED 0</div><div class="kpi-sub">Est. Based on Inputs</div></div>
+            <div class="kpi-card"><div class="kpi-label">Net Yield After Mortgage</div><div class="kpi-value success-val" id="out-netAfterMortgage">AED 0</div><div class="kpi-sub" id="out-netAfterMortgageSub">Annual</div></div>
+            <div class="kpi-card" id="out-coverageCard" style="display:none"><div class="kpi-label">Monthly Top-Up Required</div><div class="kpi-value" id="out-mortgageTopUp" style="color:var(--warm-silver)">AED 0</div><div class="kpi-sub">To Cover Mortgage Shortfall</div></div>
+          </div>
+        </div>
+        <div id="out-stMonthly" style="display:none;margin-bottom:1.25rem">
+          <div style="font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.55rem;font-weight:600">Monthly</div>
+          <div class="kpi-grid">
+            <div class="kpi-card"><div class="kpi-label">Monthly Gross Yield</div><div class="kpi-value gold-val" id="out-mGross">AED 0</div><div class="kpi-sub">After Occupancy Rate</div></div>
+            <div class="kpi-card"><div class="kpi-label">Monthly Net Yield</div><div class="kpi-value success-val" id="out-mNet">AED 0</div><div class="kpi-sub">Service Charges + Maintenance + Management</div></div>
+            <div class="kpi-card"><div class="kpi-label">Monthly Property Management</div><div class="kpi-value" id="out-mPM">AED 0</div><div class="kpi-sub">Property Management Fee</div></div>
+          </div>
+        </div>
+        <div style="font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.55rem;font-weight:600">Yearly</div>
+        <div class="kpi-grid" style="margin-bottom:1.25rem">
+          <div class="kpi-card"><div class="kpi-label">Gross Rental Yield</div><div class="kpi-value gold-val" id="out-yGrossPct">0.00%</div><div class="kpi-sub">% of Property Price</div></div>
+          <div class="kpi-card"><div class="kpi-label">Net Rental Yield</div><div class="kpi-value success-val" id="out-yNetPct">0.00%</div><div class="kpi-sub">Excl. mortgage payments</div></div>
+          <div class="kpi-card"><div class="kpi-label">Net Yield (AED)</div><div class="kpi-value" id="out-yNetAED">AED 0</div><div class="kpi-sub">Annual Net Income</div></div>
+        </div>
+        <div style="font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.55rem;font-weight:600">Over Holding Period</div>
+        <div class="kpi-grid">
+          <div class="kpi-card highlight light-highlight"><div class="kpi-label">Total Gross Income</div><div class="kpi-value gold-val" id="out-tGross">AED 0</div><div class="kpi-sub" id="out-tGrossSub">Across Holding Period</div></div>
+          <div class="kpi-card highlight light-highlight"><div class="kpi-label">Total Net Income</div><div class="kpi-value success-val" id="out-tNet">AED 0</div><div class="kpi-sub" id="out-tNetSub">Across Holding Period</div></div>
+        </div>
+      </div>
+
+      <!-- Capital appreciation + ROI outputs kept as hidden elements for calc() -->
+      <span id="out-capPctLabel" style="display:none">5</span>
+      <span id="out-capPerYear" style="display:none"></span>
+      <span id="out-capPerYearSub" style="display:none"></span>
+      <span id="out-capTotal" style="display:none"></span>
+      <span id="out-capTotalLabel" style="display:none"></span>
+      <span id="out-capTotalSub" style="display:none"></span>
+      <span id="out-resalePrice" style="display:none"></span>
+      <span id="out-marketVal" style="display:none"></span>
+      <span id="out-marketGap" style="display:none"></span>
+      <span id="out-marketGapLabel" style="display:none"></span>
+      <span id="out-marketGapSub" style="display:none"></span>
+      <div id="out-marketGapSection" style="display:none"></div>
+      <div id="out-capAppSec" style="display:none"></div>
+      <span id="out-netRoi" style="display:none"></span>
+      <span id="out-roiLabel" style="display:none"></span>
+      <span id="out-roiSub" style="display:none"></span>
+      <div id="out-roiSec" style="display:none"></div>
+
+      <!-- DOWNLOAD REPORT (placeholder) -->
+      <div class="results-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;padding:1.25rem 1.5rem;background:rgba(17,43,77,.3);border:1px solid var(--border-subtle);border-radius:var(--r)">
+          <div>
+            <div style="font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--warm-silver);font-weight:600;margin-bottom:.25rem">Report</div>
+            <div style="font-size:.88rem;color:var(--text-muted)">Download a full PDF summary of this evaluation</div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="alert('Report download coming soon — available in Pro & Elite plans.')" style="flex-shrink:0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Report
+          </button>
+        </div>
+      </div>
+
+
+
+    </div><!-- /step-3 -->
+
+  </div><!-- /step-content -->
+
+  <div class="step-nav-footer">
+    <div><button class="btn btn-ghost" id="prevBtn" onclick="prevStep()" style="display:none">&#8592; Previous</button></div>
+    <div class="step-progress" id="stepProg">Step 1 of 4</div>
+    <div>
+      <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">Next &#8594;</button>
+      <button class="btn btn-primary" id="calcBtn" onclick="goStep(3);setTimeout(calc,50)" style="display:none">Calculate Results &#8594;</button>
+    </div>
+  </div>
+</div><!-- /evaluation -->
+
+
 </body>
 </html>
