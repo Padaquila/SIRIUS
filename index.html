@@ -1286,6 +1286,64 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
   white-space: nowrap; color: var(--brushed-silver);
 }
 
+
+/* ── CONTRAST & READABILITY IMPROVEMENTS ── */
+
+/* Raise --text-muted on landing page elements only */
+:root { --text-readable: rgba(191,198,209,.88); }
+
+/* Hero sub — was too faint */
+.hero-sub {
+  color: rgba(217,221,228,.85) !important;
+  font-size: 1.15rem !important;
+  line-height: 1.75 !important;
+}
+
+/* Stat cards */
+.stat-card .label { color: rgba(191,198,209,.7) !important; letter-spacing:.12em; }
+.stat-card .sub   { color: rgba(191,198,209,.72) !important; font-size:.74rem; }
+
+/* Section sub-headline */
+.section-sub { color: rgba(217,221,228,.78) !important; font-size:.98rem !important; line-height:1.75 !important; }
+
+/* Feature cards */
+.feature-title { font-size:1.05rem; font-weight:600; color:var(--ivory) !important; margin-bottom:.55rem; }
+.feature-desc  { color: rgba(191,198,209,.82) !important; line-height:1.7 !important; font-size:.9rem !important; }
+
+/* Nav links */
+.nav-links a { color: rgba(191,198,209,.8) !important; }
+.nav-links a:hover { color: var(--white) !important; }
+
+/* Plan features list */
+.plan-features li { color: rgba(191,198,209,.85) !important; font-size:.84rem !important; }
+
+/* Footer */
+.footer-copy { color: rgba(191,198,209,.6) !important; }
+
+/* Before/after stories */
+.ba-story  { color: rgba(191,198,209,.75) !important; }
+.ba-bullet { color: rgba(191,198,209,.72) !important; }
+
+/* Pricing sub text */
+.plan-yearly-label  { color: rgba(191,198,209,.72) !important; }
+.plan-monthly-eq    { color: rgba(191,198,209,.55) !important; }
+.plan-intro-offer   { color: rgba(212,175,55,.85) !important; }
+.plan-tagline       { color: rgba(191,198,209,.78) !important; }
+
+/* Pricing cards — improved contrast */
+.plan-card { background: rgba(17,32,58,.85) !important; }
+.plan-card.featured { background: rgba(22,38,68,.95) !important; }
+
+/* Section labels (small ALL CAPS above titles) */
+.section-label { color: rgba(191,198,209,.65) !important; letter-spacing:.22em; }
+
+/* Step subs in calculator */
+.step-sub { color: rgba(191,198,209,.78) !important; }
+
+/* KPI labels in results */
+.kpi-label { color: rgba(191,198,209,.72) !important; }
+.kpi-sub   { color: rgba(191,198,209,.6)  !important; }
+
 /* End dynamic layer */
 
 /* ── DISCLAIMER MODAL ── */
@@ -1518,7 +1576,7 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
 <!-- ================================================================
      DISCLAIMER MODAL — shown on first load, must be accepted
 ================================================================ -->
-<div class="disclaimer-overlay" id="disclaimerOverlay" role="dialog" aria-modal="true" aria-labelledby="disc-title">
+<div class="disclaimer-overlay" id="disclaimerOverlay" role="dialog" aria-modal="true" aria-labelledby="disc-title" style="display:none">
   <div class="disclaimer-box">
 
     <!-- Header -->
@@ -1717,7 +1775,7 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
     </div>
     <div class="hero-stats">
       <div class="stat-card light-highlight"><div class="label">Calculations Supported</div><div class="value">40+</div><div class="sub">Acquisition, yield &amp; ROI outputs</div></div>
-      <div class="stat-card light-highlight"><div class="label">Asset Types</div><div class="value">3</div><div class="sub">Ready, Off-Plan, Payment Plans</div></div>
+      <div class="stat-card light-highlight"><div class="label">Acquisition Modes</div><div class="value">3</div><div class="sub">Ready · Off-Plan · Mortgage</div></div>
       <div class="stat-card light-highlight"><div class="label">Trusted By</div><div class="value">500+</div><div class="sub">Brokers &amp; investment firms in UAE</div></div>
     </div>
   </section>
@@ -1736,23 +1794,7 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
     </div>
   </section>
 
-  <section id="pricing" style="background:rgba(17,43,77,.2)">
-    <div class="section-label">Subscription Plans</div><div class="gold-line"></div>
-    <h2 class="section-title">Transparent <em class="gold">Pricing</em></h2>
-    <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin:2rem 0 2.5rem">
-      <div style="display:flex;gap:.5rem">
-        <button class="plan-type-tab active" onclick="setPlanType('individual',this)">Individual</button>
-        <button class="plan-type-tab" onclick="setPlanType('company',this)">Company</button>
-      </div>
-      <div class="billing-tabs">
-        <div class="billing-tab active" onclick="setBilling('monthly',this)">Monthly</div>
-        <div class="billing-tab" onclick="setBilling('biannual',this)">6 Months</div>
-        <div class="billing-tab" onclick="setBilling('yearly',this)">Yearly</div>
-      </div>
-      <span id="savings-msg" class="hidden" style="font-size:.8rem;background:rgba(46,204,113,.15);color:var(--success);padding:.2rem .7rem;border-radius:100px;font-weight:600"></span>
-    </div>
-    <div class="pricing-grid" id="pricingGrid"></div>
-  </section>
+  
 
   <section class="demo-section" id="demo">
     <div class="demo-wrap">
@@ -4262,8 +4304,7 @@ function acceptDisclaimer(){
    (protects from legal liability; user must accept each time they open the app) */
 
 /* INIT */
-renderPricing();
-updateNoc();
+S.billing='yearly';renderPricing();updateNoc();setTimeout(function(){if(typeof setBillingCard==='function'){setBillingCard('yearly');}},150);
 ['f-handover','f-loanPct','f-split','f-ppTable','f-rentalType',
  'f-mortgageCard'].forEach(hide);
 /* On load: Self-use is default — show self-use inputs, hide rental inputs */
@@ -4757,6 +4798,7 @@ function renderAdminMain(){
   else if(_adminView==='scenario-sections') renderScenarioSections();
   else if(_adminView==='sections')    renderAllSectionsEditor();
   else if(_adminView==='history')     renderHistory();
+  else if(_adminView==='landing-text') renderLandingTextEditor();
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -5343,6 +5385,7 @@ function checkAdminAuth(){
       <button class="admin-nav-item active" onclick="switchAdminView('sections')" id="anav-sections">Sections &amp; Metrics</button>
       <button class="admin-nav-item" onclick="switchAdminView('scenarios')" id="anav-scenarios">Scenario Visibility</button>
       <button class="admin-nav-item" onclick="switchAdminView('history')" id="anav-history">Version History</button>
+      <button class="admin-nav-item" onclick="switchAdminView('landing-text')" id="anav-landing-text">Landing Page Text</button>
       <div class="admin-nav-group" style="margin-top:1.5rem">Actions</div>
       <button class="admin-nav-item" onclick="saveAdminConfig()">Save config</button>
       <button class="admin-nav-item" onclick="exportAdminConfig()">Export JSON</button>
@@ -5452,6 +5495,147 @@ function checkAdminAuth(){
         console.warn('App Check failed:', e.message);
       }
     });
-  </script>
+  
+/* ── Disclaimer — show only on subscribe attempt ── */
+var _disclaimerAccepted = false;
+var _pendingAuthOpen = false;
+
+function showDisclaimer(callback){
+  if(_disclaimerAccepted){ if(callback) callback(); return; }
+  var overlay = document.getElementById('disclaimerOverlay');
+  overlay.style.display = '';
+  /* After accepted, run callback */
+  window._disclaimerCallback = callback;
+}
+
+/* Patch acceptDisclaimer to run pending callback */
+var _origAcceptDisclaimer = acceptDisclaimer;
+acceptDisclaimer = function(){
+  if(!document.getElementById('discCheckbox').checked) return;
+  var overlay = document.getElementById('disclaimerOverlay');
+  overlay.classList.add('hidden-out');
+  setTimeout(function(){ overlay.style.display='none'; }, 420);
+  _disclaimerAccepted = true;
+  if(window._disclaimerCallback){ window._disclaimerCallback(); window._disclaimerCallback = null; }
+};
+
+/* Override openAuthModal to gate on disclaimer */
+var _origOpenAuthModal = openAuthModal;
+openAuthModal = function(){
+  showDisclaimer(function(){ _origOpenAuthModal(); });
+};
+
+
+/* ── LANDING PAGE TEXT EDITOR ── */
+var LANDING_TEXT_KEYS = [
+  {id:'hero_primary',     label:'Hero — Primary headline',    selector:'.hero-title',          prop:'innerHTML', default:'Your client just asked if it's a good investment. You have minutes, not hours.'},
+  {id:'hero_sub',         label:'Hero — Sub headline',        selector:'.hero-sub',            prop:'innerHTML', default:'Your client just asked if it's a good investment. You have minutes, not hours.'},
+  {id:'hero_secondary',   label:'Hero — Secondary line',      selector:'#heroSecondaryLine',   prop:'innerHTML', default:'Full investment analysis for any Dubai property.'},
+  {id:'hero_cta',         label:'Hero — Primary CTA button',  selector:'#heroCtaBtn',          prop:'innerHTML', default:'Start free — no charge for 7 days'},
+  {id:'features_title',   label:'Features — Section title',   selector:'#featuresSectionTitle',prop:'innerHTML', default:'Everything you need to decide with confidence'},
+  {id:'features_sub',     label:'Features — Sub copy',        selector:'#featuresSectionSub',  prop:'innerHTML', default:'Because in Dubai, the difference between a good investment and a costly mistake is the quality of your analysis — not your gut feeling.'},
+  {id:'pricing_title',    label:'Pricing — Section title',    selector:'#pricingSectionTitle', prop:'innerHTML', default:'Start free. Upgrade when you're ready.'},
+  {id:'pricing_sub',      label:'Pricing — Sub copy',         selector:'#pricingSectionSub',   prop:'innerHTML', default:'Every plan includes a 7-day full-access trial. No charge until day 8. Cancel anytime.'},
+  {id:'ba_left_story1',   label:'Before/After — Agent story', selector:'#baStory1',            prop:'innerHTML', default:'"By the time I ran the numbers and called back, they had already signed with another agent."'},
+  {id:'ba_left_story2',   label:'Before/After — Investor story',selector:'#baStory2',          prop:'innerHTML', default:'"I bought the property based on my gut. No analysis. Two years later I'm sitting on negative equity, no tenant, and no exit."'},
+  {id:'ba_right_story',   label:'Before/After — Sirius story', selector:'#baStoryRight',       prop:'innerHTML', default:'"I opened Sirius in front of my client. Three minutes later they had a full breakdown. They signed the same week."'},
+];
+
+var _landingTexts = {};
+
+function applyLandingTexts(texts){
+  _landingTexts = texts || {};
+  LANDING_TEXT_KEYS.forEach(function(k){
+    var val = _landingTexts[k.id];
+    if(!val) return;
+    var el = document.querySelector(k.selector);
+    if(el) el[k.prop] = val;
+  });
+}
+
+function saveLandingTexts(texts){
+  /* FIREBASE: saves to Firestore */
+  db.collection('config').doc('landingText').set(texts)
+    .then(function(){ alert('Landing page text saved.'); })
+    .catch(function(e){ alert('Save failed: ' + e.message); });
+}
+
+/* Live listener — all users get text changes instantly */
+db.collection('config').doc('landingText').onSnapshot(function(doc){
+  if(doc.exists) applyLandingTexts(doc.data());
+}, function(e){ /* ignore permission errors for unauthenticated */ });
+
+/* Admin render function */
+function renderLandingTextEditor(){
+  var main = document.getElementById('adminMain');
+  /* Read current values from DOM */
+  var h = '<div style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brushed-silver);font-weight:600;margin-bottom:1.25rem">Landing Page Text</div>'
+    + '<div style="font-size:.78rem;color:var(--text-muted);margin-bottom:1.5rem">Edit any text on the landing page. Changes save to Firebase and apply live for all users immediately.</div>';
+
+  LANDING_TEXT_KEYS.forEach(function(k){
+    var currentVal = _landingTexts[k.id] || k.default;
+    h += '<div style="margin-bottom:1.25rem">'
+      + '<div style="font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(191,198,209,.5);margin-bottom:.4rem">' + k.label + '</div>'
+      + '<textarea id="lt_' + k.id + '" style="width:100%;min-height:60px;background:rgba(10,22,40,.8);border:1px solid rgba(191,198,209,.18);border-radius:8px;color:var(--ivory);font-family:var(--font-body);font-size:.84rem;padding:.65rem .85rem;outline:none;resize:vertical;line-height:1.55;box-sizing:border-box" placeholder="' + k.label + '">' + currentVal.replace(/<[^>]+>/g,'') + '</textarea>'
+      + '</div>';
+  });
+
+  h += '<div style="display:flex;gap:.75rem;margin-top:1rem">'
+    + '<button class="adm-pill primary" onclick="saveAllLandingTexts()">Save all text changes</button>'
+    + '<button class="adm-pill" onclick="previewLandingTexts()">Preview</button>'
+    + '</div>';
+
+  main.innerHTML = h;
+}
+
+function saveAllLandingTexts(){
+  var texts = {};
+  LANDING_TEXT_KEYS.forEach(function(k){
+    var el = document.getElementById('lt_' + k.id);
+    if(el) texts[k.id] = el.value;
+  });
+  applyLandingTexts(texts);
+  saveLandingTexts(texts);
+  markDirty();
+}
+
+function previewLandingTexts(){
+  var texts = {};
+  LANDING_TEXT_KEYS.forEach(function(k){
+    var el = document.getElementById('lt_' + k.id);
+    if(el) texts[k.id] = el.value;
+  });
+  applyLandingTexts(texts);
+  closeAdminPanel();
+  document.getElementById('landing').scrollIntoView({behavior:'smooth'});
+}
+
+
+function setBillingCard(billing){
+  S.billing = billing;
+  var annEl = document.getElementById('billAnnual');
+  var monEl = document.getElementById('billMonthly');
+  if(annEl){
+    annEl.style.borderColor = billing==='yearly'?'rgba(39,174,96,.6)':'rgba(191,198,209,.15)';
+    annEl.style.background  = billing==='yearly'?'rgba(39,174,96,.08)':'rgba(191,198,209,.04)';
+  }
+  if(monEl){
+    monEl.style.borderColor = billing==='monthly'?'rgba(191,198,209,.45)':'rgba(191,198,209,.15)';
+    monEl.style.background  = billing==='monthly'?'rgba(191,198,209,.08)':'rgba(191,198,209,.04)';
+  }
+  renderPricing();
+  updateBillingCardPrices();
+}
+function updateBillingCardPrices(){
+  var plans = Object.values(PLANS[S.planType]);
+  if(!plans.length) return;
+  var ref = S.planType==='company' ? plans[0] : (plans[1]||plans[0]);
+  var annEl = document.getElementById('billAnnualPrice');
+  var monEl = document.getElementById('billMonthlyPrice');
+  if(annEl) annEl.textContent = 'AED '+(ref.monthlyEq||Math.round(ref.price.yearly/12))+(ref.perUser?'/user':'');
+  if(monEl) monEl.textContent = 'AED '+ref.price.monthly+(ref.perUser?'/user':'');
+}
+
+</script>
 </body>
 </html>
