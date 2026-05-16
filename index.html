@@ -1511,18 +1511,7 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
     var auth = firebase.auth();
   </script>
 
-  <!-- reCAPTCHA Enterprise -->
-  <script src="https://www.google.com/recaptcha/enterprise.js?render=6LeyH-0sAAAAAFWyUIPSraFz_pAXxb2URsQ7WJx9"></script>
 
-  <!-- Firebase App Check — must come after Firebase init and reCAPTCHA -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check-compat.js"></script>
-  <script>
-    var appCheck = firebase.appCheck();
-    appCheck.activate(
-      new firebase.appCheck.ReCaptchaEnterpriseProvider('6LeyH-0sAAAAAFWyUIPSraFz_pAXxb2URsQ7WJx9'),
-      true /* isTokenAutoRefreshEnabled */
-    );
-  </script>
 </head>
 <body>
 
@@ -5444,5 +5433,25 @@ function checkAdminAuth(){
   </div>
 </div>
 
+
+  <!-- App Check — at end of body so firebase is fully ready -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check-compat.js"></script>
+  <script src="https://www.google.com/recaptcha/enterprise.js?render=6LeyH-0sAAAAAFWyUIPSraFz_pAXxb2URsQ7WJx9" async defer></script>
+  <script>
+    window.addEventListener('load', function(){
+      try {
+        var appCheck = firebase.appCheck();
+        appCheck.activate(
+          new firebase.appCheck.ReCaptchaEnterpriseProvider(
+            '6LeyH-0sAAAAAFWyUIPSraFz_pAXxb2URsQ7WJx9'
+          ),
+          true
+        );
+        console.log('App Check initialised OK');
+      } catch(e) {
+        console.warn('App Check failed:', e.message);
+      }
+    });
+  </script>
 </body>
 </html>
