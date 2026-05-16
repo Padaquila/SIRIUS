@@ -4516,20 +4516,25 @@ var _adminView = 'scenarios';   /* start on scenario picker */
 var _activeScenario = null;     /* currently selected scenario id */
 
 function loadConfig(){
-  try{
-    var raw = localStorage.getItem('sirius_admin_v2');
-    if(raw){
-      var p = JSON.parse(raw);
-      ADMIN_CONFIG = p.config||{sections:[]};
-      VERSION_HISTORY = p.history||[];
-    } else {
+  /* FIREBASE: reads config from Firestore */
+  db.collection('config').doc('calculator').get()
+    .then(function(doc){
+      if(doc.exists){
+        ADMIN_CONFIG    = doc.data().config  || {sections:[]};
+        VERSION_HISTORY = doc.data().history || [];
+      } else {
+        ADMIN_CONFIG    = JSON.parse(JSON.stringify(DEFAULT_ADMIN_CONFIG));
+        VERSION_HISTORY = [];
+      }
+      ADMIN_CONFIG._dirty = false;
+      renderAdminMain();
+      renderAdminVarList();
+    })
+    .catch(function(e){
+      console.warn('Firestore read failed, using defaults:', e);
       ADMIN_CONFIG = JSON.parse(JSON.stringify(DEFAULT_ADMIN_CONFIG));
-      VERSION_HISTORY = [];
-    }
-    ADMIN_CONFIG._dirty = false;
-  } catch(e){
-    ADMIN_CONFIG = JSON.parse(JSON.stringify(DEFAULT_ADMIN_CONFIG));
-  }
+      renderAdminMain();
+    });
 }
 
 function saveAdminConfig(note){
@@ -4537,11 +4542,19 @@ function saveAdminConfig(note){
   delete snapshot._dirty;
   VERSION_HISTORY.unshift({ts:new Date().toISOString(), note:note||'Manual save', snapshot:snapshot});
   if(VERSION_HISTORY.length>20) VERSION_HISTORY=VERSION_HISTORY.slice(0,20);
-  /* FIREBASE: await setDoc(doc(db,'config','calculator'),{config:snapshot,history:VERSION_HISTORY}) */
-  localStorage.setItem('sirius_admin_v2', JSON.stringify({config:snapshot,history:VERSION_HISTORY}));
-  ADMIN_CONFIG._dirty = false;
-  markSaved();
-  if(_adminView==='history') renderHistory();
+  /* FIREBASE: writes config to Firestore — all users get updates instantly */
+  db.collection('config').doc('calculator').set({
+    config:  snapshot,
+    history: VERSION_HISTORY
+  })
+  .then(function(){
+    ADMIN_CONFIG._dirty = false;
+    markSaved();
+    if(_adminView==='history') renderHistory();
+  })
+  .catch(function(e){
+    alert('Save failed: ' + e.message);
+  });
 }
 
 function resetAdminConfig(){
@@ -5145,7 +5158,15 @@ function snapshotSC(){
 /* ── INIT ─────────────────────────────────────────────────────── */
 (function(){
   checkAdminAuth();
-  loadConfig();
+  /* Real-time config listener — non-admin users get updates instantly */
+  db.collection('config').doc('calculator').onSnapshot(function(doc){
+    if(doc.exists && !IS_ADMIN){
+      /* Update config for regular users without overwriting admin session */
+      ADMIN_CONFIG = doc.data().config || {sections:[]};
+    }
+  }, function(e){
+    /* Silently ignore permission errors for unauthenticated users */
+  });
 })();
 
 
