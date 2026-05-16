@@ -1510,6 +1510,19 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
     var db   = firebase.firestore();
     var auth = firebase.auth();
   </script>
+
+  <!-- reCAPTCHA Enterprise -->
+  <script src="https://www.google.com/recaptcha/enterprise.js?render=6LeyH-0sAAAAAFWyUIPSraFz_pAXxb2URsQ7WJx9"></script>
+
+  <!-- Firebase App Check — must come after Firebase init and reCAPTCHA -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check-compat.js"></script>
+  <script>
+    var appCheck = firebase.appCheck();
+    appCheck.activate(
+      new firebase.appCheck.ReCaptchaEnterpriseProvider('6LeyH-0sAAAAAFWyUIPSraFz_pAXxb2URsQ7WJx9'),
+      true /* isTokenAutoRefreshEnabled */
+    );
+  </script>
 </head>
 <body>
 
