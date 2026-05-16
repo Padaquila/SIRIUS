@@ -5249,7 +5249,7 @@ function signInWithGoogle(){
       }, { merge: true });
       closeAuthModal();
     })
-    .catch(function(e){ document.getElementById('authError').textContent = friendlyAuthError(e.code); });
+    .catch(function(e){ console.error('Google sign-in error:', e.code, e.message); document.getElementById('authError').textContent = e.code + ': ' + e.message; });
 }
 
 /* ── Sign out ── */
