@@ -1550,6 +1550,81 @@ footer, .footer {
   min-height: 100vh;
 }
 
+
+/* Profile dropdown menu */
+.nav-profile-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.nav-profile-trigger {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  cursor: pointer;
+  padding: .3rem .6rem;
+  border-radius: 8px;
+  transition: background .15s;
+  border: 1px solid transparent;
+}
+.nav-profile-trigger:hover {
+  background: rgba(191,198,209,.1);
+  border-color: rgba(191,198,209,.15);
+}
+.nav-profile-avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(191,198,209,.15);
+  border: 1px solid rgba(191,198,209,.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .72rem; font-weight: 700; color: var(--ivory);
+  flex-shrink: 0;
+}
+.nav-profile-name {
+  font-size: .78rem;
+  color: var(--ivory);
+  font-weight: 500;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nav-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 200px;
+  background: rgba(17,30,54,.98);
+  border: 1px solid rgba(191,198,209,.18);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.6);
+  backdrop-filter: blur(16px);
+  z-index: 9000;
+  display: none;
+  overflow: hidden;
+  padding: .4rem 0;
+}
+.nav-dropdown.open { display: block; }
+.nav-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  padding: .65rem 1rem;
+  font-size: .82rem;
+  color: rgba(191,198,209,.85);
+  cursor: pointer;
+  transition: background .12s;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font-body);
+}
+.nav-dropdown-item:hover { background: rgba(191,198,209,.08); color: var(--ivory); }
+.nav-dropdown-item.danger { color: rgba(231,76,60,.8); }
+.nav-dropdown-item.danger:hover { background: rgba(231,76,60,.08); }
+.nav-dropdown-divider { height: 1px; background: rgba(191,198,209,.08); margin: .3rem 0; }
+
 /* End dynamic layer */
 
 /* ── DISCLAIMER MODAL ── */
@@ -1952,10 +2027,40 @@ footer, .footer {
     <div style="display:flex;gap:.75rem;align-items:center" id="navAuthArea">
       <button class="btn btn-ghost" onclick="openModal()">Request Demo</button>
       <button class="btn btn-primary" id="navSignInBtn" onclick="openAuthModal()">Sign In</button>
-      <div class="nav-user-info" id="navUserInfo" style="display:none">
-        <span class="nav-user-email" id="navUserEmail" style="cursor:pointer" onclick="openProfile()"></span>
-        <button class="btn btn-ghost" onclick="openProfile()" style="padding:.35rem .75rem;font-size:.72rem">My Profile</button>
-        <button class="btn btn-ghost" onclick="handleSignOut()" style="padding:.35rem .75rem;font-size:.72rem">Sign out</button>
+      <div class="nav-user-info nav-profile-menu" id="navUserInfo" style="display:none">
+        <div class="nav-profile-trigger" onclick="toggleNavDropdown()" id="navProfileTrigger">
+          <div class="nav-profile-avatar" id="navAvatarInitial">?</div>
+          <span class="nav-profile-name" id="navUserEmail"></span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:rgba(191,198,209,.4)"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="nav-dropdown" id="navDropdown">
+          <button class="nav-dropdown-item" onclick="closeNavDropdown();goDashboard()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            Dashboard
+          </button>
+          <button class="nav-dropdown-item" onclick="closeNavDropdown();openProfile()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            My Profile
+          </button>
+          <button class="nav-dropdown-item" onclick="closeNavDropdown();goToEval()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Start Calculation
+          </button>
+          <div class="nav-dropdown-divider" id="navAdminDivider" style="display:none"></div>
+          <button class="nav-dropdown-item" id="navAdminPanelBtn" style="display:none" onclick="closeNavDropdown();openAdminPanel()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+            Admin Panel
+          </button>
+          <button class="nav-dropdown-item" id="navPreviewBtn" style="display:none" onclick="closeNavDropdown();previewLandingAsVisitor()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Preview as Visitor
+          </button>
+          <div class="nav-dropdown-divider"></div>
+          <button class="nav-dropdown-item danger" onclick="closeNavDropdown();handleSignOut()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Sign Out
+          </button>
+        </div>
       </div>
     </div>
   </nav>
@@ -5574,6 +5679,8 @@ auth.onAuthStateChanged(function(user){
     document.getElementById('navSignInBtn').style.display  = 'none';
     document.getElementById('navUserInfo').style.display   = '';
     document.getElementById('navUserEmail').textContent    = user.displayName || user.email;
+    updateNavAvatar(user.displayName || user.email);
+    updateNavDropdownForAdmin();
     /* Load profile from Firestore */
     db.collection('users').doc(user.uid).get().then(function(doc){
       if(doc.exists){ var d=doc.data()||{}; var p=d.profile||{}; USER_PROFILE=p; window._userPlan=d.plan||'free'; if(p.name) document.getElementById('navUserEmail').textContent=p.name; }
@@ -5772,12 +5879,34 @@ function saveAllLandingTexts(){
       var btns = document.querySelectorAll('[onclick="saveAllLandingTexts()"]');
       btns.forEach(function(b){ b.textContent='✓ Saved'; b.style.color='rgba(39,174,96,.9)'; });
       setTimeout(function(){ btns.forEach(function(b){ b.textContent='Save all text changes'; b.style.color=''; }); }, 2500);
-      console.log('Landing text saved to Firestore');
     })
     .catch(function(e){
-      console.error('Landing text save failed:', e);
-      var btns = document.querySelectorAll('[onclick="saveAllLandingTexts()"]');
-      btns.forEach(function(b){ b.textContent='✗ Failed: '+e.code; b.style.color='rgba(231,76,60,.8)'; });
+      /* Only show error if it's a genuine write failure */
+      console.error('Landing text save failed:', e.code, e.message);
+      if(e.code === 'permission-denied'){
+        /* Check: are we admin? If yes, this is a token issue — try refreshing */
+        if(CURRENT_USER && IS_ADMIN){
+          CURRENT_USER.getIdToken(true).then(function(){
+            /* Retry once after token refresh */
+            db.collection('config').doc('landingText').set(texts)
+              .then(function(){
+                var btns=document.querySelectorAll('[onclick="saveAllLandingTexts()"]');
+                btns.forEach(function(b){b.textContent='✓ Saved';b.style.color='rgba(39,174,96,.9)';});
+                setTimeout(function(){btns.forEach(function(b){b.textContent='Save all text changes';b.style.color='';});},2500);
+              })
+              .catch(function(e2){
+                var btns=document.querySelectorAll('[onclick="saveAllLandingTexts()"]');
+                btns.forEach(function(b){b.textContent='✗ Permission denied — check Firebase rules';b.style.color='rgba(231,76,60,.8)';});
+              });
+          });
+        } else {
+          var btns=document.querySelectorAll('[onclick="saveAllLandingTexts()"]');
+          btns.forEach(function(b){b.textContent='✗ Not authorized';b.style.color='rgba(231,76,60,.8)';});
+        }
+      } else {
+        var btns=document.querySelectorAll('[onclick="saveAllLandingTexts()"]');
+        btns.forEach(function(b){b.textContent='✗ Failed: '+e.code;b.style.color='rgba(231,76,60,.8)';});
+      }
     });
 }
 
@@ -6224,45 +6353,85 @@ function loadDashboardData(){
 <!-- ═══ ADMIN DASHBOARD PAGE ═══ -->
 <div id="adminDashboardPage" class="page" style="background:var(--bg);min-height:100vh">
   <nav class="nav">
-    <div class="nav-logo" onclick="goToLanding()" style="cursor:pointer">
-      <svg width="22" height="22" viewBox="0 0 60 60" fill="none"><defs><radialGradient id="dgr" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#8a959e" stop-opacity=".6"/></radialGradient></defs><path d="M30 2L32.5 27.5L58 30L32.5 32.5L30 58L27.5 32.5L2 30L27.5 27.5Z" fill="url(#dgr)"/></svg>
+    <div class="nav-logo" onclick="openAdminDashboard()" style="cursor:pointer">
+      <svg width="22" height="22" viewBox="0 0 60 60" fill="none"><defs><radialGradient id="adngr" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#8a959e" stop-opacity=".6"/></radialGradient></defs><path d="M30 2L32.5 27.5L58 30L32.5 32.5L30 58L27.5 32.5L2 30L27.5 27.5Z" fill="url(#adngr)"/></svg>
       <span style="font-family:'Cormorant Garamond',serif;font-weight:300;letter-spacing:.2em">SIRIUS</span>
     </div>
-    <div style="display:flex;gap:.75rem;align-items:center">
-      <span style="font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700">Admin Dashboard</span>
-      <button class="btn btn-ghost" onclick="goToLanding()" style="font-size:.75rem">← Home</button>
-      <button class="btn btn-ghost" onclick="goToEval()" style="font-size:.75rem">Calculator</button>
+    <div style="display:flex;align-items:center;gap:.75rem">
+      <span style="font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700;border:1px solid rgba(212,175,55,.3);padding:.2rem .6rem;border-radius:4px">Admin</span>
+      <button class="btn btn-ghost" onclick="goToEval()" style="font-size:.72rem">Start Calculation</button>
+      <button class="btn btn-ghost" onclick="previewLandingAsVisitor()" style="font-size:.72rem">Preview Site</button>
+      <button class="btn btn-ghost" onclick="openProfile()" style="font-size:.72rem">My Profile</button>
+      <button class="btn btn-ghost" onclick="handleSignOut()" style="font-size:.72rem">Sign Out</button>
     </div>
   </nav>
-  <div style="max-width:1100px;margin:0 auto;padding:2rem 1.5rem">
-    <div style="margin-bottom:2rem">
-      <h1 style="font-size:1.6rem;font-weight:300;color:var(--ivory);font-family:'Cormorant Garamond',serif;letter-spacing:.05em">Owner Dashboard</h1>
-      <p style="font-size:.82rem;color:var(--text-muted);margin-top:.35rem">Live subscriber data from Firebase</p>
+  <div style="max-width:1200px;margin:0 auto;padding:2rem 1.5rem">
+    <div style="margin-bottom:2rem;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+      <div>
+        <div style="font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.35rem">Owner Dashboard</div>
+        <h1 style="font-size:1.8rem;font-weight:300;font-family:'Cormorant Garamond',serif;color:var(--ivory)">Analytics & Overview</h1>
+      </div>
+      <button class="btn btn-outline" onclick="loadDashboardData()" style="font-size:.75rem">↻ Refresh</button>
     </div>
-    <!-- KPI Cards -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:2rem" id="dashKPIs">
-      <div style="background:rgba(22,32,51,.7);border:1px solid rgba(191,198,209,.12);border-radius:12px;padding:1.25rem">
-        <div style="font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.45);margin-bottom:.5rem">Total Subscribers</div>
-        <div style="font-size:2rem;font-weight:700;color:var(--ivory)" id="dash-total-subs">—</div>
+
+    <!-- Revenue KPIs -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem">
+      <div style="background:rgba(39,174,96,.07);border:1px solid rgba(39,174,96,.2);border-radius:12px;padding:1.25rem">
+        <div style="font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(39,174,96,.7);margin-bottom:.5rem">Est. MRR</div>
+        <div style="font-size:1.8rem;font-weight:700;color:rgba(39,174,96,.9);font-family:'Inter',sans-serif" id="dash-mrr">—</div>
+        <div style="font-size:.7rem;color:var(--text-muted);margin-top:.25rem">Monthly recurring</div>
+      </div>
+      <div style="background:rgba(39,174,96,.05);border:1px solid rgba(39,174,96,.15);border-radius:12px;padding:1.25rem">
+        <div style="font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(39,174,96,.6);margin-bottom:.5rem">Est. ARR</div>
+        <div style="font-size:1.8rem;font-weight:700;color:var(--ivory);font-family:'Inter',sans-serif" id="dash-arr">—</div>
+        <div style="font-size:.7rem;color:var(--text-muted);margin-top:.25rem">Annual run rate</div>
       </div>
       <div style="background:rgba(22,32,51,.7);border:1px solid rgba(191,198,209,.12);border-radius:12px;padding:1.25rem">
-        <div style="font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.45);margin-bottom:.5rem">Active Trials</div>
-        <div style="font-size:2rem;font-weight:700;color:rgba(212,175,55,.9)" id="dash-trials">—</div>
+        <div style="font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.45);margin-bottom:.5rem">Total Users</div>
+        <div style="font-size:1.8rem;font-weight:700;color:var(--ivory);font-family:'Inter',sans-serif" id="dash-total-subs">—</div>
+        <div style="font-size:.7rem;color:var(--text-muted);margin-top:.25rem">Registered accounts</div>
+      </div>
+      <div style="background:rgba(212,175,55,.06);border:1px solid rgba(212,175,55,.2);border-radius:12px;padding:1.25rem">
+        <div style="font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(212,175,55,.7);margin-bottom:.5rem">Active Trials</div>
+        <div style="font-size:1.8rem;font-weight:700;color:rgba(212,175,55,.9);font-family:'Inter',sans-serif" id="dash-trials">—</div>
+        <div style="font-size:.7rem;color:var(--text-muted);margin-top:.25rem">In 7-day trial</div>
       </div>
       <div style="background:rgba(22,32,51,.7);border:1px solid rgba(191,198,209,.12);border-radius:12px;padding:1.25rem">
-        <div style="font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.45);margin-bottom:.5rem">Est. MRR</div>
-        <div style="font-size:2rem;font-weight:700;color:rgba(39,174,96,.9)" id="dash-mrr">—</div>
+        <div style="font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.45);margin-bottom:.5rem">Paid Subscribers</div>
+        <div style="font-size:1.8rem;font-weight:700;color:var(--ivory);font-family:'Inter',sans-serif" id="dash-paid">—</div>
+        <div style="font-size:.7rem;color:var(--text-muted);margin-top:.25rem">Active paid plans</div>
       </div>
-      <div style="background:rgba(22,32,51,.7);border:1px solid rgba(191,198,209,.12);border-radius:12px;padding:1.25rem">
-        <div style="font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.45);margin-bottom:.5rem">Est. ARR</div>
-        <div style="font-size:2rem;font-weight:700;color:var(--ivory)" id="dash-arr">—</div>
+      <div style="background:rgba(231,76,60,.05);border:1px solid rgba(231,76,60,.15);border-radius:12px;padding:1.25rem">
+        <div style="font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(231,76,60,.6);margin-bottom:.5rem">Cancelled</div>
+        <div style="font-size:1.8rem;font-weight:700;color:rgba(231,76,60,.8);font-family:'Inter',sans-serif" id="dash-cancelled">—</div>
+        <div style="font-size:.7rem;color:var(--text-muted);margin-top:.25rem">Inactive / cancelled</div>
       </div>
     </div>
-    <!-- Subscribers Table -->
+
+    <!-- Plan breakdown -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+      <div style="background:rgba(17,32,58,.5);border:1px solid rgba(191,198,209,.1);border-radius:12px;padding:1.25rem">
+        <div style="font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brushed-silver);font-weight:600;margin-bottom:1rem">Plan Breakdown</div>
+        <div id="dash-plan-breakdown" style="display:flex;flex-direction:column;gap:.6rem">
+          <div style="text-align:center;color:var(--text-muted);font-size:.82rem;padding:1rem">Loading...</div>
+        </div>
+      </div>
+      <div style="background:rgba(17,32,58,.5);border:1px solid rgba(191,198,209,.1);border-radius:12px;padding:1.25rem">
+        <div style="font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brushed-silver);font-weight:600;margin-bottom:1rem">Revenue Tracking</div>
+        <div style="color:var(--text-muted);font-size:.82rem;padding:.5rem 0">
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem">
+            <div style="width:8px;height:8px;border-radius:50%;background:rgba(212,175,55,.4)"></div>
+            <span>Payment processor not connected yet</span>
+          </div>
+          <div style="font-size:.75rem;color:rgba(191,198,209,.35);line-height:1.6">Connect Paddle to see actual payment events, subscription renewals, and revenue history here.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subscribers table -->
     <div style="background:rgba(17,32,58,.5);border:1px solid rgba(191,198,209,.1);border-radius:12px;overflow:hidden">
-      <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(191,198,209,.08);display:flex;align-items:center;justify-content:space-between">
-        <div style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brushed-silver);font-weight:600">Subscribers</div>
-        <button class="adm-btn-sm" onclick="loadDashboardData()">↻ Refresh</button>
+      <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(191,198,209,.08)">
+        <div style="font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brushed-silver);font-weight:600">All Users</div>
       </div>
       <div id="dashUserTable" style="overflow-x:auto">
         <div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:.85rem">Loading...</div>
@@ -6270,8 +6439,6 @@ function loadDashboardData(){
     </div>
   </div>
 </div>
-
-
 <!-- ═══ PLAN SELECTION PAGE ═══ -->
 <div id="planSelectionPage" class="page">
   <nav class="nav">
@@ -6570,16 +6737,34 @@ function openComparisons(){
 /* This is called from the existing onAuthStateChanged */
 function routeAfterAuth(user){
   if(IS_ADMIN){
-    /* Admin sees the landing page with admin UI */
+    /* Admin goes to admin dashboard */
+    openAdminDashboard();
     return;
   }
-  /* Regular signed-in user → dashboard */
+  /* Regular signed-in user → user dashboard */
   var currentPage = document.querySelector('.page.active');
   var currentId = currentPage ? currentPage.id : '';
-  /* Only auto-route if on landing or plan selection page */
-  if(currentId === 'landing' || currentId === 'planSelectionPage' || !currentId){
+  if(!currentId || currentId==='landing' || currentId==='planSelectionPage'){
     openUserDashboard();
   }
+}
+
+function goDashboard(){
+  if(IS_ADMIN) openAdminDashboard();
+  else openUserDashboard();
+}
+
+function previewLandingAsVisitor(){
+  /* Admin-only: preview the public landing page */
+  showPage('landing');
+  /* Add a return banner */
+  var existing = document.getElementById('adminPreviewBanner');
+  if(existing) existing.remove();
+  var banner = document.createElement('div');
+  banner.id = 'adminPreviewBanner';
+  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:8999;background:rgba(212,175,55,.95);color:rgba(8,18,34,1);text-align:center;padding:.6rem;font-size:.78rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:1rem';
+  banner.innerHTML = '👁 Visitor Preview Mode — this is what logged-out visitors see <button onclick="document.getElementById('adminPreviewBanner').remove();openAdminDashboard()" style="background:rgba(8,18,34,.2);border:1px solid rgba(8,18,34,.3);color:rgba(8,18,34,.9);padding:.25rem .75rem;border-radius:6px;cursor:pointer;font-weight:700;font-size:.75rem">← Return to Dashboard</button>';
+  document.body.appendChild(banner);
 }
 
 
@@ -6797,6 +6982,201 @@ function updateLandingForUser(user){
   }
 }
 
+
+/* ════════════════════════════════════════════════════════════════
+   NAV DROPDOWN
+════════════════════════════════════════════════════════════════ */
+function toggleNavDropdown(){
+  var dd = document.getElementById('navDropdown');
+  if(!dd) return;
+  dd.classList.toggle('open');
+  /* Close on outside click */
+  if(dd.classList.contains('open')){
+    setTimeout(function(){
+      document.addEventListener('click', function closeDD(e){
+        if(!document.getElementById('navDropdown').contains(e.target) &&
+           !document.getElementById('navProfileTrigger').contains(e.target)){
+          closeNavDropdown();
+          document.removeEventListener('click', closeDD);
+        }
+      });
+    }, 10);
+  }
+}
+function closeNavDropdown(){
+  var dd = document.getElementById('navDropdown');
+  if(dd) dd.classList.remove('open');
+}
+
+/* Show admin-only items in dropdown */
+function updateNavDropdownForAdmin(){
+  var adminDiv = document.getElementById('navAdminDivider');
+  var adminBtn = document.getElementById('navAdminPanelBtn');
+  var previewBtn = document.getElementById('navPreviewBtn');
+  if(IS_ADMIN){
+    if(adminDiv) adminDiv.style.display = '';
+    if(adminBtn) adminBtn.style.display = '';
+    if(previewBtn) previewBtn.style.display = '';
+  }
+}
+
+/* Update nav avatar initials */
+function updateNavAvatar(name){
+  var el = document.getElementById('navAvatarInitial');
+  if(!el) return;
+  var initials = (name||'?').split(' ').map(function(w){ return w[0]; }).slice(0,2).join('').toUpperCase();
+  el.textContent = initials;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   IMPROVED loadDashboardData — admin analytics
+════════════════════════════════════════════════════════════════ */
+function loadDashboardData(){
+  if(!IS_ADMIN) return;
+  var tableEl = document.getElementById('dashUserTable');
+  if(tableEl) tableEl.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:.85rem">Loading...</div>';
+
+  db.collection('users').get().then(function(snap){
+    var users = [];
+    snap.forEach(function(doc){
+      var d = doc.data();
+      users.push({
+        uid:     doc.id,
+        email:   d.email || '—',
+        name:    (d.profile && d.profile.name) || d.displayName || '—',
+        plan:    d.plan || 'free',
+        status:  d.subscriptionStatus || 'active',
+        trial:   d.trialEndsAt ? (d.trialEndsAt.toDate ? d.trialEndsAt.toDate() : new Date(d.trialEndsAt)) : null,
+        created: d.createdAt ? (d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt)) : null,
+      });
+    });
+
+    users.sort(function(a,b){ return (b.created||0)-(a.created||0); });
+
+    var now = new Date();
+    var planPrices = {starter:49, pro:79, agency:29};
+    var activeSubs = users.filter(function(u){ return u.plan!=='free' && u.status==='active'; });
+    var trials     = users.filter(function(u){ return u.trial && u.trial>now; });
+    var paid       = users.filter(function(u){ return u.plan!=='free' && u.status==='active' && !(u.trial&&u.trial>now); });
+    var cancelled  = users.filter(function(u){ return u.status==='cancelled'||u.status==='inactive'; });
+    var mrr = activeSubs.reduce(function(s,u){ return s+(planPrices[u.plan]||0); },0);
+
+    var setKPI = function(id,val){ var el=document.getElementById(id); if(el) el.textContent=val; };
+    setKPI('dash-total-subs', users.length);
+    setKPI('dash-trials',     trials.length);
+    setKPI('dash-paid',       paid.length);
+    setKPI('dash-cancelled',  cancelled.length);
+    setKPI('dash-mrr',        'AED '+mrr.toLocaleString());
+    setKPI('dash-arr',        'AED '+(mrr*12).toLocaleString());
+
+    /* Plan breakdown */
+    var planCounts = {};
+    users.forEach(function(u){ planCounts[u.plan]=(planCounts[u.plan]||0)+1; });
+    var breakdownEl = document.getElementById('dash-plan-breakdown');
+    if(breakdownEl){
+      var planColors = {free:'rgba(191,198,209,.4)',starter:'rgba(39,174,96,.7)',pro:'rgba(212,175,55,.8)',agency:'rgba(100,149,237,.7)'};
+      breakdownEl.innerHTML = Object.entries(planCounts).map(function(kv){
+        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid rgba(191,198,209,.06)">'
+          +'<div style="display:flex;align-items:center;gap:.5rem"><div style="width:8px;height:8px;border-radius:50%;background:'+(planColors[kv[0]]||'rgba(191,198,209,.3)')+'"></div>'
+          +'<span style="font-size:.8rem;color:var(--ivory);text-transform:capitalize">'+kv[0]+'</span></div>'
+          +'<span style="font-size:.82rem;font-weight:700;color:var(--ivory)">'+kv[1]+'</span></div>';
+      }).join('');
+    }
+
+    /* Users table */
+    var planColors2 = {free:'rgba(191,198,209,.35)',starter:'rgba(39,174,96,.7)',pro:'rgba(212,175,55,.9)',agency:'rgba(100,149,237,.8)'};
+    var rows = users.map(function(u){
+      var trialStr = u.trial?(u.trial>now?'Trial — '+Math.ceil((u.trial-now)/86400000)+'d left':'Trial ended'):'—';
+      var createdStr = u.created?u.created.toLocaleDateString('en-GB'):'—';
+      return '<tr style="border-bottom:1px solid rgba(191,198,209,.06)">'
+        +'<td style="padding:.7rem 1rem;font-size:.82rem;color:var(--ivory)">'+u.name+'</td>'
+        +'<td style="padding:.7rem 1rem;font-size:.76rem;color:var(--text-muted)">'+u.email+'</td>'
+        +'<td style="padding:.7rem 1rem"><span style="font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:'+(planColors2[u.plan]||'rgba(191,198,209,.4)')+'">'+u.plan+'</span></td>'
+        +'<td style="padding:.7rem 1rem;font-size:.75rem;color:var(--text-muted)">'+u.status+'</td>'
+        +'<td style="padding:.7rem 1rem;font-size:.74rem;color:rgba(212,175,55,.7)">'+trialStr+'</td>'
+        +'<td style="padding:.7rem 1rem;font-size:.74rem;color:var(--text-muted)">'+createdStr+'</td>'
+        +'</tr>';
+    }).join('');
+
+    if(tableEl){
+      tableEl.innerHTML = rows.length===0
+        ? '<div style="padding:2rem;text-align:center;color:var(--text-muted)">No users yet</div>'
+        : '<table style="width:100%;border-collapse:collapse">'
+          +'<thead><tr style="border-bottom:1px solid rgba(191,198,209,.12)">'
+          +'<th style="padding:.55rem 1rem;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(191,198,209,.45);text-align:left">Name</th>'
+          +'<th style="padding:.55rem 1rem;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(191,198,209,.45);text-align:left">Email</th>'
+          +'<th style="padding:.55rem 1rem;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(191,198,209,.45);text-align:left">Plan</th>'
+          +'<th style="padding:.55rem 1rem;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(191,198,209,.45);text-align:left">Status</th>'
+          +'<th style="padding:.55rem 1rem;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(191,198,209,.45);text-align:left">Trial</th>'
+          +'<th style="padding:.55rem 1rem;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(191,198,209,.45);text-align:left">Joined</th>'
+          +'</tr></thead><tbody>'+rows+'</tbody></table>';
+    }
+  }).catch(function(e){
+    if(tableEl) tableEl.innerHTML='<div style="padding:2rem;text-align:center;color:rgba(231,76,60,.8)">Error: '+e.message+'</div>';
+  });
+}
+
+/* ════════════════════════════════════════════════════════════════
+   FIX 9: PRICING TAB — ensure renderAdminMain handles it
+   (The handler exists but let's make it robust)
+════════════════════════════════════════════════════════════════ */
+/* Patch switchAdminView to ensure pricing tab works */
+var _origSwitchAdminView = typeof switchAdminView === 'function' ? switchAdminView : null;
+if(_origSwitchAdminView){
+  switchAdminView = function(view){
+    _origSwitchAdminView(view);
+    /* Belt-and-suspenders: if view is pricing and adminMain is empty, render it */
+    if(view === 'pricing'){
+      var main = document.getElementById('adminMain');
+      if(main && main.innerHTML.trim() === ''){
+        if(typeof renderPricingEditor === 'function') renderPricingEditor();
+      }
+    }
+  };
+}
+
+/* ════════════════════════════════════════════════════════════════
+   WIRE updateLandingForUser to also update nav dropdown
+════════════════════════════════════════════════════════════════ */
+var _origUpdateLanding = typeof updateLandingForUser === 'function' ? updateLandingForUser : null;
+if(_origUpdateLanding){
+  updateLandingForUser = function(user){
+    _origUpdateLanding(user);
+    /* Show/hide CTAs based on auth */
+    var signInBtn = document.getElementById('navSignInBtn');
+    var navUserInfo = document.getElementById('navUserInfo');
+    if(user){
+      if(signInBtn) signInBtn.style.display = 'none';
+      /* Hide visitor CTAs in nav */
+      document.querySelectorAll('[onclick*="openModal"],[onclick*="openPlanSelection"]').forEach(function(btn){
+        if(btn.id !== 'heroCtaBtn') btn.style.display = 'none';
+      });
+    }
+    /* Update admin items in dropdown */
+    updateNavDropdownForAdmin();
+    /* Update avatar */
+    var name = (USER_PROFILE && USER_PROFILE.name) || (user && (user.displayName || user.email)) || '';
+    updateNavAvatar(name);
+  };
+}
+
+/* Also hook into profile load to update nav avatar */
+var _origLoadProfile = typeof loadProfile === 'function' ? loadProfile : null;
+
+/* openAdminDashboard: ensure it loads data */
+var _origOpenAdminDash = typeof openAdminDashboard === 'function' ? openAdminDashboard : null;
+if(!_origOpenAdminDash){
+  function openAdminDashboard(){
+    showPage('adminDashboardPage');
+    loadDashboardData();
+  }
+} else {
+  openAdminDashboard = function(){
+    showPage('adminDashboardPage');
+    loadDashboardData();
+  };
+}
+
 </script>
            2. Initialize: Paddle.Initialize({ token: 'YOUR_CLIENT_TOKEN' })
            3. On button click: Paddle.Checkout.open({ priceId: selectedPriceId, ... })
@@ -6822,72 +7202,76 @@ function updateLandingForUser(user){
 
 
 <!-- ═══ USER DASHBOARD PAGE ═══ -->
-<div id="userDashboardPage" class="page">
+<div id="userDashboardPage" class="page" style="background:var(--bg);min-height:100vh">
   <nav class="nav">
-    <div class="nav-logo" onclick="goToLanding()" style="cursor:pointer" style="cursor:default">
-      <svg width="22" height="22" viewBox="0 0 60 60" fill="none"><defs><radialGradient id="udgr" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#8a959e" stop-opacity=".6"/></radialGradient></defs><path d="M30 2L32.5 27.5L58 30L32.5 32.5L30 58L27.5 32.5L2 30L27.5 27.5Z" fill="url(#udgr)"/></svg>
+    <div class="nav-logo" onclick="openUserDashboard()" style="cursor:pointer">
+      <svg width="22" height="22" viewBox="0 0 60 60" fill="none"><defs><radialGradient id="udgr2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#8a959e" stop-opacity=".6"/></radialGradient></defs><path d="M30 2L32.5 27.5L58 30L32.5 32.5L30 58L27.5 32.5L2 30L27.5 27.5Z" fill="url(#udgr2)"/></svg>
       <span style="font-family:'Cormorant Garamond',serif;font-weight:300;letter-spacing:.2em">SIRIUS</span>
     </div>
     <div style="display:flex;align-items:center;gap:.75rem">
       <span style="font-size:.72rem;color:var(--text-muted)" id="udNavName"></span>
+      <button class="btn btn-ghost" onclick="goToEval()" style="font-size:.72rem">Start Calculation</button>
       <button class="btn btn-ghost" onclick="openProfile()" style="font-size:.72rem">My Profile</button>
-      <button class="btn btn-ghost" onclick="handleSignOut()" style="font-size:.72rem">Sign out</button>
+      <button class="btn btn-ghost" onclick="handleSignOut()" style="font-size:.72rem">Sign Out</button>
     </div>
   </nav>
   <div style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem">
     <!-- Welcome -->
     <div style="margin-bottom:2rem">
-      <div style="font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.4rem">Welcome back</div>
+      <div style="font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.35rem">Welcome back</div>
       <h1 style="font-size:1.8rem;font-weight:300;font-family:'Cormorant Garamond',serif;color:var(--ivory)" id="udWelcomeName">—</h1>
-      <div style="display:flex;align-items:center;gap:.75rem;margin-top:.5rem">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-top:.5rem;flex-wrap:wrap">
         <span style="font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.2rem .7rem;border-radius:99px;background:rgba(191,198,209,.1);border:1px solid rgba(191,198,209,.2);color:var(--brushed-silver)" id="udPlanBadge">Free Plan</span>
-        <span style="font-size:.75rem;color:rgba(191,198,209,.4)" id="udTrialNote"></span>
+        <span style="font-size:.75rem;color:rgba(212,175,55,.8)" id="udTrialNote"></span>
       </div>
     </div>
 
     <!-- Usage bar -->
-    <div style="background:rgba(17,32,58,.5);border:1px solid rgba(191,198,209,.1);border-radius:12px;padding:1.25rem;margin-bottom:1.5rem" id="udUsageCard">
+    <div style="background:rgba(17,32,58,.5);border:1px solid rgba(191,198,209,.1);border-radius:12px;padding:1.25rem;margin-bottom:1.5rem">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.65rem">
-        <div style="font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(191,198,209,.5);font-weight:600">This month</div>
-        <div style="font-size:.75rem;color:var(--text-muted)" id="udUsageText">—</div>
+        <div style="font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(191,198,209,.5);font-weight:600">Calculations this month</div>
+        <div style="font-size:.78rem;color:var(--text-muted)" id="udUsageText">Loading...</div>
       </div>
       <div class="dash-usage-bar"><div class="dash-usage-fill" id="udUsageFill" style="width:0%"></div></div>
     </div>
 
     <!-- Action cards -->
-    <div class="dash-grid">
+    <div class="dash-grid" style="margin-bottom:1.5rem">
       <div class="dash-card" onclick="goToEval()">
-        <div class="dash-card-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </div>
+        <div class="dash-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
         <div class="dash-card-title">New Calculation</div>
         <div class="dash-card-sub">Analyse a property — ready, off-plan, cash or mortgage.</div>
       </div>
       <div class="dash-card" onclick="openSavedReports()">
-        <div class="dash-card-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        </div>
+        <div class="dash-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
         <div class="dash-card-title">Saved Reports</div>
         <div class="dash-card-sub">View and download your saved analyses.</div>
       </div>
       <div class="dash-card" onclick="openComparisons()">
-        <div class="dash-card-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="18"/><rect x="14" y="3" width="7" height="18"/></svg>
-        </div>
+        <div class="dash-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="18"/><rect x="14" y="3" width="7" height="18"/></svg></div>
         <div class="dash-card-title">Compare Properties</div>
         <div class="dash-card-sub">Compare two investments side by side.</div>
       </div>
       <div class="dash-card" onclick="openProfile()">
-        <div class="dash-card-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        </div>
+        <div class="dash-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
         <div class="dash-card-title">My Profile</div>
         <div class="dash-card-sub">Edit your details and branding for reports.</div>
       </div>
     </div>
 
+    <!-- Saved reports section -->
+    <div style="background:rgba(17,32,58,.5);border:1px solid rgba(191,198,209,.1);border-radius:12px;padding:1.25rem;margin-bottom:1rem">
+      <div style="font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brushed-silver);font-weight:600;margin-bottom:.75rem">Saved Reports</div>
+      <div id="udSavedReports" style="color:var(--text-muted);font-size:.82rem">
+        <div style="display:flex;align-items:center;gap:.5rem;color:rgba(191,198,209,.35)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>
+          No saved reports yet. Run a calculation and save it to see it here.
+        </div>
+      </div>
+    </div>
+
     <!-- Upgrade prompt for free users -->
-    <div id="udUpgradePrompt" style="display:none;margin-top:1rem;background:linear-gradient(135deg,rgba(212,175,55,.08),rgba(212,175,55,.03));border:1px solid rgba(212,175,55,.2);border-radius:12px;padding:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+    <div id="udUpgradePrompt" style="display:none;background:linear-gradient(135deg,rgba(212,175,55,.08),rgba(212,175,55,.03));border:1px solid rgba(212,175,55,.2);border-radius:12px;padding:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
       <div>
         <div style="font-size:.82rem;font-weight:600;color:var(--ivory);margin-bottom:.25rem">Upgrade to unlock everything</div>
         <div style="font-size:.75rem;color:var(--text-muted)">Unlimited calculations, PDF reports, property comparisons and full branding.</div>
@@ -6896,18 +7280,41 @@ function updateLandingForUser(user){
     </div>
   </div>
 </div>
-
-
-<!-- Floating Admin Button -->
-<div class="admin-fab" id="adminFab" style="display:none">
-  <button class="admin-fab-btn" onclick="openAdminPanel()" title="Open Admin Panel">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
-  </button>
+<div class="auth-modal-overlay" id="authModal" role="dialog" aria-label="Sign in to Sirius">
+  <div class="auth-modal-box" style="position:relative">
+    <button class="auth-close" onclick="closeAuthModal()" aria-label="Close">✕</button>
+    <div class="auth-modal-logo">
+      <svg width="18" height="18" viewBox="0 0 60 60" fill="none">
+        <defs><radialGradient id="amGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#8a959e" stop-opacity=".7"/></radialGradient></defs>
+        <path d="M30 2L32.5 27.5L58 30L32.5 32.5L30 58L27.5 32.5L2 30L27.5 27.5Z" fill="url(#amGrad)"/>
+      </svg>
+      <span style="font-family:'Cormorant Garamond',serif;font-weight:300;letter-spacing:.2em;font-size:1.1rem;color:var(--ivory)">SIRIUS</span>
+    </div>
+    <div class="auth-tab-row">
+      <button class="auth-tab active" id="authTabSignIn" onclick="switchAuthTab('signin')">Sign in</button>
+      <button class="auth-tab" id="authTabSignUp" onclick="switchAuthTab('signup')">Create account</button>
+    </div>
+    <div class="auth-field">
+      <label>Email</label>
+      <input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email">
+    </div>
+    <div class="auth-field">
+      <label>Password</label>
+      <input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div class="auth-field" id="authNameField" style="display:none">
+      <label>Your name</label>
+      <input type="text" id="authName" placeholder="First name">
+    </div>
+    <button class="auth-submit-btn" id="authSubmitBtn" onclick="handleAuthSubmit()">Sign in</button>
+    <div class="auth-divider">or</div>
+    <button class="auth-google-btn" onclick="signInWithGoogle()">
+      <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.7 33.7 29.3 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 6 1.1 8.2 3l5.7-5.7C34.4 5.1 29.5 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c11 0 20-8 20-20.5 0-1.2-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3.1 0 6 1.1 8.2 3l5.7-5.7C34.4 5.1 29.5 3 24 3c-7.6 0-14.2 4.4-17.7 11.7z"/><path fill="#4CAF50" d="M24 45c5.2 0 10-1.8 13.7-4.8l-6.3-5.2C29.5 36.4 26.9 37 24 37c-5.2 0-9.6-3.3-11.3-7.9l-6.6 4.8C9.8 40.6 16.4 45 24 45z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.3-2.3 4.2-4.3 5.5l6.3 5.2C41 35.2 44 30 44 24c0-1.2-.1-2.3-.4-3.5z"/></svg>
+      Continue with Google
+    </button>
+    <div class="auth-error" id="authError"></div>
+  </div>
 </div>
-
-<!-- Admin Overlay -->
-
-
 <div class="admin-overlay" id="adminOverlay" role="dialog" aria-label="Admin configuration panel">
   <div class="admin-topbar">
     <div class="admin-topbar-title">
@@ -6949,40 +7356,13 @@ function updateLandingForUser(user){
     </div>
   </div>
 </div>
-<div class="auth-modal-overlay" id="authModal" role="dialog" aria-label="Sign in to Sirius">
-  <div class="auth-modal-box" style="position:relative">
-    <button class="auth-close" onclick="closeAuthModal()" aria-label="Close">✕</button>
-    <div class="auth-modal-logo">
-      <svg width="18" height="18" viewBox="0 0 60 60" fill="none">
-        <defs><radialGradient id="amGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#8a959e" stop-opacity=".7"/></radialGradient></defs>
-        <path d="M30 2L32.5 27.5L58 30L32.5 32.5L30 58L27.5 32.5L2 30L27.5 27.5Z" fill="url(#amGrad)"/>
-      </svg>
-      <span style="font-family:'Cormorant Garamond',serif;font-weight:300;letter-spacing:.2em;font-size:1.1rem;color:var(--ivory)">SIRIUS</span>
-    </div>
-    <div class="auth-tab-row">
-      <button class="auth-tab active" id="authTabSignIn" onclick="switchAuthTab('signin')">Sign in</button>
-      <button class="auth-tab" id="authTabSignUp" onclick="switchAuthTab('signup')">Create account</button>
-    </div>
-    <div class="auth-field">
-      <label>Email</label>
-      <input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email">
-    </div>
-    <div class="auth-field">
-      <label>Password</label>
-      <input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password">
-    </div>
-    <div class="auth-field" id="authNameField" style="display:none">
-      <label>Your name</label>
-      <input type="text" id="authName" placeholder="First name">
-    </div>
-    <button class="auth-submit-btn" id="authSubmitBtn" onclick="handleAuthSubmit()">Sign in</button>
-    <div class="auth-divider">or</div>
-    <button class="auth-google-btn" onclick="signInWithGoogle()">
-      <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.7 33.7 29.3 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 6 1.1 8.2 3l5.7-5.7C34.4 5.1 29.5 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c11 0 20-8 20-20.5 0-1.2-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3.1 0 6 1.1 8.2 3l5.7-5.7C34.4 5.1 29.5 3 24 3c-7.6 0-14.2 4.4-17.7 11.7z"/><path fill="#4CAF50" d="M24 45c5.2 0 10-1.8 13.7-4.8l-6.3-5.2C29.5 36.4 26.9 37 24 37c-5.2 0-9.6-3.3-11.3-7.9l-6.6 4.8C9.8 40.6 16.4 45 24 45z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.3-2.3 4.2-4.3 5.5l6.3 5.2C41 35.2 44 30 44 24c0-1.2-.1-2.3-.4-3.5z"/></svg>
-      Continue with Google
-    </button>
-    <div class="auth-error" id="authError"></div>
-  </div>
+
+<!-- Floating Admin Button -->
+<div class="admin-fab" id="adminFab" style="display:none">
+  <button class="admin-fab-btn" onclick="openAdminPanel()" title="Open Admin Panel (Ctrl+Shift+A)">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+    Admin
+  </button>
 </div>
 </body>
 </html><section id="pricing" style="background:rgba(17,43,77,.2);padding:5rem 2rem">
