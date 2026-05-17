@@ -5027,6 +5027,7 @@ function renderAdminMain(){
   else if(_adminView==='history')     renderHistory();
   else if(_adminView==='landing-text') renderLandingTextEditor();
   else if(_adminView==='pricing') renderPricingEditor();
+  else if(_adminView==='pricing') renderPricingEditor();
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -5537,6 +5538,10 @@ auth.onAuthStateChanged(function(user){
     document.getElementById('navSignInBtn').style.display  = 'none';
     document.getElementById('navUserInfo').style.display   = '';
     document.getElementById('navUserEmail').textContent    = user.displayName || user.email;
+    /* Load profile from Firestore */
+    db.collection('users').doc(user.uid).get().then(function(doc){
+      if(doc.exists){ var d=doc.data()||{}; var p=d.profile||{}; USER_PROFILE=p; window._userPlan=d.plan||'free'; if(p.name) document.getElementById('navUserEmail').textContent=p.name; }
+    }).catch(function(){});
     /* Update landing page for signed-in users */
     updateLandingForUser(user);
     /* Load profile data and plan */
@@ -5551,6 +5556,10 @@ auth.onAuthStateChanged(function(user){
     }).catch(function(){});
     /* Re-init landing text listener now that user is authenticated */
     try{ initLandingTextListener(); } catch(e){}
+    /* Load pricing overrides from Firestore */
+    loadPricingConfig();
+    /* Update landing page for this user */
+    setTimeout(function(){ updateLandingForUser(user); },400);
     loadAllConfigs();
     /* Route to correct page after auth */
     setTimeout(function(){ routeAfterAuth(user); }, 300);
@@ -5559,6 +5568,7 @@ auth.onAuthStateChanged(function(user){
       IS_ADMIN = token.claims.admin === true;
       var fab = document.getElementById('adminFab');
       if(fab) fab.style.display = IS_ADMIN ? '' : 'none';
+      updateLandingForUser(user);
       /* Now update landing with correct admin state */
       updateLandingForUser(user);
     });
@@ -6533,6 +6543,221 @@ function routeAfterAuth(user){
   /* Only auto-route if on landing or plan selection page */
   if(currentId === 'landing' || currentId === 'planSelectionPage' || !currentId){
     openUserDashboard();
+  }
+}
+
+
+/* ════════════════════════════════════════════════════════════════
+   PROFILE SYSTEM
+════════════════════════════════════════════════════════════════ */
+var USER_PROFILE = {};
+
+function openProfile(){
+  showPage('profilePage');
+  loadProfile();
+}
+
+function loadProfile(){
+  if(!CURRENT_USER) return;
+  var emailEl = document.getElementById('pf-email');
+  if(emailEl) emailEl.value = CURRENT_USER.email || '';
+  db.collection('users').doc(CURRENT_USER.uid).get().then(function(doc){
+    var data = doc.exists ? (doc.data()||{}) : {};
+    var profile = data.profile || {};
+    USER_PROFILE = profile;
+    var set = function(id,val){ var el=document.getElementById(id); if(el) el.value=val||''; };
+    set('pf-name',    profile.name    || CURRENT_USER.displayName || '');
+    set('pf-title',   profile.title   || '');
+    set('pf-phone',   profile.phone   || '');
+    set('pf-company', profile.company || '');
+    set('pf-website', profile.website || '');
+    set('pf-bio',     profile.bio     || '');
+    var plan = IS_ADMIN ? 'admin' : (data.plan||'free');
+    var planLabels = {free:'Free Plan',starter:'Starter',pro:'Professional',agency:'Agency',admin:'Admin — Full Access'};
+    var planEl = document.getElementById('profilePlanBadge');
+    if(planEl) planEl.textContent = planLabels[plan]||plan;
+    updateProfileDisplay(profile);
+    updateBrandingPreview(profile, plan);
+    ['pf-name','pf-title','pf-phone','pf-company'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el) el.oninput=function(){ updateBrandingPreview(getFormProfile(),plan); updateProfileDisplay(getFormProfile()); };
+    });
+  }).catch(function(e){ console.warn('loadProfile error:',e); });
+}
+
+function getFormProfile(){
+  var g=function(id){ var el=document.getElementById(id); return el?el.value||'':''; };
+  return {name:g('pf-name'),title:g('pf-title'),phone:g('pf-phone'),company:g('pf-company'),website:g('pf-website'),bio:g('pf-bio')};
+}
+
+function updateProfileDisplay(profile){
+  var nameEl=document.getElementById('profileDisplayName');
+  var titleEl=document.getElementById('profileDisplayTitle');
+  if(nameEl)  nameEl.textContent  = profile.name||'Your Name';
+  if(titleEl) titleEl.textContent = [profile.title,profile.company].filter(Boolean).join(' · ')||'Title · Company';
+  var navEl=document.getElementById('navUserEmail');
+  if(navEl&&profile.name) navEl.textContent=profile.name;
+}
+
+function updateBrandingPreview(profile,plan){
+  var set=function(id,val){ var el=document.getElementById(id); if(el) el.textContent=val; };
+  set('previewName',  profile.name||'Your Name');
+  set('previewTitle', [profile.title,profile.company].filter(Boolean).join(' · ')||'Title · Company');
+  set('previewPhone', profile.phone||'Phone number');
+  var notes={
+    free:    'Upgrade to Starter for name + phone on reports',
+    starter: '✓ Name + phone shown on reports',
+    pro:     '✓ Full branding on reports (logo, photo, bio)',
+    agency:  '✓ Full branding + company logo on reports',
+    admin:   '✓ Full branding on all reports',
+  };
+  set('previewPlanNote', notes[IS_ADMIN?'admin':plan]||notes.free);
+}
+
+function saveProfile(){
+  if(!CURRENT_USER){ alert('Please sign in first.'); return; }
+  var profile=getFormProfile();
+  var statusEl=document.getElementById('profileSaveStatus');
+  if(statusEl) statusEl.textContent='Saving...';
+  db.collection('users').doc(CURRENT_USER.uid).set({profile:profile},{merge:true})
+    .then(function(){
+      USER_PROFILE=profile;
+      if(statusEl){ statusEl.textContent='✓ Profile saved'; setTimeout(function(){statusEl.textContent='';},3000); }
+      updateProfileDisplay(profile);
+      var navEl=document.getElementById('navUserEmail');
+      if(navEl&&profile.name) navEl.textContent=profile.name;
+    })
+    .catch(function(e){ if(statusEl) statusEl.textContent='✗ Save failed: '+e.message; });
+}
+
+/* ════════════════════════════════════════════════════════════════
+   PRICING EDITOR + OVERRIDES
+════════════════════════════════════════════════════════════════ */
+var PRICING_OVERRIDES = {};
+
+function loadPricingConfig(){
+  db.collection('config').doc('pricing').get()
+    .then(function(doc){ if(doc.exists) PRICING_OVERRIDES=doc.data()||{}; })
+    .catch(function(){});
+}
+
+function savePricingConfig(data,onDone){
+  db.collection('config').doc('pricing').set(data)
+    .then(function(){ if(onDone) onDone(true); })
+    .catch(function(e){ if(onDone) onDone(false,e.message); });
+}
+
+function applyPricingOverrides(){
+  var apply=function(plan,ov){
+    if(!ov) return;
+    if(ov.monthly)     plan.price.monthly  = ov.monthly;
+    if(ov.yearly)      plan.price.yearly   = ov.yearly;
+    if(ov.monthlyEq)   plan.monthlyEq      = ov.monthlyEq;
+    if(ov.intro)       plan.intro          = ov.intro;
+    if(ov.tagline)     plan.tagline        = ov.tagline;
+    if(ov.valueAnchor) plan.valueAnchor    = ov.valueAnchor;
+    if(ov.features)    plan.features       = ov.features.split('\n').filter(Boolean).map(function(t){ return {t:t,on:true}; });
+  };
+  if(PLANS&&PLANS.individual){
+    apply(PLANS.individual.starter, PRICING_OVERRIDES.starter);
+    apply(PLANS.individual.pro,     PRICING_OVERRIDES.pro);
+  }
+  if(PLANS&&PLANS.company){
+    apply(PLANS.company.agency, PRICING_OVERRIDES.agency);
+  }
+  if(typeof renderPricing==='function') renderPricing();
+  if(typeof setBillingCard==='function') setBillingCard(S.billing||'yearly');
+}
+
+function renderPricingEditor(){
+  var main=document.getElementById('adminMain');
+  if(!main) return;
+  var plans=[{key:'starter',label:'Starter'},{key:'pro',label:'Professional'},{key:'agency',label:'Agency (per user)'}];
+  var defaults={
+    starter:{monthly:49,yearly:399,monthlyEq:33,intro:'First 2 months at AED 25',valueAnchor:'Less than 0.2% of one commission',tagline:'For agents and investors getting started with smarter analysis',features:'30 calculations / month\n15 saved reports / month\n20 PDF downloads / month\n5 property comparisons / month\n3 active shareable links\nName + phone on reports\n7-day full access trial'},
+    pro:    {monthly:79,yearly:649,monthlyEq:54,intro:'First 2 months at AED 39',valueAnchor:'Less than 0.4% of one commission',tagline:'For serious brokers and investors who close deals with data',features:'Unlimited calculations\nUnlimited saved reports\nUnlimited PDF downloads\n20 property comparisons / month\n20 active shareable links\nFull branding — logo, photo, bio\nIn-app profile page\nPriority support\n7-day full access trial'},
+    agency: {monthly:29,yearly:239,monthlyEq:20,intro:'Min. 3 seats · Admin seat included',valueAnchor:'Less than AED 1 per agent per day',tagline:'For brokerages that want every agent performing at their best',features:'Everything in Professional\nUnlimited calculations & reports\nAgency dashboard + usage analytics\nWhite-label — remove Sirius branding\nCompany + individual agent branding\nDedicated account manager\nPriority support\n7-day full access trial'},
+  };
+  var inp=function(label,id,val){
+    return '<div><div style="font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(191,198,209,.45);margin-bottom:.35rem">'+label+'</div>'
+      +'<input style="width:100%;padding:.5rem;border-radius:6px;border:1px solid rgba(191,198,209,.18);background:rgba(10,22,40,.8);color:var(--ivory);font-family:var(--font-body);font-size:.82rem;box-sizing:border-box" id="'+id+'" value="'+String(val).replace(/"/g,'&quot;')+'"></div>';
+  };
+  var h='<div style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brushed-silver);font-weight:600;margin-bottom:1.25rem">Pricing Configuration</div>'
+    +'<div style="font-size:.78rem;color:var(--text-muted);margin-bottom:1.5rem">Changes save to Firebase and update live for all users.</div>';
+  plans.forEach(function(plan){
+    var ov=PRICING_OVERRIDES[plan.key]||{}, def=defaults[plan.key];
+    h+='<div class="adm-section-block" style="margin-bottom:1rem">'
+      +'<div style="padding:.85rem 1rem;border-bottom:1px solid rgba(191,198,209,.06);font-size:.9rem;font-weight:600;color:var(--ivory)">'+plan.label+'</div>'
+      +'<div style="padding:1rem;display:grid;grid-template-columns:1fr 1fr;gap:.75rem">'
+      +inp('Monthly price (AED)',       'pe_'+plan.key+'_monthly',    ov.monthly    ||def.monthly)
+      +inp('Annual price (AED/year)',   'pe_'+plan.key+'_yearly',     ov.yearly     ||def.yearly)
+      +inp('Annual equiv (AED/mo)',     'pe_'+plan.key+'_monthlyEq',  ov.monthlyEq  ||def.monthlyEq)
+      +inp('Intro offer text',          'pe_'+plan.key+'_intro',      ov.intro      ||def.intro)
+      +'</div>'
+      +'<div style="padding:0 1rem .75rem">'+inp('Tagline','pe_'+plan.key+'_tagline',ov.tagline||def.tagline)+'</div>'
+      +'<div style="padding:0 1rem .75rem">'+inp('Value anchor','pe_'+plan.key+'_valueAnchor',ov.valueAnchor||def.valueAnchor)+'</div>'
+      +'<div style="padding:0 1rem 1rem">'
+      +'<div style="font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(191,198,209,.45);margin-bottom:.35rem">Features (one per line)</div>'
+      +'<textarea style="width:100%;min-height:100px;padding:.5rem;border-radius:6px;border:1px solid rgba(191,198,209,.18);background:rgba(10,22,40,.8);color:var(--ivory);font-family:var(--font-body);font-size:.78rem;resize:vertical;box-sizing:border-box" id="pe_'+plan.key+'_features">'+(ov.features||def.features)+'</textarea>'
+      +'</div></div>';
+  });
+  h+='<div style="display:flex;gap:.75rem;margin-top:.5rem"><button class="adm-pill primary" onclick="savePricingEdits()">Save pricing</button></div>'
+    +'<div style="font-size:.72rem;color:var(--text-muted);margin-top:.5rem" id="pricingEditorStatus"></div>';
+  main.innerHTML=h;
+}
+
+function savePricingEdits(){
+  var keys=['starter','pro','agency'], fields=['monthly','yearly','monthlyEq','intro','tagline','valueAnchor','features'];
+  var data={};
+  keys.forEach(function(k){
+    data[k]={};
+    fields.forEach(function(f){ var el=document.getElementById('pe_'+k+'_'+f); if(el) data[k][f]=el.value; });
+    ['monthly','yearly','monthlyEq'].forEach(function(f){ data[k][f]=parseFloat(data[k][f])||0; });
+  });
+  PRICING_OVERRIDES=data;
+  applyPricingOverrides();
+  savePricingConfig(data,function(ok,err){
+    var el=document.getElementById('pricingEditorStatus');
+    if(el) el.textContent=ok?'✓ Pricing saved':'✗ Failed: '+(err||'unknown');
+    if(ok) setTimeout(function(){ if(el) el.textContent=''; },2500);
+  });
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ADMIN LANDING PAGE AWARENESS
+════════════════════════════════════════════════════════════════ */
+function updateLandingForUser(user){
+  var isAdmin=IS_ADMIN;
+  var heroBtn=document.getElementById('heroCtaBtn');
+  if(isAdmin){
+    /* Replace hero CTA */
+    if(heroBtn){ heroBtn.textContent='Open Calculator'; heroBtn.onclick=function(){ goToEval(); }; }
+    /* Hide Request Demo buttons */
+    document.querySelectorAll('[onclick*="openModal"]').forEach(function(btn){ btn.style.display='none'; });
+    /* Hide pricing section */
+    var pricingEl=document.getElementById('pricing'); if(pricingEl) pricingEl.style.display='none';
+    /* Hide demo section */
+    var demoEl=document.getElementById('demoSection'); if(demoEl) demoEl.style.display='none';
+    /* Replace all plan CTAs with calculator */
+    document.querySelectorAll('[onclick*="openAuthModal"],[onclick*="openPlanSelection"]').forEach(function(btn){
+      if(btn.id!=='heroCtaBtn'){ btn.textContent='Open Calculator'; btn.onclick=function(){ goToEval(); }; }
+    });
+    /* Add Dashboard button to nav if not already there */
+    var navInfo=document.getElementById('navUserInfo');
+    if(navInfo&&!document.getElementById('adminDashBtn')){
+      var btn=document.createElement('button');
+      btn.id='adminDashBtn'; btn.className='btn btn-ghost';
+      btn.style.cssText='padding:.35rem .75rem;font-size:.72rem;color:var(--gold)';
+      btn.textContent='Dashboard';
+      btn.onclick=function(){ openAdminDashboard(); };
+      navInfo.insertBefore(btn,navInfo.firstChild);
+    }
+    _disclaimerAccepted=true;
+  } else if(user){
+    /* Signed-in non-admin */
+    if(heroBtn){ heroBtn.textContent='Go to Dashboard'; heroBtn.onclick=function(){ openUserDashboard(); }; }
+    var demoEl2=document.getElementById('demoSection'); if(demoEl2) demoEl2.style.display='none';
+    _disclaimerAccepted=true;
   }
 }
 
