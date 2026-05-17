@@ -108,7 +108,7 @@
 html{scroll-behavior:smooth}
 body{font-family:var(--font-body);background:var(--deep-navy);color:var(--white);min-height:100vh;overflow-x:hidden}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--charcoal)}::-webkit-scrollbar-thumb{background:var(--steel);border-radius:3px}
-.gold{color:var(--gold)}.hidden{display:none!important}.page{display:none;visibility:hidden;height:0;overflow:hidden}.page.active{display:block;visibility:visible;height:auto;overflow:visible;min-height:100vh}
+.gold{color:var(--gold)}.hidden{display:none!important}.page{display:none}.page.active{display:block}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 
 /* BUTTONS */
@@ -1446,6 +1446,19 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
 /* Profile page scroll fix */
 #profilePage { overflow-y: auto; height: 100vh; }
 #profilePage .nav { position: sticky; top: 0; z-index: 100; }
+
+
+/* Non-landing pages fill viewport cleanly */
+#evaluation.active, #profilePage.active {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  z-index: 50;
+  background: var(--bg);
+}
+#landing.active {
+  display: block;
+}
 
 /* End dynamic layer */
 
@@ -5442,6 +5455,8 @@ auth.onAuthStateChanged(function(user){
     document.getElementById('navSignInBtn').style.display  = 'none';
     document.getElementById('navUserInfo').style.display   = '';
     document.getElementById('navUserEmail').textContent    = user.displayName || user.email;
+    /* Update landing page for signed-in users */
+    updateLandingForUser(user);
     /* Load profile data and plan */
     db.collection('users').doc(user.uid).get().then(function(doc){
       if(doc.exists){
@@ -5460,6 +5475,8 @@ auth.onAuthStateChanged(function(user){
       IS_ADMIN = token.claims.admin === true;
       var fab = document.getElementById('adminFab');
       if(fab) fab.style.display = IS_ADMIN ? '' : 'none';
+      /* Now update landing with correct admin state */
+      updateLandingForUser(user);
     });
   } else {
     /* Not signed in */
@@ -6002,9 +6019,9 @@ function loadProfile(){
     document.getElementById('pf-website').value = profile.website || '';
     document.getElementById('pf-bio').value     = profile.bio     || '';
 
-    /* Plan badge */
-    var plan = data.plan || 'free';
-    var planLabels = {free:'Free Plan', starter:'Starter', pro:'Professional', agency:'Agency'};
+    /* Plan badge — check IS_ADMIN first */
+    var plan = IS_ADMIN ? 'admin' : (data.plan || 'free');
+    var planLabels = {free:'Free Plan', starter:'Starter', pro:'Professional', agency:'Agency', admin:'Admin — Full Access'};
     var planEl = document.getElementById('profilePlanBadge');
     if(planEl) planEl.textContent = planLabels[plan] || plan;
 
@@ -6075,8 +6092,9 @@ function updateBrandingPreview(profile, plan){
     starter: '✓ Name + phone shown on reports',
     pro:     '✓ Full branding on reports (logo, photo, bio)',
     agency:  '✓ Full branding + company logo on reports',
+    admin:   '✓ Full branding on all reports',
   };
-  if(prevNote) prevNote.textContent = notes[plan] || notes.free;
+  if(prevNote) prevNote.textContent = notes[IS_ADMIN?'admin':plan] || notes.free;
 }
 
 /* ── Save profile to Firestore ── */
@@ -6435,7 +6453,49 @@ function loadAllConfigs(){
       } catch(e) {
         console.warn('App Check failed:', e.message);
       }
-    });</script>
+    });
+/* ── Update landing page based on auth state ── */
+function updateLandingForUser(user){
+  var isAdmin = IS_ADMIN;
+  var heroBtn = document.getElementById('heroCtaBtn');
+  var navSignIn = document.getElementById('navSignInBtn');
+  var requestDemo = document.querySelector('.nav .btn-ghost[onclick*="openModal"]');
+
+  if(isAdmin){
+    /* Admin: replace hero CTA with direct calculator access */
+    if(heroBtn){
+      heroBtn.textContent = 'Open Calculator';
+      heroBtn.onclick = function(){ goToEval(); };
+    }
+    /* Hide "Request Demo" button from nav — admin doesn't need it */
+    if(requestDemo) requestDemo.style.display = 'none';
+    /* Hide pricing section CTAs — replace with calculator button */
+    document.querySelectorAll('[onclick*="openAuthModal"]').forEach(function(btn){
+      if(btn.id !== 'heroCtaBtn'){
+        btn.textContent = 'Open Calculator';
+        btn.onclick = function(){ goToEval(); };
+      }
+    });
+    /* Hide disclaimer for admin */
+    _disclaimerAccepted = true;
+  } else if(user){
+    /* Signed-in non-admin: change CTA to go straight to calculator */
+    if(heroBtn){
+      heroBtn.textContent = 'Go to Calculator';
+      heroBtn.onclick = function(){ goToEval(); };
+    }
+    _disclaimerAccepted = true;
+  }
+}
+
+/* ── Update admin plan display ── */
+function getDisplayPlan(){
+  if(IS_ADMIN) return 'Admin';
+  var planLabels = {free:'Free', starter:'Starter', pro:'Professional', agency:'Agency'};
+  return planLabels[window._userPlan||'free'] || 'Free';
+}
+
+</script>
 
 <!-- ═══ PROFILE PAGE ═══ -->
 <div id="profilePage" class="page" style="background:var(--bg);min-height:100vh;padding-top:0">
