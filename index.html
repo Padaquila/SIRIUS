@@ -1536,6 +1536,20 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
   min-height: 100vh;
 }
 
+
+/* Footer always at bottom */
+footer, .footer {
+  margin-top: auto;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+#landing {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 /* End dynamic layer */
 
 /* ── DISCLAIMER MODAL ── */
@@ -1763,13 +1777,31 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
   </script>
 
 
+  <style>
+    /* Prevent font flash — set fallback fonts that match metrics */
+    body { opacity: 0; transition: opacity 0.15s ease; }
+    body.fonts-ready { opacity: 1; }
+  </style>
+  <script>
+    /* Show body once fonts are loaded or after 500ms max */
+    document.addEventListener('DOMContentLoaded', function(){
+      if(document.fonts && document.fonts.ready){
+        document.fonts.ready.then(function(){
+          document.body.classList.add('fonts-ready');
+        });
+      } else {
+        document.body.classList.add('fonts-ready');
+      }
+      setTimeout(function(){ document.body.classList.add('fonts-ready'); }, 500);
+    });
+  </script>
 </head>
 <body>
 
 <!-- ================================================================
      DISCLAIMER MODAL — shown on first load, must be accepted
 ================================================================ -->
-<div class="disclaimer-overlay" id="disclaimerOverlay" role="dialog" aria-modal="true" aria-labelledby="disc-title" style="display:none">
+<div class="disclaimer-overlay" id="disclaimerOverlay" role="dialog" aria-modal="true" aria-labelledby="disc-title" style="display:none" onclick="if(event.target===this)closeDisclaimer()">
   <div class="disclaimer-box">
 
     <!-- Header -->
@@ -4725,8 +4757,18 @@ document.addEventListener('keydown', function(e){
   if(e.ctrlKey && e.shiftKey && e.key === 'A'){
     IS_ADMIN = !IS_ADMIN;
     sessionStorage.setItem('sirius_admin', IS_ADMIN?'1':'0');
-    document.getElementById('adminFab').style.display = IS_ADMIN?'':'none';
-    if(!IS_ADMIN) closeAdminPanel();
+    var fab=document.getElementById('adminFab');
+    if(fab) fab.style.display = IS_ADMIN?'':'none';
+    if(IS_ADMIN){
+      /* Show brief confirmation */
+      var tip=document.createElement('div');
+      tip.textContent='Admin mode ON';
+      tip.style.cssText='position:fixed;bottom:80px;right:24px;background:rgba(212,175,55,.9);color:#000;padding:.4rem .9rem;border-radius:6px;font-size:.75rem;font-weight:700;z-index:9999';
+      document.body.appendChild(tip);
+      setTimeout(function(){ if(tip.parentNode) tip.parentNode.removeChild(tip); },2000);
+    } else {
+      if(typeof closeAdminPanel==='function') closeAdminPanel();
+    }
   }
 });
 
@@ -5607,6 +5649,10 @@ function friendlyAuthError(code){
 var _disclaimerAccepted = false;
 var _pendingAuthOpen = false;
 
+function closeDisclaimer(){
+  var el=document.getElementById('disclaimerOverlay');
+  if(el) el.style.display='none';
+}
 function showDisclaimer(callback){
   if(_disclaimerAccepted){ if(callback) callback(); return; }
   var overlay = document.getElementById('disclaimerOverlay');
@@ -5630,8 +5676,10 @@ acceptDisclaimer = function(){
 var _origOpenAuthModal = openAuthModal;
 openAuthModal = function(){
   if(CURRENT_USER){
-    showDisclaimer(function(){ goToEval(); });
+    /* Already signed in — go to dashboard */
+    openUserDashboard();
   } else {
+    /* Show disclaimer then auth modal */
     showDisclaimer(function(){ _origOpenAuthModal(); });
   }
 };
@@ -6300,7 +6348,8 @@ var _planLimits      = {
 /* ── Navigate to plan selection ── */
 function openPlanSelection(){
   showPage('planSelectionPage');
-  renderPlanSelectionGrid();
+  try{ renderPlanSelectionGrid(); }
+  catch(e){ console.error('renderPlanSelectionGrid error:',e); }
 }
 
 /* ── Billing toggle on plan selection page ── */
@@ -6788,7 +6837,7 @@ function updateLandingForUser(user){
 <!-- ═══ USER DASHBOARD PAGE ═══ -->
 <div id="userDashboardPage" class="page">
   <nav class="nav">
-    <div class="nav-logo" style="cursor:default">
+    <div class="nav-logo" onclick="goToLanding()" style="cursor:pointer" style="cursor:default">
       <svg width="22" height="22" viewBox="0 0 60 60" fill="none"><defs><radialGradient id="udgr" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#8a959e" stop-opacity=".6"/></radialGradient></defs><path d="M30 2L32.5 27.5L58 30L32.5 32.5L30 58L27.5 32.5L2 30L27.5 27.5Z" fill="url(#udgr)"/></svg>
       <span style="font-family:'Cormorant Garamond',serif;font-weight:300;letter-spacing:.2em">SIRIUS</span>
     </div>
