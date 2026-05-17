@@ -1448,16 +1448,14 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
 #profilePage .nav { position: sticky; top: 0; z-index: 100; }
 
 
-/* Non-landing pages fill viewport cleanly */
-#evaluation.active, #profilePage.active {
-  position: fixed;
-  inset: 0;
-  overflow-y: auto;
-  z-index: 50;
+/* Pages fill the full viewport when active */
+#evaluation.active {
+  min-height: 100vh;
   background: var(--bg);
 }
-#landing.active {
-  display: block;
+#profilePage.active {
+  min-height: 100vh;
+  background: var(--bg);
 }
 
 /* End dynamic layer */
@@ -3186,10 +3184,18 @@ function cn(n){return Math.round(n).toLocaleString('en-AE');}
 
 /* PAGES */
 function showPage(id){
-  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  /* Explicitly hide every page first */
+  document.querySelectorAll('.page').forEach(function(p){
+    p.classList.remove('active');
+    p.style.display = 'none';
+  });
+  /* Show only the target page */
   var el = document.getElementById(id);
-  if(el) el.classList.add('active');
-  /* Scroll to top instantly */
+  if(el){
+    el.style.display = 'block';
+    el.classList.add('active');
+    el.scrollTop = 0;
+  }
   window.scrollTo(0,0);
   document.documentElement.scrollTop = 0;
   document.body.scrollTop = 0;
