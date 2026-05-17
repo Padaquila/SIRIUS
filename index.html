@@ -108,7 +108,7 @@
 html{scroll-behavior:smooth}
 body{font-family:var(--font-body);background:var(--deep-navy);color:var(--white);min-height:100vh;overflow-x:hidden}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--charcoal)}::-webkit-scrollbar-thumb{background:var(--steel);border-radius:3px}
-.gold{color:var(--gold)}.hidden{display:none!important}.page{display:none}.page.active{display:block}
+.gold{color:var(--gold)}.hidden{display:none!important}.page{display:none!important}.page.active{display:block!important}#evaluation.active{display:flex!important;background:var(--bg);min-height:100vh}#profilePage.active{display:block!important;background:var(--bg);min-height:100vh}#adminDashboardPage.active{display:block!important;background:var(--bg);min-height:100vh}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 
 /* BUTTONS */
@@ -273,7 +273,7 @@ footer{padding:2rem 3rem;border-top:1px solid rgba(212,175,55,.1);display:flex;a
 .footer-copy{font-size:.78rem;color:var(--text-muted)}
 
 /* EVALUATION */
-#evaluation{display:none;min-height:100vh;flex-direction:column;background:var(--bg)}#evaluation.active{display:flex!important}
+#evaluation{display:none;min-height:100vh;flex-direction:column;background:var(--bg)}
 #evaluation.active{display:flex}
 .eval-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 2rem;background:rgba(10,27,46,.96);border-bottom:1px solid rgba(212,175,55,.2);flex-shrink:0}
 .eval-header-logo{font-family:var(--font-display);font-size:1.1rem;font-weight:400;color:var(--white);letter-spacing:.22em;display:flex;align-items:center;gap:.5rem}
@@ -1448,20 +1448,8 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
 #profilePage .nav { position: sticky; top: 0; z-index: 100; }
 
 
-/* Pages fill the full viewport when active */
-#evaluation.active {
-  min-height: 100vh;
-  background: var(--bg);
-}
-#profilePage.active {
-  min-height: 100vh;
-  background: var(--bg);
-}
 
 
-#profilePage { background: var(--bg) !important; }
-#profilePage.active { display: block !important; }
-#landing.active { display: block !important; }
 
 /* End dynamic layer */
 
@@ -3189,16 +3177,13 @@ function cn(n){return Math.round(n).toLocaleString('en-AE');}
 
 /* PAGES */
 function showPage(id){
-  /* Explicitly hide every page first */
+  /* CSS handles display via .page.active — just toggle the class */
   document.querySelectorAll('.page').forEach(function(p){
     p.classList.remove('active');
-    p.style.display = 'none';
+    p.style.cssText = ''; /* clear any inline styles */
   });
-  /* Show only the target page with correct display type */
   var el = document.getElementById(id);
   if(el){
-    /* evaluation uses flex layout, others use block */
-    el.style.display = (id === 'evaluation') ? 'flex' : 'block';
     el.classList.add('active');
     el.scrollTop = 0;
   }
@@ -6479,15 +6464,31 @@ function updateLandingForUser(user){
       heroBtn.textContent = 'Open Calculator';
       heroBtn.onclick = function(){ goToEval(); };
     }
-    /* Hide "Request Demo" button from nav — admin doesn't need it */
-    if(requestDemo) requestDemo.style.display = 'none';
-    /* Hide pricing section CTAs — replace with calculator button */
+    /* Replace all Request Demo buttons with nothing or calculator */
+    document.querySelectorAll('[onclick*="openModal"]').forEach(function(btn){
+      btn.style.display = 'none';
+    });
+    /* Add Dashboard button to nav */
+    var navUserInfoEl = document.getElementById('navUserInfo');
+    if(navUserInfoEl && !document.getElementById('adminDashBtn')){
+      var dashBtn = document.createElement('button');
+      dashBtn.id = 'adminDashBtn';
+      dashBtn.className = 'btn btn-ghost';
+      dashBtn.style.cssText = 'padding:.35rem .75rem;font-size:.72rem;color:var(--gold);border-color:rgba(212,175,55,.3)';
+      dashBtn.textContent = 'Dashboard';
+      dashBtn.onclick = function(){ openAdminDashboard(); };
+      navUserInfoEl.insertBefore(dashBtn, navUserInfoEl.firstChild);
+    }
+    /* Replace all subscription CTAs with calculator */
     document.querySelectorAll('[onclick*="openAuthModal"]').forEach(function(btn){
       if(btn.id !== 'heroCtaBtn'){
         btn.textContent = 'Open Calculator';
         btn.onclick = function(){ goToEval(); };
       }
     });
+    /* Hide pricing section entirely for admin */
+    var pricingEl = document.getElementById('pricing');
+    if(pricingEl) pricingEl.style.display = 'none';
     /* Hide disclaimer for admin */
     _disclaimerAccepted = true;
   } else if(user){
@@ -6505,6 +6506,83 @@ function getDisplayPlan(){
   if(IS_ADMIN) return 'Admin';
   var planLabels = {free:'Free', starter:'Starter', pro:'Professional', agency:'Agency'};
   return planLabels[window._userPlan||'free'] || 'Free';
+}
+
+
+/* ── Admin Dashboard ── */
+function openAdminDashboard(){
+  if(!IS_ADMIN){ alert('Admin access required.'); return; }
+  showPage('adminDashboardPage');
+  loadDashboardData();
+}
+
+function loadDashboardData(){
+  if(!IS_ADMIN) return;
+  var tableEl = document.getElementById('dashUserTable');
+  if(tableEl) tableEl.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:.85rem">Loading...</div>';
+
+  db.collection('users').get().then(function(snap){
+    var users = [];
+    snap.forEach(function(doc){
+      var d = doc.data();
+      users.push({
+        uid:    doc.id,
+        email:  d.email || '—',
+        name:   (d.profile && d.profile.name) || d.displayName || '—',
+        plan:   d.plan || 'free',
+        status: d.subscriptionStatus || 'active',
+        trial:  d.trialEndsAt ? d.trialEndsAt.toDate ? d.trialEndsAt.toDate() : new Date(d.trialEndsAt) : null,
+        created:d.createdAt ? d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt) : null,
+      });
+    });
+
+    /* Sort by created date desc */
+    users.sort(function(a,b){ return (b.created||0)-(a.created||0); });
+
+    /* KPIs */
+    var planPrices = {starter:49, pro:79, agency:29};
+    var activeSubs = users.filter(function(u){ return u.plan !== 'free' && u.status === 'active'; });
+    var trials = users.filter(function(u){ return u.trial && u.trial > new Date(); });
+    var mrr = activeSubs.reduce(function(sum,u){ return sum + (planPrices[u.plan]||0); }, 0);
+
+    var setKPI = function(id, val){ var el=document.getElementById(id); if(el) el.textContent=val; };
+    setKPI('dash-total-subs', users.length);
+    setKPI('dash-trials', trials.length);
+    setKPI('dash-mrr', 'AED ' + mrr.toLocaleString());
+    setKPI('dash-arr', 'AED ' + (mrr*12).toLocaleString());
+
+    /* Table */
+    var planColors = {free:'rgba(191,198,209,.35)', starter:'rgba(39,174,96,.7)', pro:'rgba(212,175,55,.9)', agency:'rgba(100,149,237,.8)'};
+    var rows = users.map(function(u){
+      var planColor = planColors[u.plan] || planColors.free;
+      var trialStr = u.trial ? (u.trial > new Date() ? 'Trial ends ' + u.trial.toLocaleDateString() : 'Trial ended') : '—';
+      var createdStr = u.created ? u.created.toLocaleDateString() : '—';
+      return '<tr style="border-bottom:1px solid rgba(191,198,209,.06)">'
+        +'<td style="padding:.75rem 1rem;font-size:.82rem;color:var(--ivory)">'+u.name+'</td>'
+        +'<td style="padding:.75rem 1rem;font-size:.78rem;color:var(--text-muted)">'+u.email+'</td>'
+        +'<td style="padding:.75rem 1rem"><span style="font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:'+planColor+'">'+u.plan+'</span></td>'
+        +'<td style="padding:.75rem 1rem;font-size:.75rem;color:var(--text-muted)">'+u.status+'</td>'
+        +'<td style="padding:.75rem 1rem;font-size:.75rem;color:rgba(212,175,55,.7)">'+trialStr+'</td>'
+        +'<td style="padding:.75rem 1rem;font-size:.75rem;color:var(--text-muted)">'+createdStr+'</td>'
+        +'</tr>';
+    }).join('');
+
+    if(tableEl){
+      tableEl.innerHTML = '<table style="width:100%;border-collapse:collapse">'
+        +'<thead><tr style="border-bottom:1px solid rgba(191,198,209,.12)">'
+        +'<th style="padding:.6rem 1rem;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(191,198,209,.45);text-align:left;font-weight:600">Name</th>'
+        +'<th style="padding:.6rem 1rem;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(191,198,209,.45);text-align:left;font-weight:600">Email</th>'
+        +'<th style="padding:.6rem 1rem;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(191,198,209,.45);text-align:left;font-weight:600">Plan</th>'
+        +'<th style="padding:.6rem 1rem;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(191,198,209,.45);text-align:left;font-weight:600">Status</th>'
+        +'<th style="padding:.6rem 1rem;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(191,198,209,.45);text-align:left;font-weight:600">Trial</th>'
+        +'<th style="padding:.6rem 1rem;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(191,198,209,.45);text-align:left;font-weight:600">Joined</th>'
+        +'</tr></thead>'
+        +'<tbody>'+rows+'</tbody>'
+        +'</table>';
+    }
+  }).catch(function(e){
+    if(tableEl) tableEl.innerHTML = '<div style="padding:2rem;text-align:center;color:rgba(231,76,60,.8);font-size:.85rem">Error loading data: '+e.message+'</div>';
+  });
 }
 
 </script>
@@ -6617,6 +6695,57 @@ function getDisplayPlan(){
   </div>
 </div>
 
+
+<!-- ═══ ADMIN DASHBOARD PAGE ═══ -->
+<div id="adminDashboardPage" class="page" style="background:var(--bg);min-height:100vh">
+  <nav class="nav">
+    <div class="nav-logo" onclick="goToLanding()" style="cursor:pointer">
+      <svg width="22" height="22" viewBox="0 0 60 60" fill="none"><defs><radialGradient id="dgr" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#8a959e" stop-opacity=".6"/></radialGradient></defs><path d="M30 2L32.5 27.5L58 30L32.5 32.5L30 58L27.5 32.5L2 30L27.5 27.5Z" fill="url(#dgr)"/></svg>
+      <span style="font-family:'Cormorant Garamond',serif;font-weight:300;letter-spacing:.2em">SIRIUS</span>
+    </div>
+    <div style="display:flex;gap:.75rem;align-items:center">
+      <span style="font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700">Admin Dashboard</span>
+      <button class="btn btn-ghost" onclick="goToLanding()" style="font-size:.75rem">← Home</button>
+      <button class="btn btn-ghost" onclick="goToEval()" style="font-size:.75rem">Calculator</button>
+    </div>
+  </nav>
+  <div style="max-width:1100px;margin:0 auto;padding:2rem 1.5rem">
+    <div style="margin-bottom:2rem">
+      <h1 style="font-size:1.6rem;font-weight:300;color:var(--ivory);font-family:'Cormorant Garamond',serif;letter-spacing:.05em">Owner Dashboard</h1>
+      <p style="font-size:.82rem;color:var(--text-muted);margin-top:.35rem">Live subscriber data from Firebase</p>
+    </div>
+    <!-- KPI Cards -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:2rem" id="dashKPIs">
+      <div style="background:rgba(22,32,51,.7);border:1px solid rgba(191,198,209,.12);border-radius:12px;padding:1.25rem">
+        <div style="font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.45);margin-bottom:.5rem">Total Subscribers</div>
+        <div style="font-size:2rem;font-weight:700;color:var(--ivory)" id="dash-total-subs">—</div>
+      </div>
+      <div style="background:rgba(22,32,51,.7);border:1px solid rgba(191,198,209,.12);border-radius:12px;padding:1.25rem">
+        <div style="font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.45);margin-bottom:.5rem">Active Trials</div>
+        <div style="font-size:2rem;font-weight:700;color:rgba(212,175,55,.9)" id="dash-trials">—</div>
+      </div>
+      <div style="background:rgba(22,32,51,.7);border:1px solid rgba(191,198,209,.12);border-radius:12px;padding:1.25rem">
+        <div style="font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.45);margin-bottom:.5rem">Est. MRR</div>
+        <div style="font-size:2rem;font-weight:700;color:rgba(39,174,96,.9)" id="dash-mrr">—</div>
+      </div>
+      <div style="background:rgba(22,32,51,.7);border:1px solid rgba(191,198,209,.12);border-radius:12px;padding:1.25rem">
+        <div style="font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.45);margin-bottom:.5rem">Est. ARR</div>
+        <div style="font-size:2rem;font-weight:700;color:var(--ivory)" id="dash-arr">—</div>
+      </div>
+    </div>
+    <!-- Subscribers Table -->
+    <div style="background:rgba(17,32,58,.5);border:1px solid rgba(191,198,209,.1);border-radius:12px;overflow:hidden">
+      <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(191,198,209,.08);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brushed-silver);font-weight:600">Subscribers</div>
+        <button class="adm-btn-sm" onclick="loadDashboardData()">↻ Refresh</button>
+      </div>
+      <div id="dashUserTable" style="overflow-x:auto">
+        <div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:.85rem">Loading...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html><section id="pricing" style="background:rgba(17,43,77,.2);padding:5rem 2rem">
     <div style="max-width:1100px;margin:0 auto">
@@ -6650,19 +6779,7 @@ function getDisplayPlan(){
     </div>
   </section>
 
-  <section id="features">
-    <div class="section-label">What We Offer</div><div class="gold-line"></div>
-    <h2 class="section-title" id="featuresSectionTitle">Everything you need to decide with <em class="gold">confidence</em></h2>
-    <p class="section-sub" id="featuresSectionSub">Because in Dubai, the difference between a good investment and a costly mistake is the quality of your analysis — not your gut feeling.</p>
-    <div class="features-grid">
-      <div class="feature-card reveal reveal-delay-1"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="13"/><polyline points="3 9 12 3 21 9"/><line x1="9" y1="22" x2="9" y2="12"/><line x1="15" y1="22" x2="15" y2="12"/></svg></div><div class="feature-title">Acquisition Cost Engine</div><div class="feature-desc">DLD fees, agency commissions, trustee costs, service charge reimbursements — down to the dirham.</div></div>
-      <div class="feature-card reveal reveal-delay-2"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div><div class="feature-title">Dual Rental Yield Models</div><div class="feature-desc">Separate Long-Term and Airbnb models with occupancy adjustments and multi-year projections.</div></div>
-      <div class="feature-card reveal reveal-delay-3"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><path d="M9 12h6M9 16h6"/></svg></div><div class="feature-title">Mortgage Intelligence</div><div class="feature-desc">Synced slider and manual input. LTV ratios, down payments, and full mortgage calculator placeholder.</div></div>
-      <div class="feature-card reveal reveal-delay-4"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></div><div class="feature-title">Payment Plan Table</div><div class="feature-desc">Full off-plan and transferable plan tracking with auto percentage-to-amount and amount-to-percentage.</div></div>
-      <div class="feature-card reveal reveal-delay-5"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div><div class="feature-title">Step-by-Step Wizard</div><div class="feature-desc">Guided 4-step flow from property details to full results — no clutter, no scrolling.</div></div>
-      <div class="feature-card reveal"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div><div class="feature-title">Custom Fee Builder</div><div class="feature-desc">Add any cost line — mortgage registration, NOC fees, inspection — everything captured.</div></div>
-    </div>
-  </section>
+  
 
   
 
