@@ -5353,8 +5353,6 @@ function snapshotSC(){
 ══════════════════════════════════════════════════════════════ */
 var _authTab = 'signin';
 var CURRENT_USER = null;
-var IS_ADMIN = false;
-
 /* ── Modal open/close ── */
 function openAuthModal(){
   document.getElementById('authModal').classList.add('open');
@@ -5486,9 +5484,7 @@ function friendlyAuthError(code){
 }
 
 /* ── Also swap the admin checkAdminAuth to use real Firebase auth ── */
-function checkAdminAuth(){
-  /* Real check happens in onAuthStateChanged above — nothing to do here */
-}
+/* checkAdminAuth: handled in admin block above */
 
 
 
