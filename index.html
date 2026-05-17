@@ -1451,6 +1451,89 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
 
 
 
+
+/* ── User Dashboard ── */
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.dash-card {
+  background: rgba(22,32,51,.7);
+  border: 1px solid rgba(191,198,209,.12);
+  border-radius: 14px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all .2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  text-decoration: none;
+}
+.dash-card:hover {
+  border-color: rgba(191,198,209,.35);
+  background: rgba(22,32,51,.95);
+  transform: translateY(-2px);
+}
+.dash-card-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: rgba(191,198,209,.08);
+  border: 1px solid rgba(191,198,209,.15);
+  display: flex; align-items: center; justify-content: center;
+}
+.dash-card-title {
+  font-size: .92rem;
+  font-weight: 600;
+  color: var(--ivory);
+}
+.dash-card-sub {
+  font-size: .75rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.dash-usage-bar {
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(191,198,209,.1);
+  margin-top: .5rem;
+  overflow: hidden;
+}
+.dash-usage-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, rgba(39,174,96,.6), rgba(39,174,96,.9));
+  transition: width .5s ease;
+}
+.plan-selection-card {
+  background: rgba(17,32,58,.6);
+  border: 2px solid rgba(191,198,209,.12);
+  border-radius: 14px;
+  padding: 1.75rem;
+  cursor: pointer;
+  transition: all .2s ease;
+  position: relative;
+}
+.plan-selection-card:hover,
+.plan-selection-card.selected {
+  border-color: rgba(191,198,209,.5);
+  background: rgba(22,38,68,.9);
+}
+.plan-selection-card.featured {
+  border-color: rgba(212,175,55,.35);
+}
+.plan-selection-card.featured.selected,
+.plan-selection-card.featured:hover {
+  border-color: rgba(212,175,55,.7);
+}
+#planSelectionPage.active,
+#userDashboardPage.active {
+  display: block !important;
+  background: var(--bg);
+  min-height: 100vh;
+}
+
 /* End dynamic layer */
 
 /* ── DISCLAIMER MODAL ── */
@@ -1879,7 +1962,7 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
       <p class="hero-sub">Your client just asked if it's a good investment. You have minutes, not hours.</p>
       <p id="heroSecondaryLine" style="font-size:.88rem;color:rgba(191,198,209,.5);margin-bottom:2rem;font-weight:300;max-width:480px;line-height:1.7">Full investment analysis for any Dubai property.</p>
       <div class="hero-actions">
-        <button class="btn btn-primary btn-lg" id="heroCtaBtn" onclick="openAuthModal()">Start free — no charge for 7 days</button>
+        <button class="btn btn-primary btn-lg" id="heroCtaBtn" onclick="openPlanSelection()">Start free — no charge for 7 days</button>
         <button class="btn btn-outline btn-lg" onclick="openModal()">Request Demo</button>
       </div>
     </div>
@@ -3228,7 +3311,7 @@ function renderPricing(){
       ?'<div style="text-align:center;margin:1rem 0"><div style="font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.42);margin-bottom:.3rem">Billed annually</div><div style="font-family:Inter,system-ui,sans-serif;font-size:2.1rem;font-weight:700;color:var(--white);letter-spacing:-.02em">AED '+(p.monthlyEq||Math.round(p.price.yearly/12))+pu+'</div><div style="font-size:.7rem;color:rgba(191,198,209,.52);margin-top:.25rem">AED '+p.price.yearly+pu+'/year &middot; 2 months free</div><div style="font-size:.68rem;color:rgba(191,198,209,.32);margin-top:.1rem">Full price AED '+p.price.monthly+pu+'/mo if monthly</div></div>'
       :'<div style="text-align:center;margin:1rem 0"><div style="font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.42);margin-bottom:.3rem">Billed monthly</div><div style="font-family:Inter,system-ui,sans-serif;font-size:2.1rem;font-weight:700;color:var(--white);letter-spacing:-.02em">AED '+p.price.monthly+pu+'</div><div style="font-size:.7rem;color:rgba(191,198,209,.52);margin-top:.25rem">Switch to annual &mdash; 2 months free</div><div style="font-size:.68rem;color:rgba(191,198,209,.32);margin-top:.1rem">&nbsp;</div></div>';
     var fH=p.features.map(function(f){return '<li style="display:flex;align-items:flex-start;gap:.55rem;font-size:.83rem;color:'+(f.on?'rgba(191,198,209,.85)':'rgba(191,198,209,.28)')+';margin-bottom:.5rem;line-height:1.45"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="'+(f.on?'#BFC6D1':'rgba(191,198,209,.22)')+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg>'+f.t+'</li>';}).join('');
-    return '<div class="plan-card'+(p.featured?' featured':'')+'" style="display:flex;flex-direction:column">'+(p.featured?'<div class="plan-badge">Most Popular</div>':'')+'<div class="plan-name '+(p.featured?'gold':'')+'">'+p.name+'</div><div style="font-size:.78rem;color:rgba(191,198,209,.75);line-height:1.5;min-height:2.5rem;margin-bottom:.35rem">'+p.tagline+'</div>'+px+(p.intro?'<div style="font-size:.72rem;color:rgba(212,175,55,.8);font-weight:600;text-align:center;margin-top:.25rem">'+p.intro+'</div>':'')+'<div style="font-size:.7rem;color:rgba(39,174,96,.75);font-weight:600;text-align:center;margin:.4rem 0 0">'+p.valueAnchor+'</div><div class="plan-divider" style="margin:1rem 0"></div><ul style="list-style:none;padding:0;margin:0;flex:1">'+fH+'</ul><button class="btn '+(p.featured?'btn-primary':'btn-outline')+'" style="width:100%;margin-top:1.5rem" onclick="openAuthModal()">Start free &mdash; 7 days on us</button></div>';
+    return '<div class="plan-card'+(p.featured?' featured':'')+'" style="display:flex;flex-direction:column">'+(p.featured?'<div class="plan-badge">Most Popular</div>':'')+'<div class="plan-name '+(p.featured?'gold':'')+'">'+p.name+'</div><div style="font-size:.78rem;color:rgba(191,198,209,.75);line-height:1.5;min-height:2.5rem;margin-bottom:.35rem">'+p.tagline+'</div>'+px+(p.intro?'<div style="font-size:.72rem;color:rgba(212,175,55,.8);font-weight:600;text-align:center;margin-top:.25rem">'+p.intro+'</div>':'')+'<div style="font-size:.7rem;color:rgba(39,174,96,.75);font-weight:600;text-align:center;margin:.4rem 0 0">'+p.valueAnchor+'</div><div class="plan-divider" style="margin:1rem 0"></div><ul style="list-style:none;padding:0;margin:0;flex:1">'+fH+'</ul><button class="btn '+(p.featured?'btn-primary':'btn-outline')+'" style="width:100%;margin-top:1.5rem" onclick="openPlanSelection()">Start free &mdash; 7 days on us</button></div>';
   }).join('');
 }
 
@@ -5467,6 +5550,8 @@ auth.onAuthStateChanged(function(user){
     /* Re-init landing text listener now that user is authenticated */
     try{ initLandingTextListener(); } catch(e){}
     loadAllConfigs();
+    /* Route to correct page after auth */
+    setTimeout(function(){ routeAfterAuth(user); }, 300);
     /* Check for admin claim */
     user.getIdTokenResult().then(function(token){
       IS_ADMIN = token.claims.admin === true;
@@ -6464,6 +6549,9 @@ function updateLandingForUser(user){
       heroBtn.textContent = 'Open Calculator';
       heroBtn.onclick = function(){ goToEval(); };
     }
+    /* Add Dashboard button to nav if not there */
+    var existingDash = document.getElementById('adminDashBtn');
+    if(existingDash) existingDash.style.display = '';
     /* Replace all Request Demo buttons with nothing or calculator */
     document.querySelectorAll('[onclick*="openModal"]').forEach(function(btn){
       btn.style.display = 'none';
@@ -6744,6 +6832,416 @@ function loadDashboardData(){
       <div id="dashUserTable" style="overflow-x:auto">
         <div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:.85rem">Loading...</div>
       </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ PLAN SELECTION PAGE ═══ -->
+<div id="planSelectionPage" class="page">
+  <nav class="nav">
+    <div class="nav-logo" onclick="goToLanding()" style="cursor:pointer">
+      <svg width="22" height="22" viewBox="0 0 60 60" fill="none"><defs><radialGradient id="psgr" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#8a959e" stop-opacity=".6"/></radialGradient></defs><path d="M30 2L32.5 27.5L58 30L32.5 32.5L30 58L27.5 32.5L2 30L27.5 27.5Z" fill="url(#psgr)"/></svg>
+      <span style="font-family:'Cormorant Garamond',serif;font-weight:300;letter-spacing:.2em">SIRIUS</span>
+    </div>
+    <button class="btn btn-ghost" onclick="goToLanding()" style="font-size:.75rem">← Back</button>
+  </nav>
+  <div style="max-width:960px;margin:0 auto;padding:3rem 1.5rem">
+    <div style="text-align:center;margin-bottom:2.5rem">
+      <div style="font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:var(--brushed-silver);margin-bottom:.75rem">Get Started</div>
+      <h1 style="font-size:2rem;font-weight:300;font-family:'Cormorant Garamond',serif;color:var(--ivory);margin-bottom:.75rem">Choose your <em class="gold">plan</em></h1>
+      <p style="font-size:.9rem;color:var(--text-muted);max-width:460px;margin:0 auto;line-height:1.7">Every plan includes a 7-day full-access trial. No charge until day 8.</p>
+    </div>
+
+    <!-- Billing toggle -->
+    <div style="display:flex;justify-content:center;gap:.75rem;margin-bottom:2rem">
+      <button id="psToggleAnnual" onclick="setPsBilling('yearly')" style="padding:.45rem 1.1rem;border-radius:8px;border:1px solid rgba(39,174,96,.5);background:rgba(39,174,96,.1);color:rgba(39,174,96,.9);font-size:.78rem;font-weight:600;cursor:pointer;font-family:var(--font-body)">Annual — 2 months free</button>
+      <button id="psToggleMonthly" onclick="setPsBilling('monthly')" style="padding:.45rem 1.1rem;border-radius:8px;border:1px solid rgba(191,198,209,.15);background:transparent;color:var(--muted);font-size:.78rem;cursor:pointer;font-family:var(--font-body)">Monthly</button>
+    </div>
+
+    <!-- Plan cards -->
+    <div id="planSelectionGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;margin-bottom:2rem"></div>
+
+    <!-- Account creation form -->
+    <div id="planSignupForm" style="display:none;max-width:420px;margin:0 auto;background:rgba(17,32,58,.6);border:1px solid rgba(191,198,209,.15);border-radius:14px;padding:2rem">
+      <div style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brushed-silver);font-weight:600;margin-bottom:.35rem" id="psSelectedPlanLabel">Starter Plan</div>
+      <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:1.5rem">Create your account to start your free trial.</div>
+      <div style="margin-bottom:1rem">
+        <label style="display:block;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem">Full Name</label>
+        <input type="text" id="psName" class="auth-field input" style="width:100%;padding:.65rem .85rem;border-radius:8px;border:1px solid rgba(191,198,209,.18);background:rgba(10,22,40,.8);color:var(--white);font-size:.88rem;font-family:var(--font-body);outline:none;box-sizing:border-box" placeholder="Your full name">
+      </div>
+      <div style="margin-bottom:1rem">
+        <label style="display:block;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem">Email</label>
+        <input type="email" id="psEmail" style="width:100%;padding:.65rem .85rem;border-radius:8px;border:1px solid rgba(191,198,209,.18);background:rgba(10,22,40,.8);color:var(--white);font-size:.88rem;font-family:var(--font-body);outline:none;box-sizing:border-box" placeholder="you@example.com">
+      </div>
+      <div style="margin-bottom:1.25rem">
+        <label style="display:block;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem">Password</label>
+        <input type="password" id="psPassword" style="width:100%;padding:.65rem .85rem;border-radius:8px;border:1px solid rgba(191,198,209,.18);background:rgba(10,22,40,.8);color:var(--white);font-size:.88rem;font-family:var(--font-body);outline:none;box-sizing:border-box" placeholder="Min. 6 characters">
+      </div>
+
+      <!-- PADDLE: Replace this button's onclick with Paddle.js checkout -->
+      <!-- When Paddle is ready:
+           1. Load Paddle.js: <script src="https://cdn.paddle.com/paddle/v2/paddle.js">
+/* ════════════════════════════════════════════════════════════════
+   SIRIUS USER FLOW
+   Plan selection → Account creation → Dashboard
+   PADDLE: Search for "PADDLE:" comments to integrate payments
+════════════════════════════════════════════════════════════════ */
+
+var _selectedPlan    = null; /* { key, name, price, billing } */
+var _psBilling       = 'yearly';
+var _planLimits      = {
+  free:    { calcs: 3,  saved: 5,  pdfs: 3 },
+  starter: { calcs: 30, saved: 15, pdfs: 20 },
+  pro:     { calcs: Infinity, saved: Infinity, pdfs: Infinity },
+  agency:  { calcs: Infinity, saved: Infinity, pdfs: Infinity },
+};
+
+/* ── Navigate to plan selection ── */
+function openPlanSelection(){
+  showPage('planSelectionPage');
+  renderPlanSelectionGrid();
+}
+
+/* ── Billing toggle on plan selection page ── */
+function setPsBilling(billing){
+  _psBilling = billing;
+  var annBtn = document.getElementById('psToggleAnnual');
+  var monBtn = document.getElementById('psToggleMonthly');
+  if(annBtn){
+    annBtn.style.borderColor = billing==='yearly'?'rgba(39,174,96,.5)':'rgba(191,198,209,.15)';
+    annBtn.style.background  = billing==='yearly'?'rgba(39,174,96,.1)':'transparent';
+    annBtn.style.color       = billing==='yearly'?'rgba(39,174,96,.9)':'var(--muted)';
+  }
+  if(monBtn){
+    monBtn.style.borderColor = billing==='monthly'?'rgba(191,198,209,.4)':'rgba(191,198,209,.15)';
+    monBtn.style.background  = billing==='monthly'?'rgba(191,198,209,.08)':'transparent';
+    monBtn.style.color       = billing==='monthly'?'var(--ivory)':'var(--muted)';
+  }
+  renderPlanSelectionGrid();
+}
+
+/* ── Render plan cards on selection page ── */
+function renderPlanSelectionGrid(){
+  var grid = document.getElementById('planSelectionGrid');
+  if(!grid) return;
+
+  var plans = [
+    { key:'starter', name:'Starter', featured:false,
+      price:{monthly:49,yearly:399}, monthlyEq:33,
+      features:['30 calculations / month','15 saved reports','20 PDF downloads','5 property comparisons','Name + phone on reports','7-day free trial'] },
+    { key:'pro', name:'Professional', featured:true,
+      price:{monthly:79,yearly:649}, monthlyEq:54,
+      features:['Unlimited calculations','Unlimited reports & PDFs','20 property comparisons','Full branding on reports','In-app profile page','Priority support','7-day free trial'] },
+    { key:'agency', name:'Agency', featured:false,
+      price:{monthly:29,yearly:239}, monthlyEq:20, perUser:true,
+      features:['Everything in Professional','Agency dashboard','Usage analytics per agent','White-label reports','Company branding','Dedicated account manager','7-day free trial'] },
+  ];
+
+  /* Override with admin-edited pricing if available */
+  if(PRICING_OVERRIDES && PRICING_OVERRIDES.starter){
+    ['starter','pro','agency'].forEach(function(k){
+      var ov = PRICING_OVERRIDES[k];
+      if(!ov) return;
+      var plan = plans.find(function(p){ return p.key===k; });
+      if(!plan) return;
+      if(ov.monthly)   plan.price.monthly = ov.monthly;
+      if(ov.yearly)    plan.price.yearly  = ov.yearly;
+      if(ov.monthlyEq) plan.monthlyEq     = ov.monthlyEq;
+      if(ov.features)  plan.features      = ov.features.split('\n').filter(Boolean);
+    });
+  }
+
+  var isAnnual = _psBilling === 'yearly';
+  grid.innerHTML = plans.map(function(p){
+    var price      = isAnnual ? p.monthlyEq : p.price.monthly;
+    var billingNote = isAnnual
+      ? 'AED '+p.price.yearly+(p.perUser?'/user':'')+'/year · 2 months free'
+      : 'Billed monthly';
+    var isSelected = _selectedPlan && _selectedPlan.key === p.key;
+    return '<div class="plan-selection-card'+(p.featured?' featured':'')+(isSelected?' selected':'')+'" onclick="selectPlan(''+p.key+'',''+p.name+'','+p.price.monthly+','+p.price.yearly+')">'
+      +(p.featured?'<div style="position:absolute;top:-1px;left:50%;transform:translateX(-50%);font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:rgba(212,175,55,.9);color:rgba(8,18,34,1);padding:.2rem .75rem;border-radius:0 0 6px 6px">Most Popular</div>':'')
+      +'<div style="font-size:1rem;font-weight:700;color:var(--ivory);margin-bottom:.35rem'+(p.featured?';margin-top:.75rem':'')+'">'+p.name+'</div>'
+      +'<div style="font-family:Inter,system-ui,sans-serif;font-size:1.8rem;font-weight:700;color:var(--white);margin-bottom:.2rem">AED '+price+(p.perUser?'<span style="font-size:.9rem;font-weight:400;color:rgba(191,198,209,.5)">/user</span>':'')+' <span style="font-size:.85rem;font-weight:400;color:rgba(191,198,209,.45)">/mo</span></div>'
+      +'<div style="font-size:.72rem;color:rgba(191,198,209,.5);margin-bottom:1rem">'+billingNote+'</div>'
+      +'<ul style="list-style:none;padding:0;margin:0 0 1.25rem">'
+      +p.features.map(function(f){ return '<li style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:rgba(191,198,209,.8);margin-bottom:.4rem"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(39,174,96,.8)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'+f+'</li>'; }).join('')
+      +'</ul>'
+      +'<button style="width:100%;padding:.65rem;border-radius:8px;border:1px solid '+(p.featured?'rgba(212,175,55,.4)':'rgba(191,198,209,.25)')+';background:'+(isSelected?'rgba(191,198,209,.15)':'transparent')+';color:var(--ivory);font-size:.8rem;font-weight:600;cursor:pointer;font-family:var(--font-body)" onclick="event.stopPropagation();selectPlan(''+p.key+'',''+p.name+'','+p.price.monthly+','+p.price.yearly+')">'+(isSelected?'✓ Selected':'Choose '+p.name)+'</button>'
+      +'</div>';
+  }).join('');
+}
+
+/* ── Select a plan ── */
+function selectPlan(key, name, monthly, yearly){
+  _selectedPlan = { key:key, name:name, monthly:monthly, yearly:yearly, billing:_psBilling };
+  renderPlanSelectionGrid(); /* re-render to show selected state */
+  /* Show signup form */
+  var form = document.getElementById('planSignupForm');
+  var label = document.getElementById('psSelectedPlanLabel');
+  if(label){
+    var price = _psBilling==='yearly' ? Math.round(yearly/12) : monthly;
+    label.textContent = name + ' Plan · AED ' + price + '/mo (' + (_psBilling==='yearly'?'billed annually':'billed monthly') + ')';
+  }
+  if(form){
+    form.style.display = 'block';
+    form.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+}
+
+/* ── Handle plan signup (email/password) ── */
+function handlePlanSignup(){
+  var name  = (document.getElementById('psName')||{}).value||'';
+  var email = (document.getElementById('psEmail')||{}).value||'';
+  var pass  = (document.getElementById('psPassword')||{}).value||'';
+  var errEl = document.getElementById('psError');
+
+  if(!_selectedPlan){ if(errEl) errEl.textContent='Please select a plan first.'; return; }
+  if(!name.trim()){   if(errEl) errEl.textContent='Please enter your name.'; return; }
+  if(!email.trim()){  if(errEl) errEl.textContent='Please enter your email.'; return; }
+  if(pass.length<6){  if(errEl) errEl.textContent='Password must be at least 6 characters.'; return; }
+  if(errEl) errEl.textContent='';
+
+  /* PADDLE: Before creating the account, open Paddle checkout here.
+     On Paddle success callback, call createUserAccount() with the plan.
+     For now we create the account directly with a trial flag. */
+  createUserAccount(name, email, pass, _selectedPlan);
+}
+
+/* ── Handle Google signup on plan page ── */
+function handlePlanGoogleSignup(){
+  if(!_selectedPlan){
+    var errEl = document.getElementById('psError');
+    if(errEl) errEl.textContent = 'Please select a plan above first.';
+    return;
+  }
+  var provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).then(function(result){
+    var user = result.user;
+    /* PADDLE: Trigger Paddle checkout before writing plan to Firestore */
+    return db.collection('users').doc(user.uid).set({
+      email:              user.email,
+      displayName:        user.displayName,
+      plan:               _selectedPlan.key,
+      billing:            _selectedPlan.billing,
+      subscriptionStatus: 'trial',
+      trialEndsAt:        new Date(Date.now() + 7*24*60*60*1000),
+      createdAt:          firebase.firestore.FieldValue.serverTimestamp(),
+    }, {merge:true});
+  }).then(function(){
+    openUserDashboard();
+  }).catch(function(e){
+    var errEl = document.getElementById('psError');
+    if(errEl) errEl.textContent = friendlyAuthError(e.code);
+  });
+}
+
+/* ── Create user account after plan selection ── */
+function createUserAccount(name, email, pass, plan){
+  var errEl = document.getElementById('psError');
+  auth.createUserWithEmailAndPassword(email, pass).then(function(cred){
+    return Promise.all([
+      cred.user.updateProfile({displayName: name}),
+      db.collection('users').doc(cred.user.uid).set({
+        email:              email,
+        displayName:        name,
+        plan:               plan.key,
+        billing:            plan.billing,
+        subscriptionStatus: 'trial',
+        trialEndsAt:        new Date(Date.now() + 7*24*60*60*1000),
+        createdAt:          firebase.firestore.FieldValue.serverTimestamp(),
+        profile:            {name: name},
+      })
+    ]);
+  }).then(function(){
+    _selectedPlan = null;
+    openUserDashboard();
+  }).catch(function(e){
+    if(errEl) errEl.textContent = friendlyAuthError(e.code);
+  });
+}
+
+/* ── Open user dashboard ── */
+function openUserDashboard(){
+  if(!CURRENT_USER) return;
+  showPage('userDashboardPage');
+  loadUserDashboard();
+}
+
+/* ── Load dashboard data ── */
+function loadUserDashboard(){
+  if(!CURRENT_USER) return;
+  /* Update nav name */
+  var navName = document.getElementById('udNavName');
+  if(navName) navName.textContent = USER_PROFILE.name || CURRENT_USER.displayName || CURRENT_USER.email;
+  /* Welcome name */
+  var wName = document.getElementById('udWelcomeName');
+  if(wName) wName.textContent = USER_PROFILE.name || CURRENT_USER.displayName || 'Welcome';
+
+  db.collection('users').doc(CURRENT_USER.uid).get().then(function(doc){
+    var data = doc.exists ? (doc.data()||{}) : {};
+    var plan = IS_ADMIN ? 'admin' : (data.plan||'free');
+    var status = data.subscriptionStatus || 'active';
+    var trialEnd = data.trialEndsAt ? (data.trialEndsAt.toDate ? data.trialEndsAt.toDate() : new Date(data.trialEndsAt)) : null;
+
+    /* Plan badge */
+    var planLabels = {free:'Free Plan', starter:'Starter', pro:'Professional', agency:'Agency', admin:'Admin'};
+    var badge = document.getElementById('udPlanBadge');
+    if(badge) badge.textContent = planLabels[plan]||plan;
+
+    /* Trial note */
+    var trialNote = document.getElementById('udTrialNote');
+    if(trialNote && trialEnd && trialEnd > new Date() && status==='trial'){
+      var days = Math.ceil((trialEnd-new Date())/(1000*60*60*24));
+      trialNote.textContent = days + ' day' + (days!==1?'s':'') + ' left in trial';
+    }
+
+    /* Usage */
+    var limits = _planLimits[plan] || _planLimits.free;
+    var usageText = document.getElementById('udUsageText');
+    var usageFill = document.getElementById('udUsageFill');
+    db.collection('usage').doc(CURRENT_USER.uid).get().then(function(udoc){
+      var used = udoc.exists ? (udoc.data().calculationsThisMonth||0) : 0;
+      if(usageText){
+        if(limits.calcs === Infinity){
+          usageText.textContent = used + ' calculations this month · Unlimited';
+        } else {
+          usageText.textContent = used + ' / ' + limits.calcs + ' calculations this month';
+        }
+      }
+      if(usageFill){
+        var pct = limits.calcs===Infinity ? Math.min(used*2,100) : Math.min(used/limits.calcs*100,100);
+        usageFill.style.width = pct + '%';
+        usageFill.style.background = pct>80 ? 'linear-gradient(90deg,rgba(231,76,60,.6),rgba(231,76,60,.9))' : 'linear-gradient(90deg,rgba(39,174,96,.6),rgba(39,174,96,.9))';
+      }
+    }).catch(function(){});
+
+    /* Show upgrade prompt for free plan */
+    var upgradeEl = document.getElementById('udUpgradePrompt');
+    if(upgradeEl) upgradeEl.style.display = (plan==='free'&&!IS_ADMIN) ? 'flex' : 'none';
+  });
+}
+
+/* ── Placeholder actions (coming soon) ── */
+function openSavedReports(){
+  alert('Saved reports — coming soon. Your calculations will be saved here automatically.');
+}
+function openComparisons(){
+  alert('Property comparison — coming soon. Compare two investments side by side.');
+}
+
+/* ── Auth state: route signed-in users to dashboard ── */
+/* This is called from the existing onAuthStateChanged */
+function routeAfterAuth(user){
+  if(IS_ADMIN){
+    /* Admin sees the landing page with admin UI */
+    return;
+  }
+  /* Regular signed-in user → dashboard */
+  var currentPage = document.querySelector('.page.active');
+  var currentId = currentPage ? currentPage.id : '';
+  /* Only auto-route if on landing or plan selection page */
+  if(currentId === 'landing' || currentId === 'planSelectionPage' || !currentId){
+    openUserDashboard();
+  }
+}
+
+</script>
+           2. Initialize: Paddle.Initialize({ token: 'YOUR_CLIENT_TOKEN' })
+           3. On button click: Paddle.Checkout.open({ priceId: selectedPriceId, ... })
+           4. On Paddle success webhook: update Firestore user plan + create account -->
+      <button onclick="handlePlanSignup()" style="width:100%;padding:.8rem;border-radius:8px;background:linear-gradient(135deg,rgba(191,198,209,.2),rgba(191,198,209,.1));border:1px solid rgba(191,198,209,.35);color:var(--ivory);font-size:.82rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-family:var(--font-body)">
+        Start Free Trial
+      </button>
+      <p style="font-size:.7rem;color:rgba(191,198,209,.3);text-align:center;margin-top:.75rem;line-height:1.5">7 days free · No charge until day 8 · Cancel anytime</p>
+      <div style="font-size:.72rem;color:rgba(231,76,60,.8);margin-top:.65rem;text-align:center;min-height:1rem" id="psError"></div>
+
+      <div style="display:flex;align-items:center;gap:.75rem;margin:1rem 0"><div style="flex:1;height:1px;background:rgba(191,198,209,.1)"></div><span style="font-size:.7rem;color:rgba(191,198,209,.3)">or</span><div style="flex:1;height:1px;background:rgba(191,198,209,.1)"></div></div>
+      <button onclick="handlePlanGoogleSignup()" style="width:100%;padding:.65rem;border-radius:8px;border:1px solid rgba(191,198,209,.18);background:rgba(255,255,255,.04);color:var(--ivory);font-size:.82rem;cursor:pointer;font-family:var(--font-body);display:flex;align-items:center;justify-content:center;gap:.65rem">
+        <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.7 33.7 29.3 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 6 1.1 8.2 3l5.7-5.7C34.4 5.1 29.5 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c11 0 20-8 20-20.5 0-1.2-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3.1 0 6 1.1 8.2 3l5.7-5.7C34.4 5.1 29.5 3 24 3c-7.6 0-14.2 4.4-17.7 11.7z"/><path fill="#4CAF50" d="M24 45c5.2 0 10-1.8 13.7-4.8l-6.3-5.2C29.5 36.4 26.9 37 24 37c-5.2 0-9.6-3.3-11.3-7.9l-6.6 4.8C9.8 40.6 16.4 45 24 45z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.3-2.3 4.2-4.3 5.5l6.3 5.2C41 35.2 44 30 44 24c0-1.2-.1-2.3-.4-3.5z"/></svg>
+        Continue with Google
+      </button>
+      <div style="text-align:center;margin-top:1rem">
+        <span style="font-size:.75rem;color:var(--text-muted)">Already have an account? </span>
+        <button onclick="showPage('landing');setTimeout(openAuthModal,100)" style="background:none;border:none;color:var(--brushed-silver);font-size:.75rem;cursor:pointer;text-decoration:underline;font-family:var(--font-body)">Sign in</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ USER DASHBOARD PAGE ═══ -->
+<div id="userDashboardPage" class="page">
+  <nav class="nav">
+    <div class="nav-logo" style="cursor:default">
+      <svg width="22" height="22" viewBox="0 0 60 60" fill="none"><defs><radialGradient id="udgr" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#8a959e" stop-opacity=".6"/></radialGradient></defs><path d="M30 2L32.5 27.5L58 30L32.5 32.5L30 58L27.5 32.5L2 30L27.5 27.5Z" fill="url(#udgr)"/></svg>
+      <span style="font-family:'Cormorant Garamond',serif;font-weight:300;letter-spacing:.2em">SIRIUS</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:.75rem">
+      <span style="font-size:.72rem;color:var(--text-muted)" id="udNavName"></span>
+      <button class="btn btn-ghost" onclick="openProfile()" style="font-size:.72rem">My Profile</button>
+      <button class="btn btn-ghost" onclick="handleSignOut()" style="font-size:.72rem">Sign out</button>
+    </div>
+  </nav>
+  <div style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem">
+    <!-- Welcome -->
+    <div style="margin-bottom:2rem">
+      <div style="font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.4rem">Welcome back</div>
+      <h1 style="font-size:1.8rem;font-weight:300;font-family:'Cormorant Garamond',serif;color:var(--ivory)" id="udWelcomeName">—</h1>
+      <div style="display:flex;align-items:center;gap:.75rem;margin-top:.5rem">
+        <span style="font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.2rem .7rem;border-radius:99px;background:rgba(191,198,209,.1);border:1px solid rgba(191,198,209,.2);color:var(--brushed-silver)" id="udPlanBadge">Free Plan</span>
+        <span style="font-size:.75rem;color:rgba(191,198,209,.4)" id="udTrialNote"></span>
+      </div>
+    </div>
+
+    <!-- Usage bar -->
+    <div style="background:rgba(17,32,58,.5);border:1px solid rgba(191,198,209,.1);border-radius:12px;padding:1.25rem;margin-bottom:1.5rem" id="udUsageCard">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.65rem">
+        <div style="font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(191,198,209,.5);font-weight:600">This month</div>
+        <div style="font-size:.75rem;color:var(--text-muted)" id="udUsageText">—</div>
+      </div>
+      <div class="dash-usage-bar"><div class="dash-usage-fill" id="udUsageFill" style="width:0%"></div></div>
+    </div>
+
+    <!-- Action cards -->
+    <div class="dash-grid">
+      <div class="dash-card" onclick="goToEval()">
+        <div class="dash-card-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+        <div class="dash-card-title">New Calculation</div>
+        <div class="dash-card-sub">Analyse a property — ready, off-plan, cash or mortgage.</div>
+      </div>
+      <div class="dash-card" onclick="openSavedReports()">
+        <div class="dash-card-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div class="dash-card-title">Saved Reports</div>
+        <div class="dash-card-sub">View and download your saved analyses.</div>
+      </div>
+      <div class="dash-card" onclick="openComparisons()">
+        <div class="dash-card-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="18"/><rect x="14" y="3" width="7" height="18"/></svg>
+        </div>
+        <div class="dash-card-title">Compare Properties</div>
+        <div class="dash-card-sub">Compare two investments side by side.</div>
+      </div>
+      <div class="dash-card" onclick="openProfile()">
+        <div class="dash-card-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="dash-card-title">My Profile</div>
+        <div class="dash-card-sub">Edit your details and branding for reports.</div>
+      </div>
+    </div>
+
+    <!-- Upgrade prompt for free users -->
+    <div id="udUpgradePrompt" style="display:none;margin-top:1rem;background:linear-gradient(135deg,rgba(212,175,55,.08),rgba(212,175,55,.03));border:1px solid rgba(212,175,55,.2);border-radius:12px;padding:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+      <div>
+        <div style="font-size:.82rem;font-weight:600;color:var(--ivory);margin-bottom:.25rem">Upgrade to unlock everything</div>
+        <div style="font-size:.75rem;color:var(--text-muted)">Unlimited calculations, PDF reports, property comparisons and full branding.</div>
+      </div>
+      <button onclick="showPage('planSelectionPage');renderPlanSelectionGrid()" style="padding:.55rem 1.25rem;border-radius:8px;background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.35);color:rgba(212,175,55,.9);font-size:.78rem;font-weight:600;cursor:pointer;font-family:var(--font-body);white-space:nowrap">View Plans</button>
     </div>
   </div>
 </div>
