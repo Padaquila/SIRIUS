@@ -1908,7 +1908,7 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
 
   
 
-  <section class="demo-section" id="demo">
+  <section class="demo-section" id="demoSection">
     <div class="demo-wrap">
       <div>
         <div class="section-label">Live Demo</div><div class="gold-line"></div>
@@ -6491,6 +6491,7 @@ function updateLandingForUser(user){
     if(pricingEl) pricingEl.style.display = 'none';
     /* Hide disclaimer for admin */
     _disclaimerAccepted = true;
+    var demoSec = document.getElementById('demoSection'); if(demoSec) demoSec.style.display='none';
   } else if(user){
     /* Signed-in non-admin: change CTA to go straight to calculator */
     if(heroBtn){
@@ -6498,6 +6499,7 @@ function updateLandingForUser(user){
       heroBtn.onclick = function(){ goToEval(); };
     }
     _disclaimerAccepted = true;
+    var demoSec2 = document.getElementById('demoSection'); if(demoSec2) demoSec2.style.display='none';
   }
 }
 
@@ -6783,32 +6785,7 @@ function loadDashboardData(){
 
   
 
-  <section class="demo-section" id="demo">
-    <div class="demo-wrap">
-      <div>
-        <div class="section-label">Live Demo</div><div class="gold-line"></div>
-        <h2 class="section-title">See It In <em class="gold">Action</em></h2>
-        <p class="section-sub" style="margin-bottom:2rem">Our team walks you through a live deal using your own property data.</p>
-        <div style="display:flex;flex-direction:column;gap:1rem">
-          <div style="display:flex;align-items:center;gap:1rem"><div style="width:32px;height:32px;border-radius:50%;background:rgba(191,198,209,.1);border:1px solid rgba(191,198,209,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span style="font-size:.88rem;color:var(--text-muted)">Personalised 30-minute session with our product team</span></div>
-          <div style="display:flex;align-items:center;gap:1rem"><div style="width:32px;height:32px;border-radius:50%;background:rgba(191,198,209,.1);border:1px solid rgba(191,198,209,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span style="font-size:.88rem;color:var(--text-muted)">Use a real property deal for the walkthrough</span></div>
-          <div style="display:flex;align-items:center;gap:1rem"><div style="width:32px;height:32px;border-radius:50%;background:rgba(191,198,209,.1);border:1px solid rgba(191,198,209,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span style="font-size:.88rem;color:var(--text-muted)">Configure it for your team's workflow</span></div>
-        </div>
-      </div>
-      <div class="demo-form-card">
-        <div class="form-title">Request Your <span class="gold">Demo</span></div>
-        <div class="lnd-form-row">
-          <div class="lnd-fg"><label>First Name</label><input type="text" placeholder="Ahmad"></div>
-          <div class="lnd-fg"><label>Last Name</label><input type="text" placeholder="Al-Rashid"></div>
-        </div>
-        <div class="lnd-fg"><label>Work Email</label><input type="text" placeholder="ahmad@brokerage.ae"></div>
-        <div class="lnd-fg"><label>Phone</label><input type="text" placeholder="+971 50 000 0000"></div>
-        <div class="lnd-fg"><label>I am a</label><select><option>Individual Investor</option><option>Real Estate Broker</option><option>Investment Company</option></select></div>
-        <div class="lnd-fg"><label>Preferred Demo Time</label><select><option>Morning (9&#8211;12pm GST)</option><option>Afternoon (12&#8211;5pm GST)</option><option>Evening (5&#8211;8pm GST)</option></select></div>
-        <button class="btn btn-primary" style="width:100%;margin-top:.5rem" onclick="alert('Demo request submitted! Our team will be in touch within 24 hours.')">Submit Request</button>
-      </div>
-    </div>
-  </section>
+  
 
   <footer>
     <div class="footer-logo nav-logo-sirius">
