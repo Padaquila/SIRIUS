@@ -6163,34 +6163,13 @@ function renderPricingEditor(){
   var defaults = {
     starter: {monthly:49, yearly:399, monthlyEq:33, intro:'First 2 months at AED 25', valueAnchor:'Less than 0.2% of one commission',
       tagline:'For agents and investors getting started with smarter analysis',
-      features:'30 calculations / month
-15 saved reports / month
-20 PDF downloads / month
-5 property comparisons / month
-3 active shareable links
-Name + phone on reports
-7-day full access trial'},
+      features:'30 calculations / month\n15 saved reports / month\n20 PDF downloads / month\n5 property comparisons / month\n3 active shareable links\nName + phone on reports\n7-day full access trial'},
     pro: {monthly:79, yearly:649, monthlyEq:54, intro:'First 2 months at AED 39', valueAnchor:'Less than 0.4% of one commission',
       tagline:'For serious brokers and investors who close deals with data',
-      features:'Unlimited calculations
-Unlimited saved reports
-Unlimited PDF downloads
-20 property comparisons / month
-20 active shareable links
-Full branding — logo, photo, bio
-In-app profile page
-Priority support
-7-day full access trial'},
+      features:'Unlimited calculations\nUnlimited saved reports\nUnlimited PDF downloads\n20 property comparisons / month\n20 active shareable links\nFull branding — logo, photo, bio\nIn-app profile page\nPriority support\n7-day full access trial'},
     agency: {monthly:29, yearly:239, monthlyEq:20, intro:'Min. 3 seats · Admin seat included', valueAnchor:'Less than AED 1 per agent per day',
       tagline:'For brokerages that want every agent performing at their best',
-      features:'Everything in Professional
-Unlimited calculations & reports
-Agency dashboard + usage analytics
-White-label — remove Sirius branding
-Company + individual agent branding
-Dedicated account manager
-Priority support
-7-day full access trial'},
+      features:'Everything in Professional\nUnlimited calculations & reports\nAgency dashboard + usage analytics\nWhite-label — remove Sirius branding\nCompany + individual agent branding\nDedicated account manager\nPriority support\n7-day full access trial'},
   };
   var h = '<div style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brushed-silver);font-weight:600;margin-bottom:1.25rem">Pricing Configuration</div>'
     + '<div style="font-size:.78rem;color:var(--text-muted);margin-bottom:1.5rem">Edit prices, features, and labels for each plan. Changes save to Firebase and update immediately for all users.</div>';
@@ -6268,8 +6247,7 @@ function applyPricingOverrides(){
     if(s.intro)        PLANS.individual.starter.intro        = s.intro;
     if(s.tagline)      PLANS.individual.starter.tagline      = s.tagline;
     if(s.valueAnchor)  PLANS.individual.starter.valueAnchor  = s.valueAnchor;
-    if(s.features)     PLANS.individual.starter.features     = s.features.split('
-').filter(Boolean).map(function(t){ return {t:t,on:true}; });
+    if(s.features)     PLANS.individual.starter.features     = s.features.split('\n').filter(Boolean).map(function(t){ return {t:t,on:true}; });
   }
   if(PRICING_OVERRIDES.pro){
     var p = PRICING_OVERRIDES.pro;
@@ -6279,8 +6257,7 @@ function applyPricingOverrides(){
     if(p.intro)        PLANS.individual.pro.intro        = p.intro;
     if(p.tagline)      PLANS.individual.pro.tagline      = p.tagline;
     if(p.valueAnchor)  PLANS.individual.pro.valueAnchor  = p.valueAnchor;
-    if(p.features)     PLANS.individual.pro.features     = p.features.split('
-').filter(Boolean).map(function(t){ return {t:t,on:true}; });
+    if(p.features)     PLANS.individual.pro.features     = p.features.split('\n').filter(Boolean).map(function(t){ return {t:t,on:true}; });
   }
   if(PRICING_OVERRIDES.agency){
     var ag = PRICING_OVERRIDES.agency;
@@ -6290,8 +6267,7 @@ function applyPricingOverrides(){
     if(ag.intro)        PLANS.company.agency.intro        = ag.intro;
     if(ag.tagline)      PLANS.company.agency.tagline      = ag.tagline;
     if(ag.valueAnchor)  PLANS.company.agency.valueAnchor  = ag.valueAnchor;
-    if(ag.features)     PLANS.company.agency.features     = ag.features.split('
-').filter(Boolean).map(function(t){ return {t:t,on:true}; });
+    if(ag.features)     PLANS.company.agency.features     = ag.features.split('\n').filter(Boolean).map(function(t){ return {t:t,on:true}; });
   }
   renderPricing();
 }
