@@ -1344,6 +1344,102 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
 .kpi-label { color: rgba(191,198,209,.72) !important; }
 .kpi-sub   { color: rgba(191,198,209,.6)  !important; }
 
+
+/* ── PROFILE SYSTEM ── */
+.profile-page { max-width: 680px; margin: 0 auto; padding: 2rem 1.5rem; }
+.profile-header {
+  display: flex; align-items: center; gap: 1.5rem;
+  margin-bottom: 2.5rem; padding-bottom: 2rem;
+  border-bottom: 1px solid rgba(191,198,209,.1);
+}
+.profile-avatar {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: rgba(17,43,77,.8); border: 2px solid rgba(191,198,209,.2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; position: relative; overflow: hidden;
+}
+.profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.profile-avatar-placeholder {
+  display: flex; flex-direction: column; align-items: center;
+  gap: .25rem; color: rgba(191,198,209,.35);
+}
+.profile-avatar-upload {
+  position: absolute; inset: 0; display: flex; align-items: center;
+  justify-content: center; background: rgba(0,0,0,.6);
+  opacity: 0; transition: opacity .2s; cursor: not-allowed;
+  border-radius: 50%;
+}
+.profile-avatar:hover .profile-avatar-upload { opacity: 1; }
+.profile-logo-wrap {
+  width: 64px; height: 64px; border-radius: 10px;
+  background: rgba(17,43,77,.8); border: 1px solid rgba(191,198,209,.15);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; position: relative; overflow: hidden; cursor: not-allowed;
+}
+.profile-logo-wrap img { width: 100%; height: 100%; object-fit: contain; padding: 6px; }
+.profile-name-block { flex: 1; }
+.profile-display-name { font-size: 1.3rem; font-weight: 700; color: var(--ivory); margin-bottom: .2rem; }
+.profile-display-title { font-size: .82rem; color: var(--text-muted); margin-bottom: .3rem; }
+.profile-plan-badge {
+  display: inline-flex; align-items: center; gap: .35rem;
+  font-size: .6rem; letter-spacing: .14em; text-transform: uppercase;
+  font-weight: 700; padding: .2rem .65rem; border-radius: 99px;
+  background: rgba(191,198,209,.1); color: var(--brushed-silver);
+  border: 1px solid rgba(191,198,209,.2);
+}
+.profile-section-label {
+  font-size: .6rem; letter-spacing: .18em; text-transform: uppercase;
+  color: rgba(191,198,209,.45); font-weight: 600; margin-bottom: .75rem;
+  margin-top: 1.75rem;
+}
+.profile-field { margin-bottom: 1.1rem; }
+.profile-field label {
+  display: block; font-size: .7rem; letter-spacing: .1em;
+  text-transform: uppercase; color: rgba(191,198,209,.55);
+  margin-bottom: .4rem;
+}
+.profile-input {
+  width: 100%; padding: .65rem .9rem; border-radius: 8px;
+  border: 1px solid rgba(191,198,209,.18); background: rgba(10,22,40,.7);
+  color: var(--white); font-size: .88rem; font-family: var(--font-body);
+  outline: none; transition: border-color .2s; box-sizing: border-box;
+}
+.profile-input:focus { border-color: rgba(191,198,209,.5); }
+.profile-input:read-only { color: rgba(191,198,209,.4); cursor: default; }
+.profile-textarea {
+  width: 100%; padding: .65rem .9rem; border-radius: 8px;
+  border: 1px solid rgba(191,198,209,.18); background: rgba(10,22,40,.7);
+  color: var(--white); font-size: .88rem; font-family: var(--font-body);
+  outline: none; resize: vertical; min-height: 90px; line-height: 1.6;
+  transition: border-color .2s; box-sizing: border-box;
+}
+.profile-textarea:focus { border-color: rgba(191,198,209,.5); }
+.profile-save-btn {
+  width: 100%; margin-top: 1.75rem; padding: .8rem;
+  border-radius: 8px; border: 1px solid rgba(191,198,209,.35);
+  background: rgba(191,198,209,.12); color: var(--ivory);
+  font-size: .82rem; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; cursor: pointer; transition: all .2s;
+  font-family: var(--font-body);
+}
+.profile-save-btn:hover { background: rgba(191,198,209,.22); }
+.profile-upload-disabled {
+  font-size: .65rem; color: rgba(191,198,209,.3);
+  margin-top: .35rem; text-align: center;
+}
+.profile-preview-card {
+  background: rgba(17,43,77,.4); border: 1px solid rgba(191,198,209,.12);
+  border-radius: 12px; padding: 1.25rem; margin-top: 1rem;
+  display: flex; align-items: center; gap: 1rem;
+}
+.profile-preview-avatar {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: rgba(191,198,209,.1); border: 1px solid rgba(191,198,209,.2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; overflow: hidden;
+}
+.profile-preview-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
 /* End dynamic layer */
 
 /* ── DISCLAIMER MODAL ── */
@@ -1552,6 +1648,7 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
 .version-ts{font-size:.72rem;color:var(--brushed-silver)}.version-note{font-size:.68rem;color:var(--text-muted)}
 </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.3/math.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -1728,7 +1825,8 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
       <button class="btn btn-ghost" onclick="openModal()">Request Demo</button>
       <button class="btn btn-primary" id="navSignInBtn" onclick="openAuthModal()">Sign In</button>
       <div class="nav-user-info" id="navUserInfo" style="display:none">
-        <span class="nav-user-email" id="navUserEmail"></span>
+        <span class="nav-user-email" id="navUserEmail" style="cursor:pointer" onclick="openProfile()"></span>
+        <button class="btn btn-ghost" onclick="openProfile()" style="padding:.35rem .75rem;font-size:.72rem">My Profile</button>
         <button class="btn btn-ghost" onclick="handleSignOut()" style="padding:.35rem .75rem;font-size:.72rem">Sign out</button>
       </div>
     </div>
@@ -1775,9 +1873,9 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
       </div>
     </div>
     <div class="hero-stats">
-      <div class="stat-card light-highlight"><div class="label">Calculations Supported</div><div class="value">40+</div><div class="sub">Acquisition, yield &amp; ROI outputs</div></div>
-      <div class="stat-card light-highlight"><div class="label">Acquisition Modes</div><div class="value">3</div><div class="sub">Ready · Off-Plan · Mortgage</div></div>
-      <div class="stat-card light-highlight"><div class="label">Trusted By</div><div class="value">500+</div><div class="sub">Brokers &amp; investment firms in UAE</div></div>
+      <div class="stat-card light-highlight"><div class="label" id="stat1label">Calculations Supported</div><div class="value" id="stat1value">40+</div><div class="sub" id="stat1sub">Acquisition, yield &amp; ROI outputs</div></div>
+      <div class="stat-card light-highlight"><div class="label" id="stat2label">Acquisition Modes</div><div class="value" id="stat2value">3</div><div class="sub" id="stat2sub">Ready · Off-Plan · Mortgage</div></div>
+      <div class="stat-card light-highlight"><div class="label" id="stat3label">Trusted By</div><div class="value" id="stat3value">500+</div><div class="sub" id="stat3sub">Brokers &amp; investment firms in UAE</div></div>
     </div>
   </section>
 
@@ -1788,12 +1886,12 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
     <h2 class="section-title" id="featuresSectionTitle">Everything you need to decide with <em class="gold">confidence</em></h2>
     <p class="section-sub" id="featuresSectionSub">Because in Dubai, the difference between a good investment and a costly mistake is the quality of your analysis — not your gut feeling.</p>
     <div class="features-grid">
-      <div class="feature-card reveal reveal-delay-1"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="13"/><polyline points="3 9 12 3 21 9"/><line x1="9" y1="22" x2="9" y2="12"/><line x1="15" y1="22" x2="15" y2="12"/></svg></div><div class="feature-title">Acquisition Cost Engine</div><div class="feature-desc">DLD fees, agency commissions, trustee costs, service charge reimbursements — down to the dirham.</div></div>
-      <div class="feature-card reveal reveal-delay-2"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div><div class="feature-title">Dual Rental Yield Models</div><div class="feature-desc">Separate Long-Term and Airbnb models with occupancy adjustments and multi-year projections.</div></div>
-      <div class="feature-card reveal reveal-delay-3"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><path d="M9 12h6M9 16h6"/></svg></div><div class="feature-title">Mortgage Intelligence</div><div class="feature-desc">Synced slider and manual input. LTV ratios, down payments, and full mortgage calculator placeholder.</div></div>
-      <div class="feature-card reveal reveal-delay-4"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></div><div class="feature-title">Payment Plan Table</div><div class="feature-desc">Full off-plan and transferable plan tracking with auto percentage-to-amount and amount-to-percentage.</div></div>
-      <div class="feature-card reveal reveal-delay-5"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div><div class="feature-title">Step-by-Step Wizard</div><div class="feature-desc">Guided 4-step flow from property details to full results — no clutter, no scrolling.</div></div>
-      <div class="feature-card reveal"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div><div class="feature-title">Custom Fee Builder</div><div class="feature-desc">Add any cost line — mortgage registration, NOC fees, inspection — everything captured.</div></div>
+      <div class="feature-card reveal reveal-delay-1"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="13"/><polyline points="3 9 12 3 21 9"/><line x1="9" y1="22" x2="9" y2="12"/><line x1="15" y1="22" x2="15" y2="12"/></svg></div><div class="feature-title" id="fc1title">Acquisition Cost Engine</div><div class="feature-desc" id="fc1desc">DLD fees, agency commissions, trustee costs, service charge reimbursements — down to the dirham.</div></div>
+      <div class="feature-card reveal reveal-delay-2"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div><div class="feature-title" id="fc2title">Dual Rental Yield Models</div><div class="feature-desc" id="fc2desc">Separate Long-Term and Airbnb models with occupancy adjustments and multi-year projections.</div></div>
+      <div class="feature-card reveal reveal-delay-3"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><path d="M9 12h6M9 16h6"/></svg></div><div class="feature-title" id="fc3title">Mortgage Intelligence</div><div class="feature-desc" id="fc3desc">Synced slider and manual input. LTV ratios, down payments, and full mortgage calculator placeholder.</div></div>
+      <div class="feature-card reveal reveal-delay-4"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></div><div class="feature-title" id="fc4title">Payment Plan Table</div><div class="feature-desc" id="fc4desc">Full off-plan and transferable plan tracking with auto percentage-to-amount and amount-to-percentage.</div></div>
+      <div class="feature-card reveal reveal-delay-5"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div><div class="feature-title" id="fc5title">Step-by-Step Wizard</div><div class="feature-desc" id="fc5desc">Guided 4-step flow from property details to full results — no clutter, no scrolling.</div></div>
+      <div class="feature-card reveal"><div class="feature-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BFC6D1" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div><div class="feature-title" id="fc6title">Custom Fee Builder</div><div class="feature-desc" id="fc6desc">Add any cost line — mortgage registration, NOC fees, inspection — everything captured.</div></div>
     </div>
   </section>
 
@@ -1836,7 +1934,7 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
       <span class="nav-sirius-text" style="font-size:1.1rem">SIRIUS</span>
       <span style="font-family:var(--font-body);font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;color:#6e7b87;font-weight:300;margin-left:.3rem;align-self:flex-end;padding-bottom:.1rem">Invest with Clarity</span>
     </div>
-    <div class="footer-copy">&#169; 2025 Sirius &nbsp;&middot;&nbsp; Invest with Clarity</div>
+    <div class="footer-copy" id="footerCopy">&#169; 2025 Sirius &nbsp;&middot;&nbsp; Invest with Clarity</div>
     <div style="display:flex;gap:1rem">
       <a href="#" style="font-size:.78rem;color:var(--text-muted);text-decoration:none">Privacy</a>
       <a href="#" style="font-size:.78rem;color:var(--text-muted);text-decoration:none">Terms</a>
@@ -2264,6 +2362,21 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
       </div>
 
       <div class="results-section">
+        <!-- PDF Download Buttons -->
+        <div style="display:flex;gap:.65rem;flex-wrap:wrap;margin-bottom:1.5rem">
+          <button class="btn btn-outline" style="font-size:.72rem;padding:.45rem .9rem" onclick="downloadFullReport()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Full Report
+          </button>
+          <button class="btn btn-outline" style="font-size:.72rem;padding:.45rem .9rem" onclick="downloadPaymentBreakdown('buyer')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Buyer Breakdown
+          </button>
+          <button class="btn btn-outline" style="font-size:.72rem;padding:.45rem .9rem" onclick="downloadPaymentBreakdown('seller')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Seller Breakdown
+          </button>
+        </div>
         <div class="results-section-title">Acquisition Fee Breakdown</div>
         <table class="fee-table" style="background:rgba(17,43,77,.3);border-radius:var(--r)">
           <tbody id="feeTableBody">
@@ -3513,6 +3626,7 @@ function calc(){
   /* Cache for SC context */
   window._lastDp=dp; window._lastAgency=agency; window._lastSetup=setupCost;
   window._lastTotal=total; window._lastTotalCap=totalCapital;
+  window._lastTitleDeed=titleLine; window._lastDld=dld;
 
   /* Cache values for recalcFees() live checkbox updates */
   window._lastDp=dp;window._lastDld=dld;window._lastTrusteeFee=trust;
@@ -3736,6 +3850,11 @@ function calc(){
   }
   var totalExitCosts = nocVal + resaleAgencyAmt + legalResale + earlySettleAmt + liabilityLetterAmt;
   window._lastNocVal=nocVal; window._lastResaleAgency=resaleAgencyAmt; window._lastEarlySettle=earlySettleAmt; window._lastLiability=liabilityLetterAmt; window._lastTotalExit=totalExitCosts;
+  /* Cache mortgage fee components for PDF */
+  if(isMort){
+    window._lastMortReg=mortRegFee; window._lastBankProc=bankProcFee;
+    window._lastMortInsYr1=mortInsFee; window._lastLifeInsYr1=lifeInsFee;
+  }
   /* Store amortised insurance totals for scenario calculations */
   window._mortInsHp  = mortInsHp;
   window._lifeInsHp  = lifeInsHp;
@@ -5312,6 +5431,16 @@ auth.onAuthStateChanged(function(user){
     document.getElementById('navSignInBtn').style.display  = 'none';
     document.getElementById('navUserInfo').style.display   = '';
     document.getElementById('navUserEmail').textContent    = user.displayName || user.email;
+    /* Load profile data and plan */
+    db.collection('users').doc(user.uid).get().then(function(doc){
+      if(doc.exists){
+        var data = doc.data()||{};
+        var p = data.profile || {};
+        USER_PROFILE = p;
+        window._userPlan = data.plan || 'free';
+        if(p.name) document.getElementById('navUserEmail').textContent = p.name;
+      }
+    }).catch(function(){});
     /* Check for admin claim */
     user.getIdTokenResult().then(function(token){
       IS_ADMIN = token.claims.admin === true;
@@ -5533,19 +5662,40 @@ openAuthModal = function(){
 
 /* ── LANDING PAGE TEXT EDITOR ── */
 var LANDING_TEXT_KEYS = [
-  {id:'hero_primary',     label:'Hero — Primary headline',    selector:'.hero-title',          prop:'innerHTML', default:'Your client just asked if it\'s a good investment. You have minutes, not hours.'},
-  {id:'hero_sub',         label:'Hero — Sub headline',        selector:'.hero-sub',            prop:'innerHTML', default:'Your client just asked if it's a good investment. You have minutes, not hours.'},
-  {id:'hero_secondary',   label:'Hero — Secondary line',      selector:'#heroSecondaryLine',   prop:'innerHTML', default:'Full investment analysis for any Dubai property.'},
-  {id:'hero_cta',         label:'Hero — Primary CTA button',  selector:'#heroCtaBtn',          prop:'innerHTML', default:'Start free — no charge for 7 days'},
-  {id:'features_title',   label:'Features — Section title',   selector:'#featuresSectionTitle',prop:'innerHTML', default:'Everything you need to decide with confidence'},
-  {id:'features_sub',     label:'Features — Sub copy',        selector:'#featuresSectionSub',  prop:'innerHTML', default:'Because in Dubai, the difference between a good investment and a costly mistake is the quality of your analysis — not your gut feeling.'},
-  {id:'pricing_title',    label:'Pricing — Section title',    selector:'#pricingSectionTitle', prop:'innerHTML', default:'Start free. Upgrade when you\'re ready.'},
-  {id:'pricing_sub',      label:'Pricing — Sub copy',         selector:'#pricingSectionSub',   prop:'innerHTML', default:'Every plan includes a 7-day full-access trial. No charge until day 8. Cancel anytime.'},
-  {id:'ba_left_story1',   label:'Before/After — Agent story', selector:'#baStory1',            prop:'innerHTML', default:'"By the time I ran the numbers and called back, they had already signed with another agent."'},
-  {id:'ba_left_story2',   label:'Before/After — Investor story',selector:'#baStory2',          prop:'innerHTML', default:'"I bought the property based on my gut. No analysis. Two years later I\'m sitting on negative equity, no tenant, and no exit."'},
-  {id:'ba_right_story',   label:'Before/After — Sirius story', selector:'#baStoryRight',       prop:'innerHTML', default:'"I opened Sirius in front of my client. Three minutes later they had a full breakdown. They signed the same week."'},
+  {id:'hero_primary',   label:'Hero — Primary headline',        selector:'.hero-title',           prop:'innerHTML', default:'Your client just asked if it\'s a good investment. You have minutes, not hours.'},
+  {id:'hero_sub',       label:'Hero — Sub headline',            selector:'.hero-sub',             prop:'innerHTML', default:'Your client just asked if it\'s a good investment. You have minutes, not hours.'},
+  {id:'hero_secondary', label:'Hero — Secondary line',          selector:'#heroSecondaryLine',    prop:'innerHTML', default:'Full investment analysis for any Dubai property.'},
+  {id:'hero_cta',       label:'Hero — CTA button',             selector:'#heroCtaBtn',           prop:'innerHTML', default:'Start free — no charge for 7 days'},
+  {id:'stat1_label',    label:'Stat 1 — Label',                selector:'#stat1label',           prop:'innerHTML', default:'Calculations Supported'},
+  {id:'stat1_value',    label:'Stat 1 — Value',                selector:'#stat1value',           prop:'innerHTML', default:'40+'},
+  {id:'stat1_sub',      label:'Stat 1 — Sub',                  selector:'#stat1sub',             prop:'innerHTML', default:'Acquisition, yield & ROI outputs'},
+  {id:'stat2_label',    label:'Stat 2 — Label',                selector:'#stat2label',           prop:'innerHTML', default:'Acquisition Modes'},
+  {id:'stat2_value',    label:'Stat 2 — Value',                selector:'#stat2value',           prop:'innerHTML', default:'3'},
+  {id:'stat2_sub',      label:'Stat 2 — Sub',                  selector:'#stat2sub',             prop:'innerHTML', default:'Ready · Off-Plan · Mortgage'},
+  {id:'stat3_label',    label:'Stat 3 — Label',                selector:'#stat3label',           prop:'innerHTML', default:'Trusted By'},
+  {id:'stat3_value',    label:'Stat 3 — Value',                selector:'#stat3value',           prop:'innerHTML', default:'500+'},
+  {id:'stat3_sub',      label:'Stat 3 — Sub',                  selector:'#stat3sub',             prop:'innerHTML', default:'Brokers & investment firms in UAE'},
+  {id:'ba_left_story1', label:'Before/After — Agent story',    selector:'#baStory1',             prop:'innerHTML', default:'"By the time I ran the numbers and called back, they had already signed with another agent."'},
+  {id:'ba_left_story2', label:'Before/After — Investor story', selector:'#baStory2',             prop:'innerHTML', default:'"I bought the property based on my gut. No analysis. Two years later I\'m sitting on negative equity, no tenant, and no exit."'},
+  {id:'ba_right_story', label:'Before/After — Sirius story',   selector:'#baStoryRight',         prop:'innerHTML', default:'"I opened Sirius in front of my client. Three minutes later they had a full breakdown. They signed the same week."'},
+  {id:'features_title', label:'Features — Section title',      selector:'#featuresSectionTitle', prop:'innerHTML', default:'Everything you need to decide with confidence'},
+  {id:'features_sub',   label:'Features — Sub copy',           selector:'#featuresSectionSub',   prop:'innerHTML', default:'Because in Dubai, the difference between a good investment and a costly mistake is the quality of your analysis — not your gut feeling.'},
+  {id:'fc1_title',      label:'Feature 1 — Title',             selector:'#fc1title',             prop:'innerHTML', default:'Acquisition Cost Engine'},
+  {id:'fc1_desc',       label:'Feature 1 — Description',       selector:'#fc1desc',              prop:'innerHTML', default:'DLD fees, agency commissions, trustee costs, service charge reimbursements — down to the dirham.'},
+  {id:'fc2_title',      label:'Feature 2 — Title',             selector:'#fc2title',             prop:'innerHTML', default:'Dual Rental Yield Models'},
+  {id:'fc2_desc',       label:'Feature 2 — Description',       selector:'#fc2desc',              prop:'innerHTML', default:'Separate Long-Term and Airbnb models with occupancy adjustments and multi-year projections.'},
+  {id:'fc3_title',      label:'Feature 3 — Title',             selector:'#fc3title',             prop:'innerHTML', default:'Mortgage Intelligence'},
+  {id:'fc3_desc',       label:'Feature 3 — Description',       selector:'#fc3desc',              prop:'innerHTML', default:'Synced slider and manual input. LTV ratios, down payments, and full mortgage calculator placeholder.'},
+  {id:'fc4_title',      label:'Feature 4 — Title',             selector:'#fc4title',             prop:'innerHTML', default:'Payment Plan Table'},
+  {id:'fc4_desc',       label:'Feature 4 — Description',       selector:'#fc4desc',              prop:'innerHTML', default:'Full off-plan and transferable plan tracking with auto percentage-to-amount and amount-to-percentage.'},
+  {id:'fc5_title',      label:'Feature 5 — Title',             selector:'#fc5title',             prop:'innerHTML', default:'Step-by-Step Wizard'},
+  {id:'fc5_desc',       label:'Feature 5 — Description',       selector:'#fc5desc',              prop:'innerHTML', default:'Guided 4-step flow from property details to full results — no clutter, no scrolling.'},
+  {id:'fc6_title',      label:'Feature 6 — Title',             selector:'#fc6title',             prop:'innerHTML', default:'Custom Fee Builder'},
+  {id:'fc6_desc',       label:'Feature 6 — Description',       selector:'#fc6desc',              prop:'innerHTML', default:'Add any cost line — mortgage registration, NOC fees, inspection — everything captured.'},
+  {id:'pricing_title',  label:'Pricing — Section title',       selector:'#pricingSectionTitle',  prop:'innerHTML', default:'Start free. Upgrade when you\'re ready.'},
+  {id:'pricing_sub',    label:'Pricing — Sub copy',            selector:'#pricingSectionSub',    prop:'innerHTML', default:'Every plan includes a 7-day full-access trial. No charge until day 8. Cancel anytime.'},
+  {id:'footer_copy',    label:'Footer — Copyright line',       selector:'#footerCopy',           prop:'innerHTML', default:'© 2025 Sirius · Invest with Clarity'},
 ];
-
 var _landingTexts = {};
 
 function applyLandingTexts(texts){
@@ -5641,7 +5791,763 @@ function updateBillingCardPrices(){
   if(monEl) monEl.textContent = 'AED '+ref.price.monthly+(ref.perUser?'/user':'');
 }
 
+
+/* ════════════════════════════════════════════════════════════════
+   SIRIUS PDF ENGINE — jsPDF client-side
+   Full report + buyer/seller payment breakdown
+════════════════════════════════════════════════════════════════ */
+
+function fmtAED(val){
+  /* Format a raw number from window.SC or window._last* as AED string */
+  if(val===undefined||val===null||val==='') return '—';
+  var n = parseFloat(String(val).replace(/,/g,''));
+  if(isNaN(n) || n === 0) return 'AED 0';
+  return 'AED ' + Math.round(n).toLocaleString('en-AE');
+}
+
+function getPlanTier(){
+  /* Returns 'free' | 'starter' | 'pro' | 'agency' | 'admin' */
+  if(IS_ADMIN) return 'admin';
+  /* Read from cached user doc if available */
+  return (window._userPlan || 'free').toLowerCase();
+}
+
+function getBranding(){
+  /* Returns branding object based on plan tier */
+  var tier = getPlanTier();
+  var p    = USER_PROFILE || {};
+  var base = {
+    name:    p.name    || '',
+    title:   p.title   || '',
+    company: p.company || '',
+    phone:   p.phone   || '',
+    bio:     p.bio     || '',
+    tier:    tier,
+  };
+  if(tier === 'free'){
+    /* No branding on report */
+    return {showBranding: false, tier: tier};
+  }
+  if(tier === 'starter'){
+    /* Name + phone only */
+    return {showBranding: true, name: base.name, phone: base.phone, tier: tier};
+  }
+  /* pro / agency / admin — full branding */
+  return {
+    showBranding: true,
+    full: true,
+    name:    base.name,
+    title:   base.title,
+    company: base.company,
+    phone:   base.phone,
+    bio:     base.bio,
+    tier:    tier,
+  };
+}
+
+function getPDFData(){
+  /* Read all values from window.SC (populated by snapshotSC after calc)
+     and window._last* globals. Never reads from DOM element IDs.
+     Also reads scenario-specific output values where needed. */
+  var sc  = window.SC || {};
+  var scn = detectScenario();
+  var isMort   = S.financing === 'Mortgage';
+  var isOff    = S.status   === 'Off-Plan';
+  var isRental = S.purpose  === 'Rent Out';
+  var isFlip   = S.purpose  === 'Flip';
+  var isSU     = S.purpose  === 'Self-use';
+
+  /* Helper to safely read a DOM output element */
+  var domGet = function(id){
+    var el = document.getElementById(id);
+    if(!el) return null;
+    var v = (el.value || el.textContent || '').trim();
+    return (v && v !== '—' && v !== '') ? v : null;
+  };
+
+  return {
+    /* ── Property info ── */
+    scenario:      scn,
+    propertyPrice: sc.pp || 0,
+    propertySize:  sc.sf || 0,
+    isMortgage:    isMort,
+    isOffPlan:     isOff,
+    isRental:      isRental,
+    isFlip:        isFlip,
+    isSelfUse:     isSU,
+
+    /* ── Acquisition ── */
+    dp:            sc.dp            || window._lastDp    || 0,
+    dld:           sc.dld           || (sc.pp * 0.04)    || 0,
+    agency:        sc.agency        || window._lastAgency || 0,
+    legal:         sc.lf            || 0,
+    insurance:     sc.ins           || 0,
+    titleDeed:     window._lastTitleDeed || 0,
+    trustee:       window._lastTrusteeFee || 0,
+    svcReimb:      window._lastSvcR  || 0,
+    renov:         sc.rc            || 0,
+    furn:          sc.fc            || 0,
+    util:          sc.uc            || 0,
+    setupTotal:    sc.setupCost     || window._lastSetup || 0,
+    acqTotal:      sc.total         || window._lastTotal || 0,
+    capitalTotal:  sc.totalCapital  || window._lastTotalCap || 0,
+
+    /* ── Mortgage fees ── */
+    mortReg:       window._lastMortReg  || 0,
+    bankProc:      window._lastBankProc || 0,
+    valuation:     (isMort ? 3000 : 0),
+    mortIns:       window._lastMortInsYr1 || 0,
+    lifeIns:       window._lastLifeInsYr1 || 0,
+
+    /* ── Exit costs ── */
+    noc:           sc.nocVal           || window._lastNocVal      || 0,
+    resaleAgency:  sc.resaleAgencyAmt  || window._lastResaleAgency || 0,
+    legalResale:   sc.legalResale      || 0,
+    earlySettle:   sc.earlySettleAmt   || window._lastEarlySettle  || 0,
+    liabilityLetter: sc.liabilityLetterAmt || window._lastLiability || 0,
+    exitTotal:     sc.totalExitCosts   || window._lastTotalExit    || 0,
+
+    /* ── Capital growth ── */
+    capGrowth:     sc.capTotal         || window._lastCapTotal     || 0,
+    resalePrice:   sc.resalePrice      || window._lastResalePrice  || 0,
+    capAppRate:    (sc.capAppPct || 0) * 100,
+
+    /* ── Rental ── */
+    grossRent:     sc.grossRentAnnual  || window._lastGrossRent    || 0,
+    netRent:       sc.netRentAnnual    || window._lastNetRent      || 0,
+    grossYield:    sc.pp > 0 ? ((sc.grossRentAnnual||0) / sc.pp * 100) : 0,
+    netYield:      sc.pp > 0 ? ((sc.netRentAnnual||0)  / sc.pp * 100) : 0,
+    holdingPeriod: sc.hp || 0,
+
+    /* ── Mortgage monthly ── */
+    monthlyMortgage: window._mMortgageCached || 0,
+  };
+}
+
+/* ── PAGE SETUP ── */
+function setupPDF(branding){
+  var doc = new window.jspdf.jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+  var W = 210, H = 297, M = 18;
+
+  /* Dark background */
+  doc.setFillColor(8, 18, 34);
+  doc.rect(0, 0, W, H, 'F');
+
+  /* Gold top bar */
+  doc.setFillColor(212, 175, 55);
+  doc.rect(0, 0, W, 1.5, 'F');
+
+  var startY = 16;
+
+  /* ── BRANDING HEADER ── */
+  if(branding && branding.showBranding){
+    if(branding.full){
+      /* Professional / Agency / Admin — full branding left, Sirius right */
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(11);
+      doc.setTextColor(230, 235, 242);
+      doc.text(branding.name || 'Agent', M, startY);
+
+      if(branding.title || branding.company){
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(8);
+        doc.setTextColor(140, 155, 170);
+        var titleLine = [branding.title, branding.company].filter(Boolean).join(' · ');
+        doc.text(titleLine, M, startY + 5);
+      }
+      if(branding.phone){
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(120, 135, 150);
+        doc.text(branding.phone, M, startY + 10);
+      }
+      /* Sirius watermark right side — hidden for agency (white-label) */
+      if(branding.tier !== 'agency'){
+        doc.setFont('helvetica','bold');
+        doc.setFontSize(9);
+        doc.setTextColor(212, 175, 55);
+        doc.text('SIRIUS', W - M, startY, {align:'right'});
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(6.5);
+        doc.setTextColor(100, 115, 130);
+        doc.text('Dubai Real Estate Analysis', W - M, startY + 5, {align:'right'});
+      }
+      startY += 16;
+    } else {
+      /* Starter — name + phone right, Sirius left */
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(18);
+      doc.setTextColor(212, 175, 55);
+      doc.text('SIRIUS', M, startY);
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(8);
+      doc.setTextColor(140, 155, 170);
+      doc.text('Dubai Real Estate Investment Analysis', M + 28, startY);
+
+      if(branding.name){
+        doc.setFont('helvetica','bold');
+        doc.setFontSize(9);
+        doc.setTextColor(210, 220, 235);
+        doc.text(branding.name, W - M, startY, {align:'right'});
+      }
+      if(branding.phone){
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(8);
+        doc.setTextColor(140, 155, 170);
+        doc.text(branding.phone, W - M, startY + 5, {align:'right'});
+      }
+      startY += (branding.phone ? 14 : 10);
+    }
+  } else {
+    /* Free — Sirius only */
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(18);
+    doc.setTextColor(212, 175, 55);
+    doc.text('SIRIUS', M, startY);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(8);
+    doc.setTextColor(140, 155, 170);
+    doc.text('Dubai Real Estate Investment Analysis', M + 28, startY);
+    startY += 8;
+  }
+
+  /* Date */
+  var dateStr = new Date().toLocaleDateString('en-GB', {day:'2-digit',month:'long',year:'numeric'});
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 115, 130);
+  doc.text(dateStr, W - M, startY, {align:'right'});
+
+  /* Divider */
+  doc.setDrawColor(212, 175, 55, 0.3);
+  doc.setLineWidth(0.3);
+  doc.line(M, startY + 3, W - M, startY + 3);
+
+  return {doc:doc, y:startY + 10, W:W, H:H, M:M};
+}
+
+/* ── ROW HELPERS ── */
+function addSectionHeader(ctx, title){
+  var doc=ctx.doc, y=ctx.y, W=ctx.W, M=ctx.M;
+  if(y > 265){ doc.addPage(); doc.setFillColor(8,18,34); doc.rect(0,0,W,297,'F'); ctx.y=14; y=14; }
+  doc.setFillColor(17, 43, 77);
+  doc.rect(M, y, W-M*2, 8, 'F');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(191, 198, 209);
+  doc.text(title.toUpperCase(), M+3, y+5.2);
+  ctx.y += 12;
+}
+
+function addRow(ctx, label, value, highlight){
+  var doc=ctx.doc, y=ctx.y, W=ctx.W, M=ctx.M;
+  if(y > 270){ doc.addPage(); doc.setFillColor(8,18,34); doc.rect(0,0,W,297,'F'); ctx.y=14; y=14; }
+  if(highlight){ doc.setFillColor(22,38,65); doc.rect(M,y-3,W-M*2,7,'F'); }
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(160,175,190);
+  doc.text(label, M+3, y+1);
+  doc.setFont('helvetica','bold'); doc.setTextColor(230,235,242);
+  doc.text(String(value), W-M-3, y+1, {align:'right'});
+  doc.setDrawColor(30,50,80); doc.setLineWidth(0.2);
+  doc.line(M, y+3.5, W-M, y+3.5);
+  ctx.y += 7;
+}
+
+function addPctRow(ctx, label, value){
+  /* For percentage values */
+  addRow(ctx, label, typeof value === 'number' ? value.toFixed(2)+'%' : String(value));
+}
+
+function addTotalRow(ctx, label, value){
+  var doc=ctx.doc, y=ctx.y, W=ctx.W, M=ctx.M;
+  if(y > 270){ doc.addPage(); doc.setFillColor(8,18,34); doc.rect(0,0,W,297,'F'); ctx.y=14; y=14; }
+  doc.setFillColor(212,175,55,0.12); doc.rect(M,y-3,W-M*2,8,'F');
+  doc.setDrawColor(212,175,55,0.4); doc.setLineWidth(0.4);
+  doc.line(M,y-3,W-M,y-3); doc.line(M,y+5,W-M,y+5);
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(212,175,55);
+  doc.text(label, M+3, y+1.5);
+  doc.text(String(value), W-M-3, y+1.5, {align:'right'});
+  ctx.y += 11;
+}
+
+function addDisclaimer(ctx, branding){
+  var doc=ctx.doc, W=ctx.W, M=ctx.M, H=ctx.H;
+  doc.setFont('helvetica','italic'); doc.setFontSize(6.5); doc.setTextColor(75,90,105);
+  var agent = (branding && branding.name) ? branding.name : 'the user';
+  var text = 'DISCLAIMER: This report was generated using Sirius and is provided for informational purposes only. All calculations are estimates based on inputs provided by ' + agent + '. ' + agent.charAt(0).toUpperCase() + agent.slice(1) + ' is solely responsible for the accuracy of these calculations and any decisions made based on this report. These figures do not constitute financial, legal, or investment advice. Sirius and its operators accept no liability for any investment decisions or outcomes arising from the use of this report.';
+  var lines = doc.splitTextToSize(text, W-M*2);
+  doc.setDrawColor(50,65,85); doc.setLineWidth(0.2);
+  doc.line(M, H-22, W-M, H-22);
+  doc.text(lines, M, H-18);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   FULL REPORT — reads from window.SC, scenario-aware
+════════════════════════════════════════════════════════════════ */
+function downloadFullReport(){
+  if(!window.jspdf){ alert('PDF library not loaded. Please refresh and try again.'); return; }
+  if(!window.SC || !window.SC.pp){ alert('Please run a calculation first, then download the report.'); return; }
+
+  var d   = getPDFData();
+  var branding = getBranding();
+  var ctx = setupPDF(branding);
+  var doc = ctx.doc;
+  var W=ctx.W, M=ctx.M;
+
+  /* ── Report title ── */
+  doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(230,235,242);
+  doc.text('Investment Analysis — Scenario ' + d.scenario, M, ctx.y);
+  ctx.y += 5;
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(140,155,170);
+  var propLine = 'AED ' + Math.round(d.propertyPrice).toLocaleString('en-AE') + (d.propertySize?' · '+d.propertySize+' ft²':'') + (d.isOffPlan?' · Off-Plan':'') + (d.isMortgage?' · Mortgage':'');
+  doc.text(propLine, M, ctx.y);
+  ctx.y += 10;
+
+  /* ── ACQUISITION ── */
+  addSectionHeader(ctx, 'Acquisition Costs');
+  addRow(ctx, 'Down Payment',         fmtAED(d.dp));
+  addRow(ctx, 'DLD Fee (4%)',         fmtAED(d.dld));
+  addRow(ctx, 'Agency at Purchase',   fmtAED(d.agency));
+  if(d.titleDeed > 0) addRow(ctx, 'Title Deed',       fmtAED(d.titleDeed));
+  if(d.trustee > 0)   addRow(ctx, 'Trustee Fees',     fmtAED(d.trustee));
+  if(d.legal > 0)     addRow(ctx, 'Legal Fees',        fmtAED(d.legal));
+  if(d.svcReimb > 0)  addRow(ctx, 'Service Charge Reimbursement', fmtAED(d.svcReimb));
+  if(d.isMortgage && d.mortReg > 0){
+    addRow(ctx, 'Mortgage Registration Fee', fmtAED(d.mortReg));
+    addRow(ctx, 'Bank Processing Fee',       fmtAED(d.bankProc));
+    addRow(ctx, 'Property Valuation Fee',    fmtAED(d.valuation));
+    addRow(ctx, 'Mortgage Insurance (Yr 1)', fmtAED(d.mortIns));
+    addRow(ctx, 'Life Insurance (Yr 1)',     fmtAED(d.lifeIns));
+  }
+  if(d.insurance > 0) addRow(ctx, 'Annual Insurance', fmtAED(d.insurance));
+  addTotalRow(ctx, 'Total Acquisition Cost', fmtAED(d.acqTotal));
+
+  /* ── SETUP ── */
+  if(d.renov > 0 || d.furn > 0 || d.util > 0){
+    ctx.y += 3;
+    addSectionHeader(ctx, 'Setup Costs');
+    if(d.renov > 0) addRow(ctx, 'Renovation & Upgrades', fmtAED(d.renov));
+    if(d.furn  > 0) addRow(ctx, 'Furnishing',            fmtAED(d.furn));
+    if(d.util  > 0) addRow(ctx, 'Utility Setup',         fmtAED(d.util));
+    addTotalRow(ctx, 'Total Setup Cost', fmtAED(d.setupTotal));
+  }
+  addTotalRow(ctx, 'Total Capital Invested', fmtAED(d.capitalTotal));
+
+  /* ── SCENARIO RESULTS ── */
+  ctx.y += 3;
+  if(d.isRental){
+    addSectionHeader(ctx, 'Rental Returns');
+    addRow(ctx, 'Annual Gross Rent',      fmtAED(d.grossRent));
+    addRow(ctx, 'Annual Net Income',      fmtAED(d.netRent));
+    addPctRow(ctx,'Gross Rental Yield',   d.grossYield);
+    addPctRow(ctx,'Net Rental Yield',     d.netYield);
+    if(d.isMortgage && d.monthlyMortgage > 0){
+      addRow(ctx, 'Monthly Mortgage Payment', fmtAED(d.monthlyMortgage));
+      var noi = d.netRent - d.monthlyMortgage*12;
+      addRow(ctx, 'Annual Cash Flow After Mortgage', fmtAED(noi));
+    }
+  } else if(d.isFlip){
+    addSectionHeader(ctx, 'Flip Returns');
+    var capitalDeployed = d.acqTotal + d.renov + d.furn;
+    var netProceeds     = d.resalePrice - d.exitTotal;
+    var netProfit       = netProceeds - capitalDeployed;
+    addRow(ctx, 'Total Capital Deployed', fmtAED(capitalDeployed));
+    addRow(ctx, 'Estimated Resale Price', fmtAED(d.resalePrice));
+    addRow(ctx, 'Total Exit Costs',       fmtAED(d.exitTotal));
+    addRow(ctx, 'Net Proceeds',           fmtAED(netProceeds));
+    addTotalRow(ctx, 'Net Profit', fmtAED(netProfit));
+    if(capitalDeployed > 0){
+      addPctRow(ctx, 'Simple ROI', netProfit/capitalDeployed*100);
+      if(d.holdingPeriod > 0){
+        var annROI = (Math.pow(1+netProfit/capitalDeployed, 1/d.holdingPeriod)-1)*100;
+        addPctRow(ctx, 'Annualised Return', annROI);
+      }
+    }
+  } else if(d.isSelfUse){
+    addSectionHeader(ctx, 'Ownership Summary');
+    addRow(ctx, 'Estimated Exit Value', fmtAED(d.resalePrice));
+    addRow(ctx, 'Total Capital Gain',   fmtAED(d.capGrowth));
+    addPctRow(ctx, 'Capital Appreciation Rate / Year', d.capAppRate);
+    if(d.isMortgage && d.monthlyMortgage > 0)
+      addRow(ctx, 'Monthly Mortgage Payment', fmtAED(d.monthlyMortgage));
+  }
+
+  /* ── EXIT COSTS ── */
+  ctx.y += 3;
+  addSectionHeader(ctx, 'Exit Costs at Resale');
+  addRow(ctx, 'NOC Fee',              fmtAED(d.noc));
+  addRow(ctx, 'Agency at Resale',     fmtAED(d.resaleAgency));
+  if(d.legalResale > 0) addRow(ctx, 'Legal Fees at Resale', fmtAED(d.legalResale));
+  if(d.isMortgage && d.earlySettle > 0){
+    addRow(ctx, 'Early Settlement Fee', fmtAED(d.earlySettle));
+    addRow(ctx, 'Liability Letter',     fmtAED(d.liabilityLetter));
+  }
+  addTotalRow(ctx, 'Total Exit Costs', fmtAED(d.exitTotal));
+
+  /* ── CAPITAL GROWTH ── */
+  ctx.y += 3;
+  addSectionHeader(ctx, 'Capital Growth');
+  addRow(ctx, 'Estimated Resale Price', fmtAED(d.resalePrice), true);
+  addRow(ctx, 'Total Capital Gain',     fmtAED(d.capGrowth));
+  if(d.propertyPrice > 0)
+    addPctRow(ctx, 'Net ROI on Purchase Price', d.capGrowth/d.propertyPrice*100);
+
+  addDisclaimer(ctx, branding);
+  var scnLabel = 'Scenario-' + d.scenario;
+  doc.save('Sirius-Report-' + scnLabel + '-' + new Date().toISOString().slice(0,10) + '.pdf');
+}
+
+/* ════════════════════════════════════════════════════════════════
+   PAYMENT BREAKDOWN — buyer side and seller side
+════════════════════════════════════════════════════════════════ */
+function downloadPaymentBreakdown(side){
+  if(!window.jspdf){ alert('PDF library not loaded. Please refresh and try again.'); return; }
+  if(!window.SC || !window.SC.pp){ alert('Please run a calculation first.'); return; }
+
+  var d        = getPDFData();
+  var branding = getBranding();
+  var ctx      = setupPDF(branding);
+  var doc      = ctx.doc;
+  var W=ctx.W, M=ctx.M;
+  var isBuyer  = side === 'buyer';
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(230,235,242);
+  doc.text(isBuyer ? 'Buyer Payment Breakdown' : 'Seller Payment Breakdown', M, ctx.y);
+  ctx.y += 5;
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(140,155,170);
+  doc.text('Property · AED ' + Math.round(d.propertyPrice).toLocaleString('en-AE'), M, ctx.y);
+  ctx.y += 10;
+
+  if(isBuyer){
+    addSectionHeader(ctx, 'Costs Paid by Buyer at Purchase');
+    addRow(ctx, 'Down Payment',                fmtAED(d.dp));
+    addRow(ctx, 'DLD Transfer Fee (4%)',        fmtAED(d.dld));
+    addRow(ctx, 'Agency Commission + VAT',      fmtAED(d.agency));
+    if(d.titleDeed > 0) addRow(ctx, 'Title Deed Fees',  fmtAED(d.titleDeed));
+    if(d.trustee > 0)   addRow(ctx, 'Trustee Fees',     fmtAED(d.trustee));
+    if(d.legal > 0)     addRow(ctx, 'Legal Fees',        fmtAED(d.legal));
+    if(d.insurance > 0) addRow(ctx, 'Annual Insurance',  fmtAED(d.insurance));
+    if(d.isMortgage && d.mortReg > 0){
+      ctx.y += 3;
+      addSectionHeader(ctx, 'Mortgage Fees');
+      addRow(ctx, 'Mortgage Registration Fee',  fmtAED(d.mortReg));
+      addRow(ctx, 'Bank Processing Fee',        fmtAED(d.bankProc));
+      addRow(ctx, 'Property Valuation Fee',     fmtAED(d.valuation));
+      addRow(ctx, 'Mortgage Insurance (Yr 1)',  fmtAED(d.mortIns));
+      addRow(ctx, 'Life Insurance (Yr 1)',      fmtAED(d.lifeIns));
+    }
+    if(d.renov > 0 || d.furn > 0 || d.util > 0){
+      ctx.y += 3;
+      addSectionHeader(ctx, 'Setup Costs');
+      if(d.renov > 0) addRow(ctx, 'Renovation & Upgrades', fmtAED(d.renov));
+      if(d.furn  > 0) addRow(ctx, 'Furnishing',            fmtAED(d.furn));
+      if(d.util  > 0) addRow(ctx, 'Utility Setup',         fmtAED(d.util));
+    }
+    addTotalRow(ctx, 'Total Capital Invested', fmtAED(d.capitalTotal));
+
+  } else {
+    /* Seller side */
+    addSectionHeader(ctx, 'Seller Costs at Resale');
+    addRow(ctx, 'Estimated Resale Price',       fmtAED(d.resalePrice));
+    addRow(ctx, 'NOC Fee',                      fmtAED(d.noc));
+    addRow(ctx, 'Agency Commission at Resale',  fmtAED(d.resaleAgency));
+    if(d.legalResale > 0) addRow(ctx, 'Legal Fees at Resale', fmtAED(d.legalResale));
+    if(d.isMortgage && d.earlySettle > 0){
+      addRow(ctx, 'Early Settlement Fee',       fmtAED(d.earlySettle));
+      addRow(ctx, 'Liability Letter',           fmtAED(d.liabilityLetter));
+    }
+    addTotalRow(ctx, 'Total Exit Costs', fmtAED(d.exitTotal));
+    ctx.y += 3;
+    addSectionHeader(ctx, 'Net Proceeds to Seller');
+    addRow(ctx, 'Resale Price',    fmtAED(d.resalePrice));
+    addRow(ctx, 'Less Exit Costs', '- ' + fmtAED(d.exitTotal));
+    var netProc = d.resalePrice - d.exitTotal;
+    addTotalRow(ctx, 'Net Proceeds', fmtAED(netProc));
+  }
+
+  addDisclaimer(ctx, branding);
+  var fname = isBuyer ? 'Sirius-Buyer-Breakdown' : 'Sirius-Seller-Breakdown';
+  doc.save(fname + '-' + new Date().toISOString().slice(0,10) + '.pdf');
+}
+
+
+
+/* ════════════════════════════════════════════════════════════════
+   SIRIUS PROFILE SYSTEM
+   Stores in Firestore /users/{uid}/profile
+   Photo/logo upload wired but disabled until Firebase Storage ready
+════════════════════════════════════════════════════════════════ */
+
+var USER_PROFILE = {};
+
+/* ── Navigation ── */
+function openProfile(){
+  showPage('profilePage');
+  loadProfile();
+}
+
+/* ── Load profile from Firestore ── */
+function loadProfile(){
+  if(!CURRENT_USER) return;
+  document.getElementById('pf-email').value = CURRENT_USER.email || '';
+
+  db.collection('users').doc(CURRENT_USER.uid).get().then(function(doc){
+    var data = doc.exists ? (doc.data() || {}) : {};
+    var profile = data.profile || {};
+    USER_PROFILE = profile;
+
+    /* Fill form */
+    document.getElementById('pf-name').value    = profile.name    || CURRENT_USER.displayName || '';
+    document.getElementById('pf-title').value   = profile.title   || '';
+    document.getElementById('pf-phone').value   = profile.phone   || '';
+    document.getElementById('pf-company').value = profile.company || '';
+    document.getElementById('pf-website').value = profile.website || '';
+    document.getElementById('pf-bio').value     = profile.bio     || '';
+
+    /* Plan badge */
+    var plan = data.plan || 'free';
+    var planLabels = {free:'Free Plan', starter:'Starter', pro:'Professional', agency:'Agency'};
+    var planEl = document.getElementById('profilePlanBadge');
+    if(planEl) planEl.textContent = planLabels[plan] || plan;
+
+    /* Header display */
+    updateProfileDisplay(profile);
+    updateBrandingPreview(profile, plan);
+
+    /* Photo preview (URL-based for now) */
+    if(profile.photoURL){
+      var img = document.getElementById('profileAvatarImg');
+      var ph  = document.getElementById('profileAvatarPlaceholder');
+      if(img){ img.src = profile.photoURL; img.style.display = 'block'; }
+      if(ph)  ph.style.display = 'none';
+    }
+
+    /* Logo preview */
+    if(profile.logoURL){
+      var limg = document.getElementById('profileLogoImg');
+      var lph  = document.getElementById('profileLogoPlaceholder');
+      if(limg){ limg.src = profile.logoURL; limg.style.display = 'block'; }
+      if(lph)  lph.style.display = 'none';
+    }
+
+    /* Live preview on input */
+    ['pf-name','pf-title','pf-phone','pf-company'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) el.addEventListener('input', function(){
+        updateBrandingPreview(getFormProfile(), plan);
+        updateProfileDisplay(getFormProfile());
+      });
+    });
+
+  }).catch(function(e){ console.warn('loadProfile error:', e); });
+}
+
+function getFormProfile(){
+  return {
+    name:    (document.getElementById('pf-name')||{}).value    || '',
+    title:   (document.getElementById('pf-title')||{}).value   || '',
+    phone:   (document.getElementById('pf-phone')||{}).value   || '',
+    company: (document.getElementById('pf-company')||{}).value || '',
+    website: (document.getElementById('pf-website')||{}).value || '',
+    bio:     (document.getElementById('pf-bio')||{}).value     || '',
+  };
+}
+
+function updateProfileDisplay(profile){
+  var nameEl  = document.getElementById('profileDisplayName');
+  var titleEl = document.getElementById('profileDisplayTitle');
+  if(nameEl)  nameEl.textContent  = profile.name    || 'Your Name';
+  if(titleEl) titleEl.textContent = [profile.title, profile.company].filter(Boolean).join(' · ') || 'Title · Company';
+  /* Also update nav */
+  var navEl = document.getElementById('navUserEmail');
+  if(navEl && profile.name) navEl.textContent = profile.name;
+}
+
+function updateBrandingPreview(profile, plan){
+  var prevName    = document.getElementById('previewName');
+  var prevTitle   = document.getElementById('previewTitle');
+  var prevPhone   = document.getElementById('previewPhone');
+  var prevNote    = document.getElementById('previewPlanNote');
+  if(prevName)  prevName.textContent  = profile.name    || 'Your Name';
+  if(prevTitle) prevTitle.textContent = [profile.title, profile.company].filter(Boolean).join(' · ') || 'Title · Company';
+  if(prevPhone) prevPhone.textContent = profile.phone   || 'Phone number';
+
+  var notes = {
+    free:    'Upgrade to Starter for name + phone on reports',
+    starter: '✓ Name + phone shown on reports',
+    pro:     '✓ Full branding on reports (logo, photo, bio)',
+    agency:  '✓ Full branding + company logo on reports',
+  };
+  if(prevNote) prevNote.textContent = notes[plan] || notes.free;
+}
+
+/* ── Save profile to Firestore ── */
+function saveProfile(){
+  if(!CURRENT_USER){ alert('Please sign in first.'); return; }
+  var profile = getFormProfile();
+  var statusEl = document.getElementById('profileSaveStatus');
+  if(statusEl) statusEl.textContent = 'Saving...';
+
+  db.collection('users').doc(CURRENT_USER.uid).set(
+    { profile: profile },
+    { merge: true }
+  ).then(function(){
+    USER_PROFILE = profile;
+    if(statusEl) statusEl.textContent = '✓ Profile saved successfully';
+    setTimeout(function(){ if(statusEl) statusEl.textContent = ''; }, 3000);
+    updateProfileDisplay(profile);
+    /* Update nav name */
+    var navEl = document.getElementById('navUserEmail');
+    if(navEl && profile.name) navEl.textContent = profile.name;
+  }).catch(function(e){
+    if(statusEl) statusEl.textContent = '✗ Save failed: ' + e.message;
+  });
+}
+
+/* ── Photo/logo upload — wired but disabled until Storage is ready ──
+   To activate: uncomment the function below and add Storage SDK
+   The UI buttons are already in place, just need cursor:pointer + onclick
+
+function uploadProfilePhoto(file){
+  if(!CURRENT_USER || !file) return;
+  var storageRef = firebase.storage().ref('profiles/' + CURRENT_USER.uid + '/photo');
+  storageRef.put(file).then(function(snapshot){
+    return snapshot.ref.getDownloadURL();
+  }).then(function(url){
+    USER_PROFILE.photoURL = url;
+    db.collection('users').doc(CURRENT_USER.uid).set({profile:{photoURL:url}},{merge:true});
+    var img = document.getElementById('profileAvatarImg');
+    if(img){ img.src=url; img.style.display='block'; }
+  });
+}
+
+function uploadCompanyLogo(file){
+  if(!CURRENT_USER || !file) return;
+  var storageRef = firebase.storage().ref('profiles/' + CURRENT_USER.uid + '/logo');
+  storageRef.put(file).then(function(snapshot){
+    return snapshot.ref.getDownloadURL();
+  }).then(function(url){
+    USER_PROFILE.logoURL = url;
+    db.collection('users').doc(CURRENT_USER.uid).set({profile:{logoURL:url}},{merge:true});
+    var limg = document.getElementById('profileLogoImg');
+    if(limg){ limg.src=url; limg.style.display='block'; }
+  });
+}
+── End upload functions ── */
+
+/* ── Load profile on auth state change ── */
+/* Extend the existing onAuthStateChanged to also load profile */
+var _origAuthChanged = null; /* profile data loaded via loadProfile() when page opens */
+
 </script>
+
+<!-- ═══ PROFILE PAGE ═══ -->
+<div id="profilePage" class="page" style="background:var(--bg);min-height:100vh">
+  <nav class="nav">
+    <div class="nav-logo">
+      <svg width="22" height="22" viewBox="0 0 60 60" fill="none">
+        <defs><radialGradient id="pg" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#8a959e" stop-opacity=".6"/></radialGradient></defs>
+        <path d="M30 2L32.5 27.5L58 30L32.5 32.5L30 58L27.5 32.5L2 30L27.5 27.5Z" fill="url(#pg)"/>
+      </svg>
+      <span style="font-family:'Cormorant Garamond',serif;font-weight:300;letter-spacing:.2em">SIRIUS</span>
+    </div>
+    <div style="display:flex;gap:.75rem;align-items:center">
+      <button class="btn btn-ghost" onclick="goToLanding()" style="font-size:.75rem">← Back</button>
+      <button class="btn btn-ghost" onclick="goToEval()" style="font-size:.75rem">Calculator</button>
+      <button class="btn btn-ghost" onclick="handleSignOut()" style="font-size:.75rem">Sign out</button>
+    </div>
+  </nav>
+
+  <div class="profile-page">
+    <!-- Header with avatar -->
+    <div class="profile-header">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:.5rem">
+        <div class="profile-avatar" id="profileAvatarWrap">
+          <div class="profile-avatar-placeholder" id="profileAvatarPlaceholder">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span style="font-size:.55rem;color:rgba(191,198,209,.25)">Photo</span>
+          </div>
+          <img id="profileAvatarImg" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%" src="" alt="Profile photo">
+          <div class="profile-avatar-upload" title="Photo upload coming soon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+        </div>
+        <div class="profile-upload-disabled">Photo upload<br>coming soon</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:.5rem">
+        <div class="profile-logo-wrap" id="profileLogoWrap" title="Logo upload coming soon">
+          <div id="profileLogoPlaceholder" style="display:flex;flex-direction:column;align-items:center;gap:.25rem;color:rgba(191,198,209,.25)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span style="font-size:.5rem">Logo</span>
+          </div>
+          <img id="profileLogoImg" style="display:none;width:100%;height:100%;object-fit:contain;padding:6px" src="" alt="Company logo">
+        </div>
+        <div class="profile-upload-disabled">Logo upload<br>coming soon</div>
+      </div>
+
+      <div class="profile-name-block">
+        <div class="profile-display-name" id="profileDisplayName">Your Name</div>
+        <div class="profile-display-title" id="profileDisplayTitle">Title · Company</div>
+        <div class="profile-plan-badge" id="profilePlanBadge">Free Plan</div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="profile-section-label">Personal Information</div>
+    <div class="profile-field">
+      <label>Full Name</label>
+      <input type="text" class="profile-input" id="pf-name" placeholder="Your full name">
+    </div>
+    <div class="profile-field">
+      <label>Job Title / Role</label>
+      <input type="text" class="profile-input" id="pf-title" placeholder="e.g. Senior Property Consultant">
+    </div>
+    <div class="profile-field">
+      <label>Email</label>
+      <input type="email" class="profile-input" id="pf-email" readonly placeholder="Auto-filled from your account">
+    </div>
+    <div class="profile-field">
+      <label>Phone Number</label>
+      <input type="tel" class="profile-input" id="pf-phone" placeholder="+971 50 000 0000">
+    </div>
+
+    <div class="profile-section-label">Company</div>
+    <div class="profile-field">
+      <label>Company Name</label>
+      <input type="text" class="profile-input" id="pf-company" placeholder="Your agency or company name">
+    </div>
+    <div class="profile-field">
+      <label>Website or LinkedIn URL <span style="color:rgba(191,198,209,.3);font-size:.65rem">(optional)</span></label>
+      <input type="url" class="profile-input" id="pf-website" placeholder="https://...">
+    </div>
+
+    <div class="profile-section-label">About You</div>
+    <div class="profile-field">
+      <label>Bio / Description</label>
+      <textarea class="profile-textarea" id="pf-bio" placeholder="A few lines about yourself — this appears on your reports and profile page..."></textarea>
+    </div>
+
+    <!-- Report branding preview -->
+    <div class="profile-section-label">How you appear on reports</div>
+    <div class="profile-preview-card">
+      <div class="profile-preview-avatar" id="profilePreviewAvatar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div>
+        <div style="font-size:.88rem;font-weight:700;color:var(--ivory)" id="previewName">Your Name</div>
+        <div style="font-size:.75rem;color:var(--text-muted)" id="previewTitle">Title · Company</div>
+        <div style="font-size:.72rem;color:rgba(191,198,209,.4);margin-top:.2rem" id="previewPhone">Phone number</div>
+      </div>
+      <div style="margin-left:auto;font-size:.6rem;color:rgba(191,198,209,.3);text-align:right" id="previewPlanNote">
+        Upgrade to Professional<br>for full branding on reports
+      </div>
+    </div>
+
+    <button class="profile-save-btn" onclick="saveProfile()">Save Profile</button>
+    <div style="font-size:.72rem;color:rgba(191,198,209,.35);text-align:center;margin-top:.75rem" id="profileSaveStatus"></div>
+  </div>
+</div>
+
 </body>
 </html><section id="pricing" style="background:rgba(17,43,77,.2);padding:5rem 2rem">
     <div style="max-width:1100px;margin:0 auto">
@@ -5728,7 +6634,7 @@ function updateBillingCardPrices(){
       <span class="nav-sirius-text" style="font-size:1.1rem">SIRIUS</span>
       <span style="font-family:var(--font-body);font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;color:#6e7b87;font-weight:300;margin-left:.3rem;align-self:flex-end;padding-bottom:.1rem">Invest with Clarity</span>
     </div>
-    <div class="footer-copy">&#169; 2025 Sirius &nbsp;&middot;&nbsp; Invest with Clarity</div>
+    <div class="footer-copy" id="footerCopy">&#169; 2025 Sirius &nbsp;&middot;&nbsp; Invest with Clarity</div>
     <div style="display:flex;gap:1rem">
       <a href="#" style="font-size:.78rem;color:var(--text-muted);text-decoration:none">Privacy</a>
       <a href="#" style="font-size:.78rem;color:var(--text-muted);text-decoration:none">Terms</a>
