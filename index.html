@@ -1930,7 +1930,7 @@ footer, .footer {
 <!-- ===== LANDING ===== -->
 <div id="landing" class="page active">
   <nav class="nav">
-    <div class="nav-logo nav-logo-sirius">
+    <div class="nav-logo nav-logo-sirius" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="cursor:pointer">
       <svg width="14" height="14" viewBox="0 0 60 60" fill="none" aria-hidden="true">
         <defs>
           <radialGradient id="starNavGrad" cx="50%" cy="50%" r="50%">
@@ -2025,7 +2025,7 @@ footer, .footer {
 
   
 
-  <section class="demo-section" id="demoSection">
+  <section class="demo-section" id="demo">
     <div class="demo-wrap">
       <div>
         <div class="section-label">Live Demo</div><div class="gold-line"></div>
@@ -2052,22 +2052,7 @@ footer, .footer {
     </div>
   </section>
 
-  <footer>
-    <div class="footer-logo nav-logo-sirius">
-      <svg width="13" height="13" viewBox="0 0 60 60" fill="none" aria-hidden="true">
-        <defs><radialGradient id="starFootGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff"/><stop offset="40%" stop-color="#e0e8f0"/><stop offset="100%" stop-color="#8a959e" stop-opacity="0.6"/></radialGradient></defs>
-        <path d="M30 1 L32.8 27.2 L59 30 L32.8 32.8 L30 59 L27.2 32.8 L1 30 L27.2 27.2 Z" fill="url(#starFootGrad)"/>
-        <path d="M30 18 L31.5 28.5 L42 30 L31.5 31.5 L30 42 L28.5 31.5 L18 30 L28.5 28.5 Z" fill="white" opacity="0.8"/>
-      </svg>
-      <span class="nav-sirius-text" style="font-size:1.1rem">SIRIUS</span>
-      <span style="font-family:var(--font-body);font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;color:#6e7b87;font-weight:300;margin-left:.3rem;align-self:flex-end;padding-bottom:.1rem">Invest with Clarity</span>
-    </div>
-    <div class="footer-copy" id="footerCopy">&#169; 2025 Sirius &nbsp;&middot;&nbsp; Invest with Clarity</div>
-    <div style="display:flex;gap:1rem">
-      <a href="#" style="font-size:.78rem;color:var(--text-muted);text-decoration:none">Privacy</a>
-      <a href="#" style="font-size:.78rem;color:var(--text-muted);text-decoration:none">Terms</a>
-    </div>
-  </footer>
+  
 </div>
 
 <!-- ===== EVALUATION ===== -->
@@ -4553,10 +4538,17 @@ function onDiscCheck(cb){
   else{btn.classList.remove('ready');}
 }
 function acceptDisclaimer(){
-  if(!document.getElementById('discCheckbox').checked)return;
+  if(!document.getElementById('discCheckbox').checked) return;
   var overlay=document.getElementById('disclaimerOverlay');
   overlay.classList.add('hidden-out');
-  setTimeout(function(){overlay.style.display='none';},420);
+  setTimeout(function(){ overlay.style.display='none'; overlay.classList.remove('hidden-out'); },420);
+  _disclaimerAccepted=true;
+  /* Run the pending callback (e.g. open auth modal) */
+  if(window._disclaimerCallback){
+    var cb=window._disclaimerCallback;
+    window._disclaimerCallback=null;
+    setTimeout(function(){ cb(); },450);
+  }
 }
 /* Show on every session — do not persist acceptance to sessionStorage/localStorage
    (protects from legal liability; user must accept each time they open the app) */
@@ -4766,6 +4758,8 @@ document.addEventListener('keydown', function(e){
       tip.style.cssText='position:fixed;bottom:80px;right:24px;background:rgba(212,175,55,.9);color:#000;padding:.4rem .9rem;border-radius:6px;font-size:.75rem;font-weight:700;z-index:9999';
       document.body.appendChild(tip);
       setTimeout(function(){ if(tip.parentNode) tip.parentNode.removeChild(tip); },2000);
+      /* Open the admin panel immediately */
+      setTimeout(function(){ if(typeof openAdminPanel==='function') openAdminPanel(); },100);
     } else {
       if(typeof closeAdminPanel==='function') closeAdminPanel();
     }
@@ -5661,16 +5655,6 @@ function showDisclaimer(callback){
   window._disclaimerCallback = callback;
 }
 
-/* Patch acceptDisclaimer to run pending callback */
-var _origAcceptDisclaimer = acceptDisclaimer;
-acceptDisclaimer = function(){
-  if(!document.getElementById('discCheckbox').checked) return;
-  var overlay = document.getElementById('disclaimerOverlay');
-  overlay.classList.add('hidden-out');
-  setTimeout(function(){ overlay.style.display='none'; }, 420);
-  _disclaimerAccepted = true;
-  if(window._disclaimerCallback){ window._disclaimerCallback(); window._disclaimerCallback = null; }
-};
 
 /* Override openAuthModal to gate on disclaimer */
 var _origOpenAuthModal = openAuthModal;
@@ -6910,6 +6894,16 @@ function updateLandingForUser(user){
   </div>
 </div>
 
+
+<!-- Floating Admin Button -->
+<div class="admin-fab" id="adminFab" style="display:none">
+  <button class="admin-fab-btn" onclick="openAdminPanel()" title="Open Admin Panel">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
+  </button>
+</div>
+
+<!-- Admin Overlay -->
+
 </body>
 </html><section id="pricing" style="background:rgba(17,43,77,.2);padding:5rem 2rem">
     <div style="max-width:1100px;margin:0 auto">
@@ -6942,6 +6936,23 @@ function updateLandingForUser(user){
       <p style="text-align:center;font-size:.72rem;color:rgba(191,198,209,.25);margin-top:2rem">All prices in AED &middot; Cancel anytime &middot; No hidden fees</p>
     </div>
   </section>
+
+  <footer>
+    <div class="footer-logo nav-logo-sirius">
+      <svg width="13" height="13" viewBox="0 0 60 60" fill="none" aria-hidden="true">
+        <defs><radialGradient id="starFootGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff"/><stop offset="40%" stop-color="#e0e8f0"/><stop offset="100%" stop-color="#8a959e" stop-opacity="0.6"/></radialGradient></defs>
+        <path d="M30 1 L32.8 27.2 L59 30 L32.8 32.8 L30 59 L27.2 32.8 L1 30 L27.2 27.2 Z" fill="url(#starFootGrad)"/>
+        <path d="M30 18 L31.5 28.5 L42 30 L31.5 31.5 L30 42 L28.5 31.5 L18 30 L28.5 28.5 Z" fill="white" opacity="0.8"/>
+      </svg>
+      <span class="nav-sirius-text" style="font-size:1.1rem">SIRIUS</span>
+      <span style="font-family:var(--font-body);font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;color:#6e7b87;font-weight:300;margin-left:.3rem;align-self:flex-end;padding-bottom:.1rem">Invest with Clarity</span>
+    </div>
+    <div class="footer-copy" id="footerCopy">&#169; 2025 Sirius &nbsp;&middot;&nbsp; Invest with Clarity</div>
+    <div style="display:flex;gap:1rem">
+      <a href="#" style="font-size:.78rem;color:var(--text-muted);text-decoration:none">Privacy</a>
+      <a href="#" style="font-size:.78rem;color:var(--text-muted);text-decoration:none">Terms</a>
+    </div>
+  </footer>
 
   
 
