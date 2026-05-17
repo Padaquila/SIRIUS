@@ -5279,27 +5279,25 @@ function handleAuthSubmit(){
 /* ── Google sign-in ── */
 function signInWithGoogle(){
   var provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithRedirect(provider).catch(function(e){
-    console.error('Google redirect error:', e.code, e.message);
-    document.getElementById('authError').textContent = friendlyAuthError(e.code);
-  });
+  provider.addScope('email');
+  provider.addScope('profile');
+  auth.signInWithPopup(provider)
+    .then(function(result){
+      var user = result.user;
+      db.collection('users').doc(user.uid).set({
+        email: user.email,
+        displayName: user.displayName,
+        plan: 'free',
+        subscriptionStatus: 'active',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true });
+      closeAuthModal();
+    })
+    .catch(function(e){
+      console.error('Google sign-in error:', e.code, e.message);
+      document.getElementById('authError').textContent = friendlyAuthError(e.code);
+    });
 }
-
-/* Handle redirect result on page load */
-auth.getRedirectResult().then(function(result){
-  if(result && result.user){
-    var user = result.user;
-    db.collection('users').doc(user.uid).set({
-      email: user.email,
-      displayName: user.displayName,
-      plan: 'free',
-      subscriptionStatus: 'active',
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    }, { merge: true });
-  }
-}).catch(function(e){
-  if(e.code) console.error('Redirect result error:', e.code, e.message);
-});
 
 /* ── Sign out ── */
 function handleSignOut(){
