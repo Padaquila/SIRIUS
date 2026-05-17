@@ -3626,6 +3626,7 @@ function calc(){
   /* Cache for SC context */
   window._lastDp=dp; window._lastAgency=agency; window._lastSetup=setupCost;
   window._lastTotal=total; window._lastTotalCap=totalCapital;
+  window._lastTitleDeed=titleLine; window._lastDld=dld;
 
   /* Cache values for recalcFees() live checkbox updates */
   window._lastDp=dp;window._lastDld=dld;window._lastTrusteeFee=trust;
@@ -3849,6 +3850,7 @@ function calc(){
   }
   var totalExitCosts = nocVal + resaleAgencyAmt + legalResale + earlySettleAmt + liabilityLetterAmt;
   window._lastNocVal=nocVal; window._lastResaleAgency=resaleAgencyAmt; window._lastEarlySettle=earlySettleAmt; window._lastLiability=liabilityLetterAmt; window._lastTotalExit=totalExitCosts;
+  if(isMort){ window._lastMortReg=mortRegFee; window._lastBankProc=bankProcFee; window._lastMortInsYr1=mortInsFee; window._lastLifeInsYr1=lifeInsFee; }
   /* Store amortised insurance totals for scenario calculations */
   window._mortInsHp  = mortInsHp;
   window._lifeInsHp  = lifeInsHp;
@@ -5425,11 +5427,13 @@ auth.onAuthStateChanged(function(user){
     document.getElementById('navSignInBtn').style.display  = 'none';
     document.getElementById('navUserInfo').style.display   = '';
     document.getElementById('navUserEmail').textContent    = user.displayName || user.email;
-    /* Load profile data */
+    /* Load profile data and plan */
     db.collection('users').doc(user.uid).get().then(function(doc){
       if(doc.exists){
-        var p = (doc.data()||{}).profile || {};
+        var data = doc.data()||{};
+        var p = data.profile || {};
         USER_PROFILE = p;
+        window._userPlan = data.plan || 'free';
         if(p.name) document.getElementById('navUserEmail').textContent = p.name;
       }
     }).catch(function(){});
@@ -5649,10 +5653,8 @@ acceptDisclaimer = function(){
 var _origOpenAuthModal = openAuthModal;
 openAuthModal = function(){
   if(CURRENT_USER){
-    /* Already signed in — go straight to calculator */
     showDisclaimer(function(){ goToEval(); });
   } else {
-    /* Not signed in — show disclaimer then auth modal */
     showDisclaimer(function(){ _origOpenAuthModal(); });
   }
 };
@@ -5660,52 +5662,45 @@ openAuthModal = function(){
 
 /* ── LANDING PAGE TEXT EDITOR ── */
 var LANDING_TEXT_KEYS = [
-  /* ── HERO ── */
-  {id:'hero_sub',       label:'Hero — Main headline (big text)',    selector:'.hero-sub',             prop:'innerHTML', default:'Your client just asked if it\'s a good investment. You have minutes, not hours.'},
-  {id:'hero_secondary', label:'Hero — Secondary line (smaller)',    selector:'#heroSecondaryLine',    prop:'innerHTML', default:'Full investment analysis for any Dubai property.'},
-  {id:'hero_cta',       label:'Hero — CTA button text',            selector:'#heroCtaBtn',           prop:'innerHTML', default:'Start free — no charge for 7 days'},
-  /* ── STAT CARDS ── */
-  {id:'stat1_label',    label:'Stat card 1 — Label',               selector:'#stat1label',           prop:'innerHTML', default:'Calculations Supported'},
-  {id:'stat1_value',    label:'Stat card 1 — Number',              selector:'#stat1value',           prop:'innerHTML', default:'40+'},
-  {id:'stat1_sub',      label:'Stat card 1 — Sub text',            selector:'#stat1sub',             prop:'innerHTML', default:'Acquisition, yield & ROI outputs'},
-  {id:'stat2_label',    label:'Stat card 2 — Label',               selector:'#stat2label',           prop:'innerHTML', default:'Acquisition Modes'},
-  {id:'stat2_value',    label:'Stat card 2 — Number',              selector:'#stat2value',           prop:'innerHTML', default:'3'},
-  {id:'stat2_sub',      label:'Stat card 2 — Sub text',            selector:'#stat2sub',             prop:'innerHTML', default:'Ready · Off-Plan · Mortgage'},
-  {id:'stat3_label',    label:'Stat card 3 — Label',               selector:'#stat3label',           prop:'innerHTML', default:'Trusted By'},
-  {id:'stat3_value',    label:'Stat card 3 — Number',              selector:'#stat3value',           prop:'innerHTML', default:'500+'},
-  {id:'stat3_sub',      label:'Stat card 3 — Sub text',            selector:'#stat3sub',             prop:'innerHTML', default:'Brokers & investment firms in UAE'},
-  /* ── BEFORE / AFTER ── */
-  {id:'ba_left_story1', label:'Before/After — Agent story (quote)', selector:'#baStory1',            prop:'innerHTML', default:'"By the time I ran the numbers and called back, they had already signed with another agent."'},
-  {id:'ba_left_story2', label:'Before/After — Investor story (quote)',selector:'#baStory2',          prop:'innerHTML', default:'"I bought the property based on my gut. No analysis. Two years later I\'m sitting on negative equity, no tenant, and no exit."'},
-  {id:'ba_right_story', label:'Before/After — Sirius story (quote)', selector:'#baStoryRight',       prop:'innerHTML', default:'"I opened Sirius in front of my client. Three minutes later they had a full breakdown. They signed the same week."'},
-  /* ── FEATURES SECTION ── */
-  {id:'features_title', label:'Features — Section title',           selector:'#featuresSectionTitle', prop:'innerHTML', default:'Everything you need to decide with confidence'},
-  {id:'features_sub',   label:'Features — Sub copy',               selector:'#featuresSectionSub',   prop:'innerHTML', default:'Because in Dubai, the difference between a good investment and a costly mistake is the quality of your analysis — not your gut feeling.'},
-  {id:'fc1_title',      label:'Feature card 1 — Title',            selector:'#fc1title',             prop:'innerHTML', default:'Acquisition Cost Engine'},
-  {id:'fc1_desc',       label:'Feature card 1 — Description',      selector:'#fc1desc',              prop:'innerHTML', default:'DLD fees, agency commissions, trustee costs, service charge reimbursements — down to the dirham.'},
-  {id:'fc2_title',      label:'Feature card 2 — Title',            selector:'#fc2title',             prop:'innerHTML', default:'Dual Rental Yield Models'},
-  {id:'fc2_desc',       label:'Feature card 2 — Description',      selector:'#fc2desc',              prop:'innerHTML', default:'Separate Long-Term and Airbnb models with occupancy adjustments and multi-year projections.'},
-  {id:'fc3_title',      label:'Feature card 3 — Title',            selector:'#fc3title',             prop:'innerHTML', default:'Mortgage Intelligence'},
-  {id:'fc3_desc',       label:'Feature card 3 — Description',      selector:'#fc3desc',              prop:'innerHTML', default:'Synced slider and manual input. LTV ratios, down payments, and full mortgage calculator placeholder.'},
-  {id:'fc4_title',      label:'Feature card 4 — Title',            selector:'#fc4title',             prop:'innerHTML', default:'Payment Plan Table'},
-  {id:'fc4_desc',       label:'Feature card 4 — Description',      selector:'#fc4desc',              prop:'innerHTML', default:'Full off-plan and transferable plan tracking with auto percentage-to-amount and amount-to-percentage.'},
-  {id:'fc5_title',      label:'Feature card 5 — Title',            selector:'#fc5title',             prop:'innerHTML', default:'Step-by-Step Wizard'},
-  {id:'fc5_desc',       label:'Feature card 5 — Description',      selector:'#fc5desc',              prop:'innerHTML', default:'Guided 4-step flow from property details to full results — no clutter, no scrolling.'},
-  {id:'fc6_title',      label:'Feature card 6 — Title',            selector:'#fc6title',             prop:'innerHTML', default:'Custom Fee Builder'},
-  {id:'fc6_desc',       label:'Feature card 6 — Description',      selector:'#fc6desc',              prop:'innerHTML', default:'Add any cost line — mortgage registration, NOC fees, inspection — everything captured.'},
-  /* ── PRICING SECTION ── */
-  {id:'pricing_title',  label:'Pricing — Section title',           selector:'#pricingSectionTitle',  prop:'innerHTML', default:'Start free. Upgrade when you\'re ready.'},
+  {id:'hero_sub',       label:'Hero — Main headline',              selector:'.hero-sub',             prop:'innerHTML', default:'Your client just asked if it\'s a good investment. You have minutes, not hours.'},
+  {id:'hero_secondary', label:'Hero — Secondary line',            selector:'#heroSecondaryLine',    prop:'innerHTML', default:'Full investment analysis for any Dubai property.'},
+  {id:'hero_cta',       label:'Hero — CTA button text',           selector:'#heroCtaBtn',           prop:'innerHTML', default:'Start free — no charge for 7 days'},
+  {id:'stat1_label',    label:'Stat 1 — Label',                   selector:'#stat1label',           prop:'innerHTML', default:'Calculations Supported'},
+  {id:'stat1_value',    label:'Stat 1 — Number',                  selector:'#stat1value',           prop:'innerHTML', default:'40+'},
+  {id:'stat1_sub',      label:'Stat 1 — Sub text',                selector:'#stat1sub',             prop:'innerHTML', default:'Acquisition, yield & ROI outputs'},
+  {id:'stat2_label',    label:'Stat 2 — Label',                   selector:'#stat2label',           prop:'innerHTML', default:'Acquisition Modes'},
+  {id:'stat2_value',    label:'Stat 2 — Number',                  selector:'#stat2value',           prop:'innerHTML', default:'3'},
+  {id:'stat2_sub',      label:'Stat 2 — Sub text',                selector:'#stat2sub',             prop:'innerHTML', default:'Ready · Off-Plan · Mortgage'},
+  {id:'stat3_label',    label:'Stat 3 — Label',                   selector:'#stat3label',           prop:'innerHTML', default:'Trusted By'},
+  {id:'stat3_value',    label:'Stat 3 — Number',                  selector:'#stat3value',           prop:'innerHTML', default:'500+'},
+  {id:'stat3_sub',      label:'Stat 3 — Sub text',                selector:'#stat3sub',             prop:'innerHTML', default:'Brokers & investment firms in UAE'},
+  {id:'ba_left_story1', label:'Before/After — Agent story',       selector:'#baStory1',             prop:'innerHTML', default:'"By the time I ran the numbers and called back, they had already signed with another agent."'},
+  {id:'ba_left_story2', label:'Before/After — Investor story',    selector:'#baStory2',             prop:'innerHTML', default:'"I bought the property based on my gut. No analysis. Two years later I\'m sitting on negative equity, no tenant, and no exit."'},
+  {id:'ba_right_story', label:'Before/After — Sirius story',      selector:'#baStoryRight',         prop:'innerHTML', default:'"I opened Sirius in front of my client. Three minutes later they had a full breakdown. They signed the same week."'},
+  {id:'features_title', label:'Features — Section title',         selector:'#featuresSectionTitle', prop:'innerHTML', default:'Everything you need to decide with confidence'},
+  {id:'features_sub',   label:'Features — Sub copy',              selector:'#featuresSectionSub',   prop:'innerHTML', default:'Because in Dubai, the difference between a good investment and a costly mistake is the quality of your analysis — not your gut feeling.'},
+  {id:'fc1_title',      label:'Feature 1 — Title',                selector:'#fc1title',             prop:'innerHTML', default:'Acquisition Cost Engine'},
+  {id:'fc1_desc',       label:'Feature 1 — Description',          selector:'#fc1desc',              prop:'innerHTML', default:'DLD fees, agency commissions, trustee costs, service charge reimbursements — down to the dirham.'},
+  {id:'fc2_title',      label:'Feature 2 — Title',                selector:'#fc2title',             prop:'innerHTML', default:'Dual Rental Yield Models'},
+  {id:'fc2_desc',       label:'Feature 2 — Description',          selector:'#fc2desc',              prop:'innerHTML', default:'Separate Long-Term and Airbnb models with occupancy adjustments and multi-year projections.'},
+  {id:'fc3_title',      label:'Feature 3 — Title',                selector:'#fc3title',             prop:'innerHTML', default:'Mortgage Intelligence'},
+  {id:'fc3_desc',       label:'Feature 3 — Description',          selector:'#fc3desc',              prop:'innerHTML', default:'Synced slider and manual input. LTV ratios, down payments, and full mortgage calculator placeholder.'},
+  {id:'fc4_title',      label:'Feature 4 — Title',                selector:'#fc4title',             prop:'innerHTML', default:'Payment Plan Table'},
+  {id:'fc4_desc',       label:'Feature 4 — Description',          selector:'#fc4desc',              prop:'innerHTML', default:'Full off-plan and transferable plan tracking with auto percentage-to-amount and amount-to-percentage.'},
+  {id:'fc5_title',      label:'Feature 5 — Title',                selector:'#fc5title',             prop:'innerHTML', default:'Step-by-Step Wizard'},
+  {id:'fc5_desc',       label:'Feature 5 — Description',          selector:'#fc5desc',              prop:'innerHTML', default:'Guided 4-step flow from property details to full results — no clutter, no scrolling.'},
+  {id:'fc6_title',      label:'Feature 6 — Title',                selector:'#fc6title',             prop:'innerHTML', default:'Custom Fee Builder'},
+  {id:'fc6_desc',       label:'Feature 6 — Description',          selector:'#fc6desc',              prop:'innerHTML', default:'Add any cost line — mortgage registration, NOC fees, inspection — everything captured.'},
+  {id:'pricing_title',  label:'Pricing — Section title',          selector:'#pricingSectionTitle',  prop:'innerHTML', default:'Start free. Upgrade when you\'re ready.'},
   {id:'pricing_sub',    label:'Pricing — Sub copy',               selector:'#pricingSectionSub',    prop:'innerHTML', default:'Every plan includes a 7-day full-access trial. No charge until day 8. Cancel anytime.'},
-  /* ── FOOTER ── */
-  {id:'footer_copy',    label:'Footer — Copyright text',           selector:'#footerCopy',           prop:'innerHTML', default:'© 2025 Sirius · Invest with Clarity'},
+  {id:'footer_copy',    label:'Footer — Copyright text',          selector:'#footerCopy',           prop:'innerHTML', default:'© 2025 Sirius · Invest with Clarity'},
 ];var _landingTexts = {};
 
 function applyLandingTexts(texts){
   _landingTexts = texts || {};
   LANDING_TEXT_KEYS.forEach(function(k){
     var val = _landingTexts[k.id];
-    if(val === undefined || val === null || val === '') return;
-    /* Use querySelectorAll and apply to first matching element in #landing only */
+    if(val===undefined||val===null||val==='') return;
     var landing = document.getElementById('landing');
     var el = landing ? landing.querySelector(k.selector) : document.querySelector(k.selector);
     if(el) el[k.prop] = val;
@@ -5718,14 +5713,11 @@ function saveLandingTexts(texts, onDone){
     .catch(function(e){ if(onDone) onDone(false, e.message); });
 }
 
-/* Landing text — loaded once on page load (no auth needed if rules allow read)
-   and re-applied after auth */
 function initLandingTextListener(){
   db.collection('config').doc('landingText').onSnapshot(function(doc){
     if(doc.exists) applyLandingTexts(doc.data());
-  }, function(e){ /* silent — user may not be authenticated */ });
+  }, function(e){});
 }
-/* Try immediately (works if Firestore rules allow unauthenticated reads for config) */
 try{ initLandingTextListener(); } catch(e){}
 
 /* Admin render function */
@@ -5761,10 +5753,10 @@ function saveAllLandingTexts(){
   saveLandingTexts(texts, function(ok, err){
     var btns = document.querySelectorAll('[onclick="saveAllLandingTexts()"]');
     if(ok){
-      btns.forEach(function(b){ b.textContent = '✓ Saved'; b.style.color='rgba(39,174,96,.9)'; });
+      btns.forEach(function(b){ b.textContent='✓ Saved'; b.style.color='rgba(39,174,96,.9)'; });
       setTimeout(function(){ btns.forEach(function(b){ b.textContent='Save all text changes'; b.style.color=''; }); }, 2500);
     } else {
-      btns.forEach(function(b){ b.textContent = '✗ Save failed: ' + (err||'unknown'); b.style.color='rgba(231,76,60,.8)'; });
+      btns.forEach(function(b){ b.textContent='✗ Failed: '+(err||'unknown'); b.style.color='rgba(231,76,60,.8)'; });
     }
   });
 }
@@ -5826,32 +5818,28 @@ function getPlanTier(){
 
 function getBranding(){
   var tier=getPlanTier(), p=USER_PROFILE||{};
-  if(tier==='free') return {showBranding:false,tier:tier};
-  if(tier==='starter') return {showBranding:true,name:p.name||'',phone:p.phone||'',tier:tier};
-  return {showBranding:true,full:true,name:p.name||'',title:p.title||'',company:p.company||'',phone:p.phone||'',bio:p.bio||'',tier:tier};
+  if(tier==='free') return {showBranding:false, tier:tier};
+  if(tier==='starter') return {showBranding:true, name:p.name||'', phone:p.phone||'', tier:tier};
+  return {showBranding:true, full:true, name:p.name||'', title:p.title||'', company:p.company||'', phone:p.phone||'', bio:p.bio||'', tier:tier};
 }
 
 function getPDFData(){
   var sc=window.SC||{}, scn=detectScenario();
-  var isMort=S.financing==='Mortgage', isOff=S.status==='Off-Plan';
-  var isRental=S.purpose==='Rent Out', isFlip=S.purpose==='Flip', isSU=S.purpose==='Self-use';
   return {
     scenario:scn, propertyPrice:sc.pp||0, propertySize:sc.sf||0,
-    isMortgage:isMort, isOffPlan:isOff, isRental:isRental, isFlip:isFlip, isSelfUse:isSU,
+    isMortgage:S.financing==='Mortgage', isOffPlan:S.status==='Off-Plan',
+    isRental:S.purpose==='Rent Out', isFlip:S.purpose==='Flip', isSelfUse:S.purpose==='Self-use',
     dp:sc.dp||window._lastDp||0, dld:sc.dld||(sc.pp*0.04)||0,
     agency:sc.agency||window._lastAgency||0, legal:sc.lf||0, insurance:sc.ins||0,
-    titleDeed:window._lastTitleDeed||0, trustee:window._lastTrusteeFee||0,
-    svcReimb:window._lastSvcR||0,
+    titleDeed:window._lastTitleDeed||0, trustee:window._lastTrusteeFee||0, svcReimb:window._lastSvcR||0,
     renov:sc.rc||0, furn:sc.fc||0, util:sc.uc||0,
     setupTotal:sc.setupCost||window._lastSetup||0,
     acqTotal:sc.total||window._lastTotal||0,
     capitalTotal:sc.totalCapital||window._lastTotalCap||0,
-    mortReg:window._lastMortReg||0, bankProc:window._lastBankProc||0,
-    valuation:(isMort?3000:0),
+    mortReg:window._lastMortReg||0, bankProc:window._lastBankProc||0, valuation:S.financing==='Mortgage'?3000:0,
     mortIns:window._lastMortInsYr1||0, lifeIns:window._lastLifeInsYr1||0,
     noc:sc.nocVal||window._lastNocVal||0,
-    resaleAgency:sc.resaleAgencyAmt||window._lastResaleAgency||0,
-    legalResale:sc.legalResale||0,
+    resaleAgency:sc.resaleAgencyAmt||window._lastResaleAgency||0, legalResale:sc.legalResale||0,
     earlySettle:sc.earlySettleAmt||window._lastEarlySettle||0,
     liabilityLetter:sc.liabilityLetterAmt||window._lastLiability||0,
     exitTotal:sc.totalExitCosts||window._lastTotalExit||0,
@@ -5862,8 +5850,7 @@ function getPDFData(){
     netRent:sc.netRentAnnual||window._lastNetRent||0,
     grossYield:sc.pp>0?((sc.grossRentAnnual||0)/sc.pp*100):0,
     netYield:sc.pp>0?((sc.netRentAnnual||0)/sc.pp*100):0,
-    holdingPeriod:sc.hp||0,
-    monthlyMortgage:window._mMortgageCached||0,
+    holdingPeriod:sc.hp||0, monthlyMortgage:window._mMortgageCached||0,
   };
 }
 
@@ -5877,45 +5864,32 @@ function setupPDF(branding){
     if(branding.full){
       doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(230,235,242);
       doc.text(branding.name||'Agent',M,sy);
-      if(branding.title||branding.company){
-        doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(140,155,170);
-        doc.text([branding.title,branding.company].filter(Boolean).join(' · '),M,sy+5);
-      }
+      if(branding.title||branding.company){ doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(140,155,170); doc.text([branding.title,branding.company].filter(Boolean).join(' · '),M,sy+5); }
       if(branding.phone){ doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(120,135,150); doc.text(branding.phone,M,sy+10); }
-      if(branding.tier!=='agency'){
-        doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(212,175,55);
-        doc.text('SIRIUS',W-M,sy,{align:'right'});
-        doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(100,115,130);
-        doc.text('Dubai Real Estate Analysis',W-M,sy+5,{align:'right'});
-      }
+      if(branding.tier!=='agency'){ doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(212,175,55); doc.text('SIRIUS',W-M,sy,{align:'right'}); doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(100,115,130); doc.text('Dubai Real Estate Analysis',W-M,sy+5,{align:'right'}); }
       sy+=16;
     } else {
-      doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(212,175,55);
-      doc.text('SIRIUS',M,sy);
-      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(140,155,170);
-      doc.text('Dubai Real Estate Investment Analysis',M+28,sy);
+      doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(212,175,55); doc.text('SIRIUS',M,sy);
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(140,155,170); doc.text('Dubai Real Estate Investment Analysis',M+28,sy);
       if(branding.name){ doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(210,220,235); doc.text(branding.name,W-M,sy,{align:'right'}); }
       if(branding.phone){ doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(140,155,170); doc.text(branding.phone,W-M,sy+5,{align:'right'}); }
       sy+=(branding.phone?14:10);
     }
   } else {
-    doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(212,175,55);
-    doc.text('SIRIUS',M,sy);
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(140,155,170);
-    doc.text('Dubai Real Estate Investment Analysis',M+28,sy);
+    doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(212,175,55); doc.text('SIRIUS',M,sy);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(140,155,170); doc.text('Dubai Real Estate Investment Analysis',M+28,sy);
     sy+=8;
   }
   var dateStr=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
   doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(100,115,130);
   doc.text(dateStr,W-M,sy,{align:'right'});
-  doc.setDrawColor(212,175,55,0.3); doc.setLineWidth(0.3);
-  doc.line(M,sy+3,W-M,sy+3);
-  return {doc:doc,y:sy+10,W:W,H:H,M:M};
+  doc.setDrawColor(212,175,55,0.3); doc.setLineWidth(0.3); doc.line(M,sy+3,W-M,sy+3);
+  return {doc:doc, y:sy+10, W:W, H:H, M:M};
 }
 
 function addSectionHeader(ctx,title){
   var doc=ctx.doc,y=ctx.y,W=ctx.W,M=ctx.M;
-  if(y>265){doc.addPage();doc.setFillColor(8,18,34);doc.rect(0,0,W,297,'F');ctx.y=14;y=14;}
+  if(y>265){ doc.addPage(); doc.setFillColor(8,18,34); doc.rect(0,0,W,297,'F'); ctx.y=14; y=14; }
   doc.setFillColor(17,43,77); doc.rect(M,y,W-M*2,8,'F');
   doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(191,198,209);
   doc.text(title.toUpperCase(),M+3,y+5.2); ctx.y+=12;
@@ -5923,14 +5897,14 @@ function addSectionHeader(ctx,title){
 
 function addRow(ctx,label,value,highlight){
   var doc=ctx.doc,y=ctx.y,W=ctx.W,M=ctx.M;
-  if(y>270){doc.addPage();doc.setFillColor(8,18,34);doc.rect(0,0,W,297,'F');ctx.y=14;y=14;}
-  if(highlight){doc.setFillColor(22,38,65);doc.rect(M,y-3,W-M*2,7,'F');}
+  if(y>270){ doc.addPage(); doc.setFillColor(8,18,34); doc.rect(0,0,W,297,'F'); ctx.y=14; y=14; }
+  if(highlight){ doc.setFillColor(22,38,65); doc.rect(M,y-3,W-M*2,7,'F'); }
   doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(160,175,190);
   doc.text(label,M+3,y+1);
   doc.setFont('helvetica','bold'); doc.setTextColor(230,235,242);
   doc.text(String(value),W-M-3,y+1,{align:'right'});
-  doc.setDrawColor(30,50,80); doc.setLineWidth(0.2);
-  doc.line(M,y+3.5,W-M,y+3.5); ctx.y+=7;
+  doc.setDrawColor(30,50,80); doc.setLineWidth(0.2); doc.line(M,y+3.5,W-M,y+3.5);
+  ctx.y+=7;
 }
 
 function addPctRow(ctx,label,value){
@@ -5939,7 +5913,7 @@ function addPctRow(ctx,label,value){
 
 function addTotalRow(ctx,label,value){
   var doc=ctx.doc,y=ctx.y,W=ctx.W,M=ctx.M;
-  if(y>270){doc.addPage();doc.setFillColor(8,18,34);doc.rect(0,0,W,297,'F');ctx.y=14;y=14;}
+  if(y>270){ doc.addPage(); doc.setFillColor(8,18,34); doc.rect(0,0,W,297,'F'); ctx.y=14; y=14; }
   doc.setFillColor(212,175,55,0.12); doc.rect(M,y-3,W-M*2,8,'F');
   doc.setDrawColor(212,175,55,0.4); doc.setLineWidth(0.4);
   doc.line(M,y-3,W-M,y-3); doc.line(M,y+5,W-M,y+5);
@@ -5952,44 +5926,43 @@ function addDisclaimer(ctx,branding){
   var doc=ctx.doc,W=ctx.W,M=ctx.M,H=ctx.H;
   doc.setFont('helvetica','italic'); doc.setFontSize(6.5); doc.setTextColor(75,90,105);
   var agent=(branding&&branding.name)?branding.name:'the user';
-  var text='DISCLAIMER: This report was generated using Sirius and is provided for informational purposes only. All calculations are estimates based on inputs provided by '+agent+'. '+agent.charAt(0).toUpperCase()+agent.slice(1)+' is solely responsible for the accuracy of these calculations and any decisions made based on this report. These figures do not constitute financial, legal, or investment advice. Sirius and its operators accept no liability for any investment decisions or outcomes arising from the use of this report.';
+  var text='DISCLAIMER: This report was generated using Sirius for informational purposes only. All calculations are estimates based on inputs provided by '+agent+', who is solely responsible for their accuracy and any decisions made based on this report. These figures do not constitute financial, legal, or investment advice. Sirius and its operators accept no liability for any outcomes arising from the use of this report.';
   var lines=doc.splitTextToSize(text,W-M*2);
   doc.setDrawColor(50,65,85); doc.setLineWidth(0.2); doc.line(M,H-22,W-M,H-22);
   doc.text(lines,M,H-18);
 }
 
 function downloadFullReport(){
-  if(!window.jspdf){alert('PDF library not loaded. Please refresh and try again.');return;}
-  if(!window.SC||!window.SC.pp){alert('Please run a calculation first, then download the report.');return;}
+  if(!window.jspdf){ alert('PDF library not loaded. Please refresh and try again.'); return; }
+  if(!window.SC||!window.SC.pp){ alert('Please run a calculation first, then download the report.'); return; }
   var d=getPDFData(), branding=getBranding(), ctx=setupPDF(branding);
-  var doc=ctx.doc,W=ctx.W,M=ctx.M;
+  var doc=ctx.doc, W=ctx.W, M=ctx.M;
   doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(230,235,242);
   doc.text('Investment Analysis — Scenario '+d.scenario,M,ctx.y); ctx.y+=5;
   doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(140,155,170);
-  var propLine='AED '+Math.round(d.propertyPrice).toLocaleString('en-AE')+(d.propertySize?' · '+d.propertySize+' ft²':'')+(d.isOffPlan?' · Off-Plan':'')+(d.isMortgage?' · Mortgage':'');
-  doc.text(propLine,M,ctx.y); ctx.y+=10;
+  doc.text('AED '+Math.round(d.propertyPrice).toLocaleString('en-AE')+(d.propertySize?' · '+d.propertySize+' ft²':'')+(d.isOffPlan?' · Off-Plan':'')+(d.isMortgage?' · Mortgage':''),M,ctx.y); ctx.y+=10;
   addSectionHeader(ctx,'Acquisition Costs');
   addRow(ctx,'Down Payment',fmtAED(d.dp));
   addRow(ctx,'DLD Fee (4%)',fmtAED(d.dld));
   addRow(ctx,'Agency at Purchase',fmtAED(d.agency));
-  if(d.titleDeed>0)addRow(ctx,'Title Deed',fmtAED(d.titleDeed));
-  if(d.trustee>0)addRow(ctx,'Trustee Fees',fmtAED(d.trustee));
-  if(d.legal>0)addRow(ctx,'Legal Fees',fmtAED(d.legal));
-  if(d.svcReimb>0)addRow(ctx,'Service Charge Reimbursement',fmtAED(d.svcReimb));
+  if(d.titleDeed>0) addRow(ctx,'Title Deed',fmtAED(d.titleDeed));
+  if(d.trustee>0)   addRow(ctx,'Trustee Fees',fmtAED(d.trustee));
+  if(d.legal>0)     addRow(ctx,'Legal Fees',fmtAED(d.legal));
+  if(d.svcReimb>0)  addRow(ctx,'Service Charge Reimbursement',fmtAED(d.svcReimb));
   if(d.isMortgage&&d.mortReg>0){
-    addRow(ctx,'Mortgage Registration Fee',fmtAED(d.mortReg));
+    addRow(ctx,'Mortgage Registration',fmtAED(d.mortReg));
     addRow(ctx,'Bank Processing Fee',fmtAED(d.bankProc));
-    addRow(ctx,'Property Valuation Fee',fmtAED(d.valuation));
+    addRow(ctx,'Property Valuation',fmtAED(d.valuation));
     addRow(ctx,'Mortgage Insurance (Yr 1)',fmtAED(d.mortIns));
     addRow(ctx,'Life Insurance (Yr 1)',fmtAED(d.lifeIns));
   }
-  if(d.insurance>0)addRow(ctx,'Annual Insurance',fmtAED(d.insurance));
+  if(d.insurance>0) addRow(ctx,'Annual Insurance',fmtAED(d.insurance));
   addTotalRow(ctx,'Total Acquisition Cost',fmtAED(d.acqTotal));
   if(d.renov>0||d.furn>0||d.util>0){
     ctx.y+=3; addSectionHeader(ctx,'Setup Costs');
-    if(d.renov>0)addRow(ctx,'Renovation & Upgrades',fmtAED(d.renov));
-    if(d.furn>0)addRow(ctx,'Furnishing',fmtAED(d.furn));
-    if(d.util>0)addRow(ctx,'Utility Setup',fmtAED(d.util));
+    if(d.renov>0) addRow(ctx,'Renovation & Upgrades',fmtAED(d.renov));
+    if(d.furn>0)  addRow(ctx,'Furnishing',fmtAED(d.furn));
+    if(d.util>0)  addRow(ctx,'Utility Setup',fmtAED(d.util));
     addTotalRow(ctx,'Total Setup Cost',fmtAED(d.setupTotal));
   }
   addTotalRow(ctx,'Total Capital Invested',fmtAED(d.capitalTotal));
@@ -6001,42 +5974,32 @@ function downloadFullReport(){
     addPctRow(ctx,'Gross Rental Yield',d.grossYield);
     addPctRow(ctx,'Net Rental Yield',d.netYield);
     if(d.isMortgage&&d.monthlyMortgage>0){
-      addRow(ctx,'Monthly Mortgage Payment',fmtAED(d.monthlyMortgage));
+      addRow(ctx,'Monthly Mortgage',fmtAED(d.monthlyMortgage));
       addRow(ctx,'Annual Cash Flow After Mortgage',fmtAED(d.netRent-d.monthlyMortgage*12));
     }
   } else if(d.isFlip){
     addSectionHeader(ctx,'Flip Returns');
-    var cap=d.acqTotal+d.renov+d.furn;
-    var proc=d.resalePrice-d.exitTotal;
-    var prof=proc-cap;
+    var cap=d.acqTotal+d.renov+d.furn, proc=d.resalePrice-d.exitTotal, prof=proc-cap;
     addRow(ctx,'Total Capital Deployed',fmtAED(cap));
     addRow(ctx,'Estimated Resale Price',fmtAED(d.resalePrice));
     addRow(ctx,'Total Exit Costs',fmtAED(d.exitTotal));
     addRow(ctx,'Net Proceeds',fmtAED(proc));
     addTotalRow(ctx,'Net Profit',fmtAED(prof));
-    if(cap>0){
-      addPctRow(ctx,'Simple ROI',prof/cap*100);
-      if(d.holdingPeriod>0) addPctRow(ctx,'Annualised Return',(Math.pow(1+prof/cap,1/d.holdingPeriod)-1)*100);
-    }
+    if(cap>0){ addPctRow(ctx,'Simple ROI',prof/cap*100); if(d.holdingPeriod>0) addPctRow(ctx,'Annualised Return',(Math.pow(1+prof/cap,1/d.holdingPeriod)-1)*100); }
   } else if(d.isSelfUse){
     addSectionHeader(ctx,'Ownership Summary');
     addRow(ctx,'Estimated Exit Value',fmtAED(d.resalePrice));
     addRow(ctx,'Total Capital Gain',fmtAED(d.capGrowth));
-    addPctRow(ctx,'Capital Appreciation Rate / Year',d.capAppRate);
-    if(d.isMortgage&&d.monthlyMortgage>0) addRow(ctx,'Monthly Mortgage Payment',fmtAED(d.monthlyMortgage));
+    addPctRow(ctx,'Capital Appreciation / Year',d.capAppRate);
+    if(d.isMortgage&&d.monthlyMortgage>0) addRow(ctx,'Monthly Mortgage',fmtAED(d.monthlyMortgage));
   }
-  ctx.y+=3;
-  addSectionHeader(ctx,'Exit Costs at Resale');
+  ctx.y+=3; addSectionHeader(ctx,'Exit Costs at Resale');
   addRow(ctx,'NOC Fee',fmtAED(d.noc));
   addRow(ctx,'Agency at Resale',fmtAED(d.resaleAgency));
-  if(d.legalResale>0)addRow(ctx,'Legal Fees at Resale',fmtAED(d.legalResale));
-  if(d.isMortgage&&d.earlySettle>0){
-    addRow(ctx,'Early Settlement Fee',fmtAED(d.earlySettle));
-    addRow(ctx,'Liability Letter',fmtAED(d.liabilityLetter));
-  }
+  if(d.legalResale>0) addRow(ctx,'Legal Fees at Resale',fmtAED(d.legalResale));
+  if(d.isMortgage&&d.earlySettle>0){ addRow(ctx,'Early Settlement Fee',fmtAED(d.earlySettle)); addRow(ctx,'Liability Letter',fmtAED(d.liabilityLetter)); }
   addTotalRow(ctx,'Total Exit Costs',fmtAED(d.exitTotal));
-  ctx.y+=3;
-  addSectionHeader(ctx,'Capital Growth');
+  ctx.y+=3; addSectionHeader(ctx,'Capital Growth');
   addRow(ctx,'Estimated Resale Price',fmtAED(d.resalePrice),true);
   addRow(ctx,'Total Capital Gain',fmtAED(d.capGrowth));
   if(d.propertyPrice>0) addPctRow(ctx,'Net ROI on Purchase Price',d.capGrowth/d.propertyPrice*100);
@@ -6045,48 +6008,45 @@ function downloadFullReport(){
 }
 
 function downloadPaymentBreakdown(side){
-  if(!window.jspdf){alert('PDF library not loaded. Please refresh and try again.');return;}
-  if(!window.SC||!window.SC.pp){alert('Please run a calculation first.');return;}
+  if(!window.jspdf){ alert('PDF library not loaded. Please refresh and try again.'); return; }
+  if(!window.SC||!window.SC.pp){ alert('Please run a calculation first.'); return; }
   var d=getPDFData(), branding=getBranding(), ctx=setupPDF(branding);
-  var doc=ctx.doc,W=ctx.W,M=ctx.M, isBuyer=side==='buyer';
+  var doc=ctx.doc, W=ctx.W, M=ctx.M, isBuyer=side==='buyer';
   doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(230,235,242);
   doc.text(isBuyer?'Buyer Payment Breakdown':'Seller Payment Breakdown',M,ctx.y); ctx.y+=5;
   doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(140,155,170);
   doc.text('Property · AED '+Math.round(d.propertyPrice).toLocaleString('en-AE'),M,ctx.y); ctx.y+=10;
   if(isBuyer){
-    addSectionHeader(ctx,'Costs Paid by Buyer at Purchase');
+    addSectionHeader(ctx,'Costs Paid by Buyer');
     addRow(ctx,'Down Payment',fmtAED(d.dp));
     addRow(ctx,'DLD Transfer Fee (4%)',fmtAED(d.dld));
     addRow(ctx,'Agency Commission + VAT',fmtAED(d.agency));
-    if(d.titleDeed>0)addRow(ctx,'Title Deed Fees',fmtAED(d.titleDeed));
-    if(d.trustee>0)addRow(ctx,'Trustee Fees',fmtAED(d.trustee));
-    if(d.legal>0)addRow(ctx,'Legal Fees',fmtAED(d.legal));
-    if(d.insurance>0)addRow(ctx,'Annual Insurance',fmtAED(d.insurance));
+    if(d.titleDeed>0) addRow(ctx,'Title Deed Fees',fmtAED(d.titleDeed));
+    if(d.trustee>0)   addRow(ctx,'Trustee Fees',fmtAED(d.trustee));
+    if(d.legal>0)     addRow(ctx,'Legal Fees',fmtAED(d.legal));
+    if(d.insurance>0) addRow(ctx,'Annual Insurance',fmtAED(d.insurance));
     if(d.isMortgage&&d.mortReg>0){
       ctx.y+=3; addSectionHeader(ctx,'Mortgage Fees');
-      addRow(ctx,'Mortgage Registration Fee',fmtAED(d.mortReg));
+      addRow(ctx,'Mortgage Registration',fmtAED(d.mortReg));
       addRow(ctx,'Bank Processing Fee',fmtAED(d.bankProc));
-      addRow(ctx,'Property Valuation Fee',fmtAED(d.valuation));
+      addRow(ctx,'Property Valuation',fmtAED(d.valuation));
       addRow(ctx,'Mortgage Insurance (Yr 1)',fmtAED(d.mortIns));
       addRow(ctx,'Life Insurance (Yr 1)',fmtAED(d.lifeIns));
     }
     if(d.renov>0||d.furn>0||d.util>0){
       ctx.y+=3; addSectionHeader(ctx,'Setup Costs');
-      if(d.renov>0)addRow(ctx,'Renovation & Upgrades',fmtAED(d.renov));
-      if(d.furn>0)addRow(ctx,'Furnishing',fmtAED(d.furn));
-      if(d.util>0)addRow(ctx,'Utility Setup',fmtAED(d.util));
+      if(d.renov>0) addRow(ctx,'Renovation & Upgrades',fmtAED(d.renov));
+      if(d.furn>0)  addRow(ctx,'Furnishing',fmtAED(d.furn));
+      if(d.util>0)  addRow(ctx,'Utility Setup',fmtAED(d.util));
     }
     addTotalRow(ctx,'Total Capital Invested',fmtAED(d.capitalTotal));
   } else {
-    addSectionHeader(ctx,'Seller Costs at Resale');
+    addSectionHeader(ctx,'Costs Paid by Seller');
     addRow(ctx,'Estimated Resale Price',fmtAED(d.resalePrice));
     addRow(ctx,'NOC Fee',fmtAED(d.noc));
     addRow(ctx,'Agency Commission at Resale',fmtAED(d.resaleAgency));
-    if(d.legalResale>0)addRow(ctx,'Legal Fees at Resale',fmtAED(d.legalResale));
-    if(d.isMortgage&&d.earlySettle>0){
-      addRow(ctx,'Early Settlement Fee',fmtAED(d.earlySettle));
-      addRow(ctx,'Liability Letter',fmtAED(d.liabilityLetter));
-    }
+    if(d.legalResale>0) addRow(ctx,'Legal Fees at Resale',fmtAED(d.legalResale));
+    if(d.isMortgage&&d.earlySettle>0){ addRow(ctx,'Early Settlement Fee',fmtAED(d.earlySettle)); addRow(ctx,'Liability Letter',fmtAED(d.liabilityLetter)); }
     addTotalRow(ctx,'Total Exit Costs',fmtAED(d.exitTotal));
     ctx.y+=3; addSectionHeader(ctx,'Net Proceeds to Seller');
     addRow(ctx,'Resale Price',fmtAED(d.resalePrice));
@@ -6094,8 +6054,7 @@ function downloadPaymentBreakdown(side){
     addTotalRow(ctx,'Net Proceeds',fmtAED(d.resalePrice-d.exitTotal));
   }
   addDisclaimer(ctx,branding);
-  var fname=isBuyer?'Sirius-Buyer-Breakdown':'Sirius-Seller-Breakdown';
-  doc.save(fname+'-'+new Date().toISOString().slice(0,10)+'.pdf');
+  doc.save((isBuyer?'Sirius-Buyer-Breakdown':'Sirius-Seller-Breakdown')+'-'+new Date().toISOString().slice(0,10)+'.pdf');
 }
 
 
