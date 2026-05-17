@@ -273,7 +273,7 @@ footer{padding:2rem 3rem;border-top:1px solid rgba(212,175,55,.1);display:flex;a
 .footer-copy{font-size:.78rem;color:var(--text-muted)}
 
 /* EVALUATION */
-#evaluation{display:none;min-height:100vh;flex-direction:column}
+#evaluation{display:none;min-height:100vh;flex-direction:column;background:var(--bg)}#evaluation.active{display:flex!important}
 #evaluation.active{display:flex}
 .eval-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 2rem;background:rgba(10,27,46,.96);border-bottom:1px solid rgba(212,175,55,.2);flex-shrink:0}
 .eval-header-logo{font-family:var(--font-display);font-size:1.1rem;font-weight:400;color:var(--white);letter-spacing:.22em;display:flex;align-items:center;gap:.5rem}
@@ -1457,6 +1457,11 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
   min-height: 100vh;
   background: var(--bg);
 }
+
+
+#profilePage { background: var(--bg) !important; }
+#profilePage.active { display: block !important; }
+#landing.active { display: block !important; }
 
 /* End dynamic layer */
 
@@ -3189,10 +3194,11 @@ function showPage(id){
     p.classList.remove('active');
     p.style.display = 'none';
   });
-  /* Show only the target page */
+  /* Show only the target page with correct display type */
   var el = document.getElementById(id);
   if(el){
-    el.style.display = 'block';
+    /* evaluation uses flex layout, others use block */
+    el.style.display = (id === 'evaluation') ? 'flex' : 'block';
     el.classList.add('active');
     el.scrollTop = 0;
   }
