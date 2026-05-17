@@ -6,6 +6,8 @@
 <title>Sirius — Dubai Real Estate Investment Engine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,600;0,6..12,700;0,6..12,800;1,6..12,300&display=swap" rel="stylesheet">
 <style>
 
@@ -5786,317 +5788,194 @@ function fmtAED(val){
 }
 function getPlanTier(){ if(IS_ADMIN) return 'admin'; return (window._userPlan||'free').toLowerCase(); }
 function getBranding(){
-  var tier=getPlanTier(), p=USER_PROFILE||{};
+  var tier=getPlanTier(),p=USER_PROFILE||{};
   if(tier==='free') return {showBranding:false,tier:tier};
   if(tier==='starter') return {showBranding:true,name:p.name||'',phone:p.phone||'',tier:tier};
   return {showBranding:true,full:true,name:p.name||'',title:p.title||'',company:p.company||'',phone:p.phone||'',tier:tier};
 }
-
-/* Read a DOM result value by ID */
 function rv(id){
   var el=document.getElementById(id);
   if(!el) return null;
   var v=(el.value||el.textContent||'').trim();
   return (v&&v!=='AED 0'&&v!=='0'&&v!=='0.00%'&&v!=='—'&&v!=='') ? v : null;
 }
-
 function setupPDF(branding){
   var doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   var W=210,H=297,M=16;
   doc.setFillColor(8,18,34); doc.rect(0,0,W,H,'F');
-  /* Border */
   doc.setDrawColor(30,50,80); doc.setLineWidth(0.3); doc.rect(8,8,W-16,H-16);
-  /* Gold top bar */
   doc.setFillColor(212,175,55); doc.rect(0,0,W,2,'F');
   var sy=18;
   if(branding&&branding.showBranding){
     if(branding.full){
-      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(230,235,242);
+      doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(230,235,242);
       doc.text(branding.name||'Agent',M,sy);
       var sub=[branding.title,branding.company].filter(Boolean).join(' · ');
-      if(sub){ doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(140,155,170); doc.text(sub,M,sy+5); }
-      if(branding.phone){ doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(120,135,150); doc.text(branding.phone,M,sy+10); }
+      if(sub){doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(140,155,170);doc.text(sub,M,sy+5);}
+      if(branding.phone){doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(120,135,150);doc.text(branding.phone,M,sy+10);}
       if(branding.tier!=='agency'){
-        doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(212,175,55); doc.text('SIRIUS',W-M,sy,{align:'right'});
-        doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(100,115,130); doc.text('Dubai Real Estate Analysis',W-M,sy+5.5,{align:'right'});
+        doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(212,175,55);doc.text('SIRIUS',W-M,sy,{align:'right'});
+        doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(100,115,130);doc.text('Dubai Real Estate Analysis',W-M,sy+5.5,{align:'right'});
       }
       sy+=16;
     } else {
-      doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(212,175,55); doc.text('SIRIUS',M,sy);
-      doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(140,155,170); doc.text('Dubai Real Estate Investment Analysis',M+24,sy);
-      if(branding.name){ doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(210,220,235); doc.text(branding.name,W-M,sy,{align:'right'}); }
-      if(branding.phone){ doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(140,155,170); doc.text(branding.phone,W-M,sy+5,{align:'right'}); }
+      doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(212,175,55);doc.text('SIRIUS',M,sy);
+      doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(140,155,170);doc.text('Dubai Real Estate Investment Analysis',M+24,sy);
+      if(branding.name){doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(210,220,235);doc.text(branding.name,W-M,sy,{align:'right'});}
+      if(branding.phone){doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(140,155,170);doc.text(branding.phone,W-M,sy+5,{align:'right'});}
       sy+=(branding.phone?13:9);
     }
   } else {
-    doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(212,175,55); doc.text('SIRIUS',M,sy);
-    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(140,155,170); doc.text('Dubai Real Estate Investment Analysis',M+24,sy);
+    doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(212,175,55);doc.text('SIRIUS',M,sy);
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(140,155,170);doc.text('Dubai Real Estate Investment Analysis',M+24,sy);
     sy+=8;
   }
   var dateStr=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
-  doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(100,115,130); doc.text(dateStr,W-M,sy,{align:'right'});
-  doc.setDrawColor(212,175,55,0.25); doc.setLineWidth(0.3); doc.line(M,sy+3,W-M,sy+3);
-  return {doc:doc,y:sy+9,W:W,H:H,M:M,cols:2};
+  doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(100,115,130);
+  doc.text(dateStr,W-M,sy,{align:'right'});
+  doc.setDrawColor(212,175,55,0.25);doc.setLineWidth(0.3);doc.line(M,sy+3,W-M,sy+3);
+  return {doc:doc,y:sy+9,W:W,H:H,M:M};
 }
-
-/* ── Draw a KPI card ── */
 function drawCard(doc,x,y,w,h,label,value,sub,accent){
-  /* Card background */
-  doc.setFillColor(accent?20:13, accent?42:26, accent?80:50);
+  doc.setFillColor(accent?20:13,accent?42:26,accent?80:50);
   doc.roundedRect(x,y,w,h,2,2,'F');
   if(accent){
-    doc.setDrawColor(212,175,55,0.4); doc.setLineWidth(0.4);
-    doc.roundedRect(x,y,w,h,2,2,'S');
-    doc.setFillColor(212,175,55); doc.rect(x,y,3,h,'F');
+    doc.setDrawColor(212,175,55,0.4);doc.setLineWidth(0.4);doc.roundedRect(x,y,w,h,2,2,'S');
+    doc.setFillColor(212,175,55);doc.rect(x,y,3,h,'F');
   } else {
-    doc.setDrawColor(40,65,100); doc.setLineWidth(0.25);
-    doc.roundedRect(x,y,w,h,2,2,'S');
+    doc.setDrawColor(40,65,100);doc.setLineWidth(0.25);doc.roundedRect(x,y,w,h,2,2,'S');
   }
-  /* Label */
-  doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(accent?150:130,accent?165:145,accent?190:165);
-  doc.text(label, x+(accent?5:4), y+6, {maxWidth:w-8});
-  /* Value */
-  doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(accent?212:225,accent?175:232,accent?55:240);
-  doc.text(value||'—', x+(accent?5:4), y+16);
-  /* Sub */
-  if(sub){ doc.setFont('helvetica','normal'); doc.setFontSize(6); doc.setTextColor(100,115,130); doc.text(sub,x+(accent?5:4),y+22,{maxWidth:w-8}); }
+  doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(accent?150:130,accent?165:145,accent?190:165);
+  doc.text(label,x+(accent?5:4),y+6,{maxWidth:w-8});
+  doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(accent?212:225,accent?175:232,accent?55:240);
+  doc.text(value||'—',x+(accent?5:4),y+16);
+  if(sub){doc.setFont('helvetica','normal');doc.setFontSize(6);doc.setTextColor(100,115,130);doc.text(sub,x+(accent?5:4),y+22,{maxWidth:w-8});}
 }
-
-/* ── Draw section header ── */
 function drawSectionHeader(doc,x,y,w,title){
-  doc.setFillColor(17,43,77); doc.rect(x,y,w,8,'F');
-  doc.setFillColor(212,175,55); doc.rect(x,y,3,8,'F');
-  doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(191,198,209);
+  doc.setFillColor(17,43,77);doc.rect(x,y,w,8,'F');
+  doc.setFillColor(212,175,55);doc.rect(x,y,3,8,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(191,198,209);
   doc.text(title.toUpperCase(),x+6,y+5.5);
   return y+11;
 }
-
-/* ── Draw a fee row ── */
 function drawFeeRow(doc,x,y,w,label,value,isTotal,rowIdx){
   var h=7;
-  if(rowIdx%2===0&&!isTotal){ doc.setFillColor(15,28,50); doc.rect(x,y,w,h,'F'); }
-  if(isTotal){ doc.setFillColor(20,45,82); doc.rect(x,y,w,h,'F'); doc.setDrawColor(212,175,55,0.35); doc.setLineWidth(0.3); doc.line(x,y,x+w,y); doc.line(x,y+h,x+w,y+h); }
-  doc.setFont('helvetica',isTotal?'bold':'normal'); doc.setFontSize(isTotal?8.5:7.8);
+  if(rowIdx%2===0&&!isTotal){doc.setFillColor(15,28,50);doc.rect(x,y,w,h,'F');}
+  if(isTotal){
+    doc.setFillColor(20,45,82);doc.rect(x,y,w,h,'F');
+    doc.setDrawColor(212,175,55,0.35);doc.setLineWidth(0.3);
+    doc.line(x,y,x+w,y);doc.line(x,y+h,x+w,y+h);
+  }
+  doc.setFont('helvetica',isTotal?'bold':'normal');doc.setFontSize(isTotal?8.5:7.8);
   doc.setTextColor(isTotal?212:160,isTotal?175:175,isTotal?55:190);
   doc.text(label,x+3,y+4.8);
-  doc.setFont('helvetica','bold'); doc.setTextColor(isTotal?212:225,isTotal?175:232,isTotal?55:240);
+  doc.setFont('helvetica','bold');doc.setTextColor(isTotal?212:225,isTotal?175:232,isTotal?55:240);
   doc.text(value||'—',x+w-3,y+4.8,{align:'right'});
   return y+h;
 }
-
-/* ── Page break helper ── */
 function checkPageBreak(ctx,needed){
-  if(ctx.y+needed > ctx.H-20){
+  if(ctx.y+needed>ctx.H-22){
     ctx.doc.addPage();
-    ctx.doc.setFillColor(8,18,34); ctx.doc.rect(0,0,ctx.W,ctx.H,'F');
-    ctx.doc.setDrawColor(30,50,80); ctx.doc.setLineWidth(0.3); ctx.doc.rect(8,8,ctx.W-16,ctx.H-16);
-    ctx.doc.setFillColor(212,175,55); ctx.doc.rect(0,0,ctx.W,2,'F');
+    ctx.doc.setFillColor(8,18,34);ctx.doc.rect(0,0,ctx.W,ctx.H,'F');
+    ctx.doc.setDrawColor(30,50,80);ctx.doc.setLineWidth(0.3);ctx.doc.rect(8,8,ctx.W-16,ctx.H-16);
+    ctx.doc.setFillColor(212,175,55);ctx.doc.rect(0,0,ctx.W,2,'F');
     ctx.y=18;
   }
 }
-
 function addDisclaimer(ctx,branding){
   var doc=ctx.doc,W=ctx.W,M=ctx.M,H=ctx.H;
-  doc.setFont('helvetica','italic'); doc.setFontSize(6); doc.setTextColor(70,85,100);
+  doc.setFont('helvetica','italic');doc.setFontSize(6);doc.setTextColor(70,85,100);
   var agent=(branding&&branding.name)?branding.name:'the user';
   var text='DISCLAIMER: This report was generated using Sirius for informational purposes only. All figures are estimates based on inputs provided by '+agent+', who is solely responsible for their accuracy. This does not constitute financial, legal or investment advice. Sirius and its operators accept no liability for any decisions made based on this report.';
   var lines=doc.splitTextToSize(text,W-M*2);
-  doc.setDrawColor(40,60,90); doc.setLineWidth(0.2); doc.line(M,H-18,W-M,H-18);
+  doc.setDrawColor(40,60,90);doc.setLineWidth(0.2);doc.line(M,H-18,W-M,H-18);
   doc.text(lines,M,H-14);
 }
-
-/* ════════════════════════════════════════════════════════════════
-   FULL REPORT — reads from visible result cards
-════════════════════════════════════════════════════════════════ */
 function downloadFullReport(){
-  if(!window.jspdf){ alert('PDF library not loaded. Please refresh and try again.'); return; }
+  if(!window.jspdf){alert('PDF library not loaded. Please refresh.');return;}
   var sc=window.SC||{};
-  if(!sc.pp){ alert('Please run a calculation first, then download the report.'); return; }
-
-  var branding=getBranding(), ctx=setupPDF(branding);
-  var doc=ctx.doc, W=ctx.W, M=ctx.M;
-  var cardW=(W-M*2-4)/2;  /* two-column card layout */
-
-  /* ── Report title ── */
-  doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(230,235,242);
-  doc.text('Investment Analysis',M,ctx.y);
-  doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(140,155,170);
+  if(!sc.pp){alert('Please run a calculation first.');return;}
+  var branding=getBranding(),ctx=setupPDF(branding);
+  var doc=ctx.doc,W=ctx.W,M=ctx.M,cardW=(W-M*2-4)/2;
   var scn=detectScenario();
-  var propLine='AED '+Math.round(sc.pp||0).toLocaleString('en-AE')
-    +(sc.sf?' · '+sc.sf+' ft²':'')
-    +(S.status==='Off-Plan'?' · Off-Plan':'')
-    +(S.financing==='Mortgage'?' · Mortgage':'')
-    +' · Scenario '+scn;
-  doc.text(propLine,M,ctx.y+6);
+  doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(230,235,242);
+  doc.text('Investment Analysis',M,ctx.y);
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(140,155,170);
+  doc.text('AED '+Math.round(sc.pp||0).toLocaleString('en-AE')+(sc.sf?' · '+sc.sf+' ft²':'')+(S.status==='Off-Plan'?' · Off-Plan':'')+(S.financing==='Mortgage'?' · Mortgage':'')+' · Scenario '+scn,M,ctx.y+6);
   ctx.y+=14;
-
-  /* ── ACQUISITION FEE BREAKDOWN ── */
+  /* Acquisition fees */
   ctx.y=drawSectionHeader(doc,M,ctx.y,W-M*2,'Acquisition Fee Breakdown');
-  var feeRows=[
-    ['Down Payment',         rv('br-dp')],
-    ['DLD Fee',              rv('br-dld')],
-    ['Agency Commission',    rv('br-agency')],
-    ['Title Deed',           rv('br-titleDeed')],
-    ['Trustee Fees',         rv('br-trustee')],
-    ['Legal Fees',           rv('br-legal')],
-    ['Service Charge Reimb.',rv('br-svc')],
-    ['Mortgage Registration',rv('br-mortReg')],
-    ['Bank Processing',      rv('br-bankProc')],
-    ['Mortgage Insurance',   rv('br-mortIns')],
-    ['Life Insurance',       rv('br-lifeIns')],
-    ['Annual Insurance',     rv('br-insurance')],
-    ['Renovation',           rv('br-renov')],
-    ['Furnishing',           rv('br-furn')],
-    ['Setup Total',          rv('br-setup')],
-  ].filter(function(r){ return r[1]; });
-
-  var rowIdx=0;
-  feeRows.forEach(function(r){ ctx.y=drawFeeRow(doc,M,ctx.y,W-M*2,r[0],r[1],false,rowIdx++); });
+  var feeRows=[['Down Payment',rv('br-dp')],['DLD Fee',rv('br-dld')],['Agency Commission',rv('br-agency')],['Title Deed',rv('br-titleDeed')],['Trustee Fees',rv('br-trustee')],['Legal Fees',rv('br-legal')],['Mortgage Registration',rv('br-mortReg')],['Bank Processing',rv('br-bankProc')],['Mortgage Insurance',rv('br-mortIns')],['Life Insurance',rv('br-lifeIns')],['Annual Insurance',rv('br-insurance')],['Renovation',rv('br-renov')],['Furnishing',rv('br-furn')],['Setup Total',rv('br-setup')]].filter(function(r){return r[1];});
+  var ri=0;
+  feeRows.forEach(function(r){ctx.y=drawFeeRow(doc,M,ctx.y,W-M*2,r[0],r[1],false,ri++);});
   ctx.y=drawFeeRow(doc,M,ctx.y,W-M*2,'Total Acquisition Cost',rv('br-total')||'—',true,0);
   ctx.y=drawFeeRow(doc,M,ctx.y,W-M*2,'Total Capital Invested',rv('br-totalCapital')||'—',true,1);
   ctx.y+=5;
-
-  /* ── PERFORMANCE CARDS — 2 per row ── */
-  checkPageBreak(ctx,60);
-
-  /* Gather all visible KPI cards */
+  /* Performance KPI cards */
   var kpis=[];
-
-  /* Self-use */
   if(S.purpose==='Self-use'){
     ctx.y=drawSectionHeader(doc,M,ctx.y,W-M*2,'Ownership Analysis');
-    kpis=[
-      ['Monthly Cost of Ownership', rv('su-mCost'),     null,  false],
-      ['Total Capital Invested',     rv('su-mTotalCapital'), null, true],
-      ['Ownership Cost (Year 1)',    rv('su-yCost'),     null,  false],
-      ['Rent Saved (Year 1)',        rv('su-yRentSaved'),null,  false],
-      ['Capital Gain (Year 1)',      rv('su-yCapGain'),  null,  true],
-      ['Estimated Exit Value',       rv('su-exitValue'), null,  true],
-      ['Total Capital Gain',         rv('su-hpCapGain'), null,  true],
-      ['Hypothetical Rental Yield',  rv('su-hypYield'),  null,  false],
-    ];
+    kpis=[['Monthly Cost of Ownership',rv('su-mCost'),null,false],['Total Capital Invested',rv('su-mTotalCapital'),null,true],['Capital Gain (Year 1)',rv('su-yCapGain'),null,true],['Estimated Exit Value',rv('su-exitValue'),null,true],['Total Capital Gain',rv('su-hpCapGain'),null,true],['Hypothetical Rental Yield',rv('su-hypYield'),null,false]];
   } else if(S.purpose==='Flip'){
     ctx.y=drawSectionHeader(doc,M,ctx.y,W-M*2,'Flip Analysis');
-    kpis=[
-      ['Estimated Resale Price',     rv('fl-resalePrice'), null, true],
-      ['Total Exit Costs',           rv('fl-exitCosts'),   null, false],
-      ['Net Profit',                 rv('fl-netProfit'),   null, true],
-      ['Return on Investment',       rv('fl-roi'),         null, true],
-    ];
+    kpis=[['Estimated Resale Price',rv('fl-resalePrice'),null,true],['Total Exit Costs',rv('fl-exitCosts'),null,false],['Net Profit',rv('fl-netProfit'),null,true],['Return on Investment',rv('fl-roi'),null,true]];
   } else if(S.purpose==='Rent Out'){
     ctx.y=drawSectionHeader(doc,M,ctx.y,W-M*2,'Rental Returns');
-    kpis=[
-      ['Monthly Gross Yield',        rv('out-mGross'),     'After occupancy rate',  true],
-      ['Monthly Net Yield',          rv('out-mNet'),       'After all costs',       true],
-      ['Monthly Mortgage Payment',   rv('out-monthlyMortgage'), null,               false],
-      ['Annual Net Income',          rv('out-yNetAED'),    null,                    true],
-      ['Total Gross Rental Income',  rv('rs-tGross'),      'Across holding period', false],
-      ['Total Net Rental Income',    rv('rs-tNet'),        'Across holding period', true],
-      ['Total Capital Gain',         rv('rs-capTotal'),    'Appreciation',          true],
-      ['Estimated Resale Price',     rv('rs-resale'),      null,                    true],
-      ['Total Exit Costs',           rv('rs-exitCosts'),   null,                    false],
-      ['Net ROI',                    rv('rs-netRoi'),      'Net rental + capital gain ÷ purchase', true],
-      ['ROI on Total Capital',       rv('rs-roiCapital'),  null,                    false],
-    ];
+    kpis=[['Monthly Gross Yield',rv('out-mGross'),'After occupancy rate',true],['Monthly Net Yield',rv('out-mNet'),'After all costs',true],['Annual Net Income',rv('out-yNetAED'),null,true],['Total Gross Rental Income',rv('rs-tGross'),'Across holding period',false],['Total Net Rental Income',rv('rs-tNet'),'Across holding period',true],['Total Capital Gain',rv('rs-capTotal'),null,true],['Estimated Resale Price',rv('rs-resale'),null,true],['Net ROI',rv('rs-netRoi'),null,true],['ROI on Total Capital',rv('rs-roiCapital'),null,false]];
   }
-
-  /* Draw KPI cards in 2-column grid */
-  kpis.filter(function(k){ return k[1]; }).forEach(function(k,i){
+  var validKpis=kpis.filter(function(k){return k[1];});
+  validKpis.forEach(function(k,i){
     checkPageBreak(ctx,28);
-    var col=i%2, row=Math.floor(i/2);
-    var cx=M+(col*(cardW+4));
-    if(col===0&&i>0) ctx.y+=2;
+    var col=i%2,cx=M+(col*(cardW+4));
+    if(col===0&&i>0)ctx.y+=2;
     drawCard(doc,cx,ctx.y,cardW,24,k[0],k[1],k[2],k[3]);
-    if(col===1) ctx.y+=26;
+    if(col===1)ctx.y+=26;
   });
-  /* Handle odd number of cards */
-  if(kpis.filter(function(k){ return k[1]; }).length%2===1) ctx.y+=26;
+  if(validKpis.length%2===1)ctx.y+=26;
   ctx.y+=4;
-
-  /* ── EXIT COSTS ── */
+  /* Exit costs */
   checkPageBreak(ctx,50);
   ctx.y=drawSectionHeader(doc,M,ctx.y,W-M*2,'Exit Costs at Resale');
-  var exitRows=[
-    ['NOC Fee',              fmtAED(sc.nocVal)],
-    ['Agency at Resale',     fmtAED(sc.resaleAgencyAmt)],
-    ['Legal Fees at Resale', fmtAED(sc.legalResale)],
-    ['Early Settlement Fee', sc.earlySettleAmt>0?fmtAED(sc.earlySettleAmt):null],
-    ['Liability Letter',     sc.liabilityLetterAmt>0?fmtAED(sc.liabilityLetterAmt):null],
-  ].filter(function(r){ return r[1]; });
-  rowIdx=0;
-  exitRows.forEach(function(r){ ctx.y=drawFeeRow(doc,M,ctx.y,W-M*2,r[0],r[1],false,rowIdx++); });
+  var exitRows=[['NOC Fee',fmtAED(sc.nocVal)],['Agency at Resale',fmtAED(sc.resaleAgencyAmt)],['Legal Fees at Resale',sc.legalResale>0?fmtAED(sc.legalResale):null],['Early Settlement',sc.earlySettleAmt>0?fmtAED(sc.earlySettleAmt):null],['Liability Letter',sc.liabilityLetterAmt>0?fmtAED(sc.liabilityLetterAmt):null]].filter(function(r){return r[1];});
+  ri=0;
+  exitRows.forEach(function(r){ctx.y=drawFeeRow(doc,M,ctx.y,W-M*2,r[0],r[1],false,ri++);});
   ctx.y=drawFeeRow(doc,M,ctx.y,W-M*2,'Total Exit Costs',fmtAED(sc.totalExitCosts),true,0);
   ctx.y+=4;
-
-  /* ── CAPITAL GROWTH ── */
+  /* Capital growth */
   checkPageBreak(ctx,40);
   ctx.y=drawSectionHeader(doc,M,ctx.y,W-M*2,'Capital Growth');
-  var cgCards=[
-    ['Appreciation Rate',    (sc.capAppPct*100).toFixed(1)+'% p.a.', null, false],
-    ['Total Capital Gain',   fmtAED(sc.capTotal),   null, true],
-    ['Estimated Resale',     fmtAED(sc.resalePrice), null, true],
-  ];
-  cgCards.forEach(function(k,i){
+  var cgKpis=[['Appreciation Rate',(sc.capAppPct*100).toFixed(1)+'% p.a.',null,false],['Total Capital Gain',fmtAED(sc.capTotal),null,true],['Estimated Resale Price',fmtAED(sc.resalePrice),null,true]];
+  cgKpis.forEach(function(k,i){
     checkPageBreak(ctx,28);
-    var col=i%2, cx=M+(col*(cardW+4));
-    if(col===0&&i>0) ctx.y+=2;
+    var col=i%2,cx=M+(col*(cardW+4));
+    if(col===0&&i>0)ctx.y+=2;
     drawCard(doc,cx,ctx.y,cardW,24,k[0],k[1],k[2],k[3]);
-    if(col===1) ctx.y+=26;
+    if(col===1)ctx.y+=26;
   });
-  if(cgCards.length%2===1) ctx.y+=26;
-
+  if(cgKpis.length%2===1)ctx.y+=26;
   addDisclaimer(ctx,branding);
   doc.save('Sirius-Report-'+scn+'-'+new Date().toISOString().slice(0,10)+'.pdf');
 }
-
-/* ════════════════════════════════════════════════════════════════
-   PAYMENT BREAKDOWN PDFs
-════════════════════════════════════════════════════════════════ */
 function downloadPaymentBreakdown(side){
-  if(!window.jspdf){ alert('PDF library not loaded.'); return; }
+  if(!window.jspdf){alert('PDF library not loaded.');return;}
   var sc=window.SC||{};
-  if(!sc.pp){ alert('Please run a calculation first.'); return; }
-  var branding=getBranding(), ctx=setupPDF(branding);
-  var doc=ctx.doc, W=ctx.W, M=ctx.M;
-  var isBuyer=side==='buyer';
-
-  doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(230,235,242);
-  doc.text(isBuyer?'Buyer Payment Breakdown':'Seller Payment Breakdown',M,ctx.y); ctx.y+=5;
-  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(140,155,170);
-  doc.text('AED '+Math.round(sc.pp).toLocaleString('en-AE')+' · Scenario '+detectScenario(),M,ctx.y); ctx.y+=10;
-
-  var rowIdx=0;
+  if(!sc.pp){alert('Please run a calculation first.');return;}
+  var branding=getBranding(),ctx=setupPDF(branding);
+  var doc=ctx.doc,W=ctx.W,M=ctx.M,isBuyer=side==='buyer';
+  doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(230,235,242);
+  doc.text(isBuyer?'Buyer Payment Breakdown':'Seller Payment Breakdown',M,ctx.y);ctx.y+=5;
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(140,155,170);
+  doc.text('AED '+Math.round(sc.pp).toLocaleString('en-AE')+' · Scenario '+detectScenario(),M,ctx.y);ctx.y+=10;
+  var ri=0;
   if(isBuyer){
     ctx.y=drawSectionHeader(doc,M,ctx.y,W-M*2,'Costs Paid by Buyer at Purchase');
-    var buyerRows=[
-      ['Down Payment',             fmtAED(sc.dp)],
-      ['DLD Transfer Fee (4%)',    fmtAED(sc.dld)],
-      ['Agency Commission + VAT',  fmtAED(sc.agency)],
-      ['Title Deed Fees',          rv('br-titleDeed')],
-      ['Trustee Fees',             rv('br-trustee')],
-      ['Legal Fees',               rv('br-legal')],
-      ['Annual Insurance',         fmtAED(sc.ins)],
-      ['Mortgage Registration',    sc.totalCapital&&window._lastMortReg?fmtAED(window._lastMortReg):null],
-      ['Bank Processing Fee',      window._lastBankProc?fmtAED(window._lastBankProc):null],
-      ['Mortgage Insurance',       window._lastMortInsYr1?fmtAED(window._lastMortInsYr1):null],
-      ['Life Insurance',           window._lastLifeInsYr1?fmtAED(window._lastLifeInsYr1):null],
-      ['Renovation & Upgrades',    sc.rc>0?fmtAED(sc.rc):null],
-      ['Furnishing',               sc.fc>0?fmtAED(sc.fc):null],
-      ['Utility Setup',            sc.uc>0?fmtAED(sc.uc):null],
-    ].filter(function(r){ return r[1]; });
-    buyerRows.forEach(function(r){ ctx.y=drawFeeRow(doc,M,ctx.y,W-M*2,r[0],r[1],false,rowIdx++); });
+    var rows=[['Down Payment',fmtAED(sc.dp)],['DLD Transfer Fee (4%)',fmtAED(sc.dld)],['Agency Commission + VAT',fmtAED(sc.agency)],['Title Deed Fees',rv('br-titleDeed')],['Trustee Fees',rv('br-trustee')],['Legal Fees',rv('br-legal')],['Annual Insurance',fmtAED(sc.ins)],['Mortgage Registration',window._lastMortReg>0?fmtAED(window._lastMortReg):null],['Bank Processing',window._lastBankProc>0?fmtAED(window._lastBankProc):null],['Mortgage Insurance',window._lastMortInsYr1>0?fmtAED(window._lastMortInsYr1):null],['Life Insurance',window._lastLifeInsYr1>0?fmtAED(window._lastLifeInsYr1):null],['Renovation',sc.rc>0?fmtAED(sc.rc):null],['Furnishing',sc.fc>0?fmtAED(sc.fc):null]].filter(function(r){return r[1];});
+    rows.forEach(function(r){ctx.y=drawFeeRow(doc,M,ctx.y,W-M*2,r[0],r[1],false,ri++);});
     ctx.y=drawFeeRow(doc,M,ctx.y,W-M*2,'Total Capital Invested',fmtAED(sc.totalCapital),true,0);
   } else {
     ctx.y=drawSectionHeader(doc,M,ctx.y,W-M*2,'Costs Paid by Seller at Resale');
-    var sellerRows=[
-      ['Estimated Resale Price',        fmtAED(sc.resalePrice)],
-      ['NOC Fee',                       fmtAED(sc.nocVal)],
-      ['Agency Commission at Resale',   fmtAED(sc.resaleAgencyAmt)],
-      ['Legal Fees at Resale',          sc.legalResale>0?fmtAED(sc.legalResale):null],
-      ['Early Settlement Fee',          sc.earlySettleAmt>0?fmtAED(sc.earlySettleAmt):null],
-      ['Liability Letter',              sc.liabilityLetterAmt>0?fmtAED(sc.liabilityLetterAmt):null],
-    ].filter(function(r){ return r[1]; });
-    sellerRows.forEach(function(r){ ctx.y=drawFeeRow(doc,M,ctx.y,W-M*2,r[0],r[1],false,rowIdx++); });
+    var srows=[['Estimated Resale Price',fmtAED(sc.resalePrice)],['NOC Fee',fmtAED(sc.nocVal)],['Agency Commission at Resale',fmtAED(sc.resaleAgencyAmt)],['Legal Fees at Resale',sc.legalResale>0?fmtAED(sc.legalResale):null],['Early Settlement',sc.earlySettleAmt>0?fmtAED(sc.earlySettleAmt):null],['Liability Letter',sc.liabilityLetterAmt>0?fmtAED(sc.liabilityLetterAmt):null]].filter(function(r){return r[1];});
+    srows.forEach(function(r){ctx.y=drawFeeRow(doc,M,ctx.y,W-M*2,r[0],r[1],false,ri++);});
     ctx.y=drawFeeRow(doc,M,ctx.y,W-M*2,'Total Exit Costs',fmtAED(sc.totalExitCosts),true,0);
     ctx.y+=5;
     ctx.y=drawSectionHeader(doc,M,ctx.y,W-M*2,'Net Proceeds to Seller');
@@ -6104,7 +5983,6 @@ function downloadPaymentBreakdown(side){
     ctx.y=drawFeeRow(doc,M,ctx.y,W-M*2,'Less Exit Costs','- '+fmtAED(sc.totalExitCosts),false,1);
     ctx.y=drawFeeRow(doc,M,ctx.y,W-M*2,'Net Proceeds',fmtAED((sc.resalePrice||0)-(sc.totalExitCosts||0)),true,0);
   }
-
   addDisclaimer(ctx,branding);
   doc.save((isBuyer?'Sirius-Buyer':'Sirius-Seller')+'-'+new Date().toISOString().slice(0,10)+'.pdf');
 }
@@ -6656,234 +6534,6 @@ function routeAfterAuth(user){
   if(currentId === 'landing' || currentId === 'planSelectionPage' || !currentId){
     openUserDashboard();
   }
-}
-
-
-/* ════════════════════════════════════════════════════════════════
-   PROFILE SYSTEM
-════════════════════════════════════════════════════════════════ */
-var USER_PROFILE = {};
-
-function openProfile(){
-  showPage('profilePage');
-  loadProfile();
-}
-
-function loadProfile(){
-  if(!CURRENT_USER) return;
-  var emailEl = document.getElementById('pf-email');
-  if(emailEl) emailEl.value = CURRENT_USER.email || '';
-  db.collection('users').doc(CURRENT_USER.uid).get().then(function(doc){
-    var data = doc.exists ? (doc.data()||{}) : {};
-    var profile = data.profile || {};
-    USER_PROFILE = profile;
-    var set = function(id, val){ var el=document.getElementById(id); if(el) el.value=val||''; };
-    set('pf-name',    profile.name    || CURRENT_USER.displayName || '');
-    set('pf-title',   profile.title   || '');
-    set('pf-phone',   profile.phone   || '');
-    set('pf-company', profile.company || '');
-    set('pf-website', profile.website || '');
-    set('pf-bio',     profile.bio     || '');
-    var plan = IS_ADMIN ? 'admin' : (data.plan||'free');
-    var planLabels = {free:'Free Plan',starter:'Starter',pro:'Professional',agency:'Agency',admin:'Admin — Full Access'};
-    var planEl = document.getElementById('profilePlanBadge');
-    if(planEl) planEl.textContent = planLabels[plan]||plan;
-    updateProfileDisplay(profile);
-    updateBrandingPreview(profile, plan);
-    /* Live preview on input */
-    ['pf-name','pf-title','pf-phone','pf-company'].forEach(function(id){
-      var el=document.getElementById(id);
-      if(el) el.oninput = function(){ updateBrandingPreview(getFormProfile(), plan); updateProfileDisplay(getFormProfile()); };
-    });
-  }).catch(function(e){ console.warn('loadProfile error:', e); });
-}
-
-function getFormProfile(){
-  var g = function(id){ var el=document.getElementById(id); return el?el.value||'':''; };
-  return { name:g('pf-name'), title:g('pf-title'), phone:g('pf-phone'), company:g('pf-company'), website:g('pf-website'), bio:g('pf-bio') };
-}
-
-function updateProfileDisplay(profile){
-  var nameEl=document.getElementById('profileDisplayName');
-  var titleEl=document.getElementById('profileDisplayTitle');
-  if(nameEl)  nameEl.textContent  = profile.name || 'Your Name';
-  if(titleEl) titleEl.textContent = [profile.title,profile.company].filter(Boolean).join(' · ') || 'Title · Company';
-  var navEl=document.getElementById('navUserEmail');
-  if(navEl && profile.name) navEl.textContent = profile.name;
-}
-
-function updateBrandingPreview(profile, plan){
-  var set = function(id, val){ var el=document.getElementById(id); if(el) el.textContent=val; };
-  set('previewName',  profile.name    || 'Your Name');
-  set('previewTitle', [profile.title,profile.company].filter(Boolean).join(' · ') || 'Title · Company');
-  set('previewPhone', profile.phone   || 'Phone number');
-  var notes = {
-    free:    'Upgrade to Starter for name + phone on reports',
-    starter: '✓ Name + phone shown on reports',
-    pro:     '✓ Full branding on reports (logo, photo, bio)',
-    agency:  '✓ Full branding + company logo on reports',
-    admin:   '✓ Full branding on all reports',
-  };
-  set('previewPlanNote', notes[IS_ADMIN?'admin':plan]||notes.free);
-}
-
-function saveProfile(){
-  if(!CURRENT_USER){ alert('Please sign in first.'); return; }
-  var profile = getFormProfile();
-  var statusEl = document.getElementById('profileSaveStatus');
-  if(statusEl) statusEl.textContent = 'Saving...';
-  db.collection('users').doc(CURRENT_USER.uid).set({profile:profile},{merge:true})
-    .then(function(){
-      USER_PROFILE = profile;
-      if(statusEl){ statusEl.textContent='✓ Profile saved'; setTimeout(function(){statusEl.textContent='';},3000); }
-      updateProfileDisplay(profile);
-      var navEl=document.getElementById('navUserEmail');
-      if(navEl && profile.name) navEl.textContent = profile.name;
-    })
-    .catch(function(e){ if(statusEl) statusEl.textContent='✗ Save failed: '+e.message; });
-}
-
-/* ════════════════════════════════════════════════════════════════
-   PRICING EDITOR + OVERRIDES
-════════════════════════════════════════════════════════════════ */
-var PRICING_OVERRIDES = {};
-
-function loadPricingConfig(){
-  db.collection('config').doc('pricing').get().then(function(doc){
-    if(doc.exists) PRICING_OVERRIDES = doc.data()||{};
-  }).catch(function(){});
-}
-
-function loadAllConfigs(){
-  loadPricingConfig();
-  setTimeout(function(){
-    if(Object.keys(PRICING_OVERRIDES).length>0) applyPricingOverrides();
-  }, 600);
-}
-
-function savePricingConfig(data, onDone){
-  db.collection('config').doc('pricing').set(data)
-    .then(function(){ if(onDone) onDone(true); })
-    .catch(function(e){ if(onDone) onDone(false, e.message); });
-}
-
-function applyPricingOverrides(){
-  var apply = function(plan, ov){
-    if(!ov) return;
-    if(ov.monthly)   plan.price.monthly = ov.monthly;
-    if(ov.yearly)    plan.price.yearly  = ov.yearly;
-    if(ov.monthlyEq) plan.monthlyEq     = ov.monthlyEq;
-    if(ov.intro)     plan.intro         = ov.intro;
-    if(ov.tagline)   plan.tagline       = ov.tagline;
-    if(ov.valueAnchor) plan.valueAnchor = ov.valueAnchor;
-    if(ov.features)  plan.features      = ov.features.split('\n').filter(Boolean).map(function(t){ return {t:t,on:true}; });
-  };
-  if(PLANS && PLANS.individual){
-    apply(PLANS.individual.starter, PRICING_OVERRIDES.starter);
-    apply(PLANS.individual.pro,     PRICING_OVERRIDES.pro);
-  }
-  if(PLANS && PLANS.company){
-    apply(PLANS.company.agency, PRICING_OVERRIDES.agency);
-  }
-  renderPricing();
-}
-
-function renderPricingEditor(){
-  var main = document.getElementById('adminMain');
-  if(!main) return;
-  var plans = [
-    {key:'starter', label:'Starter'},
-    {key:'pro',     label:'Professional'},
-    {key:'agency',  label:'Agency (per user)'},
-  ];
-  var defaults = {
-    starter: {monthly:49,yearly:399,monthlyEq:33,intro:'First 2 months at AED 25',valueAnchor:'Less than 0.2% of one commission',tagline:'For agents and investors getting started',features:'30 calculations / month\n15 saved reports / month\n20 PDF downloads / month\n5 property comparisons / month\n3 active shareable links\nName + phone on reports\n7-day full access trial'},
-    pro:     {monthly:79,yearly:649,monthlyEq:54,intro:'First 2 months at AED 39',valueAnchor:'Less than 0.4% of one commission',tagline:'For serious brokers and investors who close deals with data',features:'Unlimited calculations\nUnlimited saved reports\nUnlimited PDF downloads\n20 property comparisons / month\n20 active shareable links\nFull branding — logo, photo, bio\nIn-app profile page\nPriority support\n7-day full access trial'},
-    agency:  {monthly:29,yearly:239,monthlyEq:20,intro:'Min. 3 seats · Admin seat included',valueAnchor:'Less than AED 1 per agent per day',tagline:'For brokerages that want every agent performing at their best',features:'Everything in Professional\nUnlimited calculations & reports\nAgency dashboard + usage analytics\nWhite-label — remove Sirius branding\nCompany + individual agent branding\nDedicated account manager\nPriority support\n7-day full access trial'},
-  };
-  var h = '<div style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brushed-silver);font-weight:600;margin-bottom:1.25rem">Pricing Configuration</div>'
-    + '<div style="font-size:.78rem;color:var(--text-muted);margin-bottom:1.5rem">Changes save to Firebase and update live for all users.</div>';
-  plans.forEach(function(plan){
-    var ov=PRICING_OVERRIDES[plan.key]||{}, def=defaults[plan.key];
-    h += '<div class="adm-section-block" style="margin-bottom:1rem">'
-      + '<div style="padding:.85rem 1rem;border-bottom:1px solid rgba(191,198,209,.06);font-size:.9rem;font-weight:600;color:var(--ivory)">'+plan.label+'</div>'
-      + '<div style="padding:1rem;display:grid;grid-template-columns:1fr 1fr;gap:.75rem">'
-      + mkPriceField('Monthly price (AED)', 'pe_'+plan.key+'_monthly', ov.monthly||def.monthly)
-      + mkPriceField('Annual price (AED/year)', 'pe_'+plan.key+'_yearly', ov.yearly||def.yearly)
-      + mkPriceField('Annual shown as (AED/mo equiv)', 'pe_'+plan.key+'_monthlyEq', ov.monthlyEq||def.monthlyEq)
-      + mkPriceField('Intro offer text', 'pe_'+plan.key+'_intro', ov.intro||def.intro)
-      + '</div>'
-      + '<div style="padding:0 1rem .75rem">'+mkTextField('Tagline','pe_'+plan.key+'_tagline',ov.tagline||def.tagline)+'</div>'
-      + '<div style="padding:0 1rem .75rem">'+mkTextField('Value anchor','pe_'+plan.key+'_valueAnchor',ov.valueAnchor||def.valueAnchor)+'</div>'
-      + '<div style="padding:0 1rem 1rem"><div style="font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(191,198,209,.45);margin-bottom:.35rem">Features (one per line)</div>'
-      + '<textarea style="width:100%;min-height:100px;padding:.5rem;border-radius:6px;border:1px solid rgba(191,198,209,.18);background:rgba(10,22,40,.8);color:var(--ivory);font-family:var(--font-body);font-size:.78rem;resize:vertical;box-sizing:border-box" id="pe_'+plan.key+'_features">'+(ov.features||def.features)+'</textarea>'
-      + '</div></div>';
-  });
-  h += '<div style="display:flex;gap:.75rem;margin-top:.5rem"><button class="adm-pill primary" onclick="savePricingEdits()">Save pricing</button></div>'
-    + '<div style="font-size:.72rem;color:var(--text-muted);margin-top:.5rem" id="pricingEditorStatus"></div>';
-  main.innerHTML = h;
-}
-
-function mkPriceField(label, id, val){
-  return '<div><div style="font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(191,198,209,.45);margin-bottom:.35rem">'+label+'</div>'
-    + '<input style="width:100%;padding:.5rem;border-radius:6px;border:1px solid rgba(191,198,209,.18);background:rgba(10,22,40,.8);color:var(--ivory);font-family:var(--font-body);font-size:.82rem;box-sizing:border-box" id="'+id+'" value="'+val+'"></div>';
-}
-function mkTextField(label, id, val){
-  return '<div style="font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(191,198,209,.45);margin-bottom:.35rem">'+label+'</div>'
-    + '<input style="width:100%;padding:.5rem;border-radius:6px;border:1px solid rgba(191,198,209,.18);background:rgba(10,22,40,.8);color:var(--ivory);font-family:var(--font-body);font-size:.82rem;box-sizing:border-box" id="'+id+'" value="'+val.replace(/"/g,'&quot;')+'">'; 
-}
-
-function savePricingEdits(){
-  var keys=['starter','pro','agency'], fields=['monthly','yearly','monthlyEq','intro','tagline','valueAnchor','features'];
-  var data={};
-  keys.forEach(function(k){
-    data[k]={};
-    fields.forEach(function(f){ var el=document.getElementById('pe_'+k+'_'+f); if(el) data[k][f]=el.value; });
-    ['monthly','yearly','monthlyEq'].forEach(function(f){ data[k][f]=parseFloat(data[k][f])||0; });
-  });
-  PRICING_OVERRIDES=data;
-  applyPricingOverrides();
-  savePricingConfig(data, function(ok,err){
-    var el=document.getElementById('pricingEditorStatus');
-    if(el) el.textContent=ok?'✓ Pricing saved':'✗ Failed: '+(err||'unknown');
-    if(ok) setTimeout(function(){ if(el) el.textContent=''; },2500);
-  });
-}
-
-/* ════════════════════════════════════════════════════════════════
-   ADMIN LANDING PAGE AWARENESS
-════════════════════════════════════════════════════════════════ */
-function updateLandingForUser(user){
-  var isAdmin=IS_ADMIN;
-  var heroBtn=document.getElementById('heroCtaBtn');
-  if(isAdmin){
-    if(heroBtn){ heroBtn.textContent='Open Calculator'; heroBtn.onclick=function(){ goToEval(); }; }
-    document.querySelectorAll('[onclick*="openModal"]').forEach(function(btn){ btn.style.display='none'; });
-    var navUserInfoEl=document.getElementById('navUserInfo');
-    if(navUserInfoEl&&!document.getElementById('adminDashBtn')){
-      var dashBtn=document.createElement('button');
-      dashBtn.id='adminDashBtn'; dashBtn.className='btn btn-ghost';
-      dashBtn.style.cssText='padding:.35rem .75rem;font-size:.72rem;color:var(--gold)';
-      dashBtn.textContent='Dashboard'; dashBtn.onclick=function(){ openAdminDashboard(); };
-      navUserInfoEl.insertBefore(dashBtn,navUserInfoEl.firstChild);
-    }
-    document.querySelectorAll('[onclick*="openAuthModal"],[onclick*="openPlanSelection"]').forEach(function(btn){
-      if(btn.id!=='heroCtaBtn'){ btn.textContent='Open Calculator'; btn.onclick=function(){ goToEval(); }; }
-    });
-    var pricingEl=document.getElementById('pricing'); if(pricingEl) pricingEl.style.display='none';
-    var demoSec=document.getElementById('demoSection'); if(demoSec) demoSec.style.display='none';
-    _disclaimerAccepted=true;
-  } else if(user){
-    if(heroBtn){ heroBtn.textContent='Go to Dashboard'; heroBtn.onclick=function(){ openUserDashboard(); }; }
-    var demoSec2=document.getElementById('demoSection'); if(demoSec2) demoSec2.style.display='none';
-    _disclaimerAccepted=true;
-  }
-}
-
-function getDisplayPlan(){
-  if(IS_ADMIN) return 'Admin';
-  var planLabels={free:'Free',starter:'Starter',pro:'Professional',agency:'Agency'};
-  return planLabels[window._userPlan||'free']||'Free';
 }
 
 </script>
