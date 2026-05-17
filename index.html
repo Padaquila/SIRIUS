@@ -201,7 +201,7 @@ body{font-family:var(--font-body);background:var(--deep-navy);color:var(--white)
 .mortgage-coming{font-size:.8rem;color:var(--text-muted);background:rgba(212,175,55,.05);border:1px dashed rgba(212,175,55,.2);border-radius:var(--r);padding:.6rem .9rem;margin-top:.75rem}
 
 /* NAV */
-.nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1rem 3rem;background:rgba(10,27,46,.93);border-bottom:1px solid rgba(191,198,209,.15);backdrop-filter:blur(12px)}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1rem 3rem;background:rgba(10,27,46,.93);border-bottom:1px solid rgba(191,198,209,.15);backdrop-filter:blur(12px);overflow:visible}
 .nav-logo{display:flex;align-items:center;gap:.55rem}
 .nav-logo span{color:var(--white);font-family:var(--font-display)}
 .nav-links{display:flex;gap:2rem}
@@ -1284,6 +1284,7 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
 .nav-user-info {
   display: flex; align-items: center; gap: .6rem;
   font-size: .75rem; color: var(--muted);
+  position: relative;
 }
 .nav-user-email {
   max-width: 140px; overflow: hidden; text-overflow: ellipsis;
@@ -4953,74 +4954,28 @@ function saveAdminConfig(note){
   delete snapshot._dirty;
   VERSION_HISTORY.unshift({ts:new Date().toISOString(), note:note||'Manual save', snapshot:snapshot});
   if(VERSION_HISTORY.length>20) VERSION_HISTORY=VERSION_HISTORY.slice(0,20);
-  /* FIREBASE: writes config to Firestore — all users get updates instantly */
-  db.collection('config').doc('calculator').set({
-    config:  snapshot,
-    history: VERSION_HISTORY
-  })
-  .then(function(){
-    ADMIN_CONFIG._dirty = false;
-    markSaved();
-    if(_adminView==='history') renderHistory();
-  })
-  .catch(function(e){
-    alert('Save failed: ' + e.message);
-  });
-}
 
-function resetAdminConfig(){
-  if(!confirm('Reset to factory defaults? Cannot be undone.')) return;
-  localStorage.removeItem('sirius_admin_v2');
-  ADMIN_CONFIG = JSON.parse(JSON.stringify(DEFAULT_ADMIN_CONFIG));
-  VERSION_HISTORY = []; _activeScenario = null;
-  ADMIN_CONFIG._dirty = false;
-  markSaved(); renderAdminMain();
-}
-
-function exportAdminConfig(){
-  var snapshot = JSON.parse(JSON.stringify(ADMIN_CONFIG));
-  delete snapshot._dirty;
-  var payload = {exportedAt:new Date().toISOString(), version:VERSION_HISTORY.length>0?VERSION_HISTORY[0].ts:'initial', config:snapshot, history:VERSION_HISTORY};
-  var blob = new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href=url; a.download='sirius-config-'+new Date().toISOString().slice(0,10)+'.json';
-  a.click(); URL.revokeObjectURL(url);
-}
-
-function importAdminConfig(){
-  var input = document.createElement('input');
-  input.type='file'; input.accept='.json';
-  input.onchange=function(e){
-    var file=e.target.files[0]; if(!file) return;
-    var reader=new FileReader();
-    reader.onload=function(ev){
-      try{
-        var p=JSON.parse(ev.target.result);
-        if(p.config&&p.config.sections){
-          ADMIN_CONFIG=p.config; VERSION_HISTORY=p.history||[];
-          ADMIN_CONFIG._dirty=true; _activeScenario=null;
-          markDirty(); renderAdminMain();
-          alert('Imported. Click Save to persist.');
-        } else { alert('Invalid config file.'); }
-      } catch(err){ alert('Cannot parse: '+err.message); }
-    };
-    reader.readAsText(file);
+  /* Ensure we have a fresh token with admin claim */
+  var doWrite = function(){
+    db.collection('config').doc('calculator').set({
+      config:  snapshot,
+      history: VERSION_HISTORY,
+      savedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    }).then(function(){
+      ADMIN_CONFIG._dirty = false;
+      var btns = document.querySelectorAll('[onclick="saveAdminConfig()"]');
+      btns.forEach(function(b){ var t=b.textContent; b.textContent='✓ Saved'; setTimeout(function(){b.textContent=t;},2000); });
+    }).catch(function(e){
+      console.error('saveAdminConfig failed:', e.code, e.message);
+      alert('Save failed: ' + e.code + '. Make sure your Firebase custom claim admin:true is set for your user.');
+    });
   };
-  input.click();
-}
 
-function restoreVersion(idx){
-  if(!confirm('Restore this version? Unsaved changes will be lost.')) return;
-  ADMIN_CONFIG=JSON.parse(JSON.stringify(VERSION_HISTORY[idx].snapshot));
-  ADMIN_CONFIG._dirty=true; _activeScenario=null;
-  markDirty(); renderAdminMain(); switchAdminView('scenarios');
-}
-
-function markDirty(){
-  ADMIN_CONFIG._dirty=true;
-  var el=document.getElementById('admSaveStatus');
-  if(el){el.textContent='Unsaved changes';el.className='adm-save-status dirty';}
+  if(CURRENT_USER){
+    CURRENT_USER.getIdToken(true).then(doWrite).catch(function(){ doWrite(); });
+  } else {
+    doWrite();
+  }
 }
 function markSaved(){
   var el=document.getElementById('admSaveStatus');
@@ -5162,13 +5117,18 @@ function switchAdminView(view){
   renderAdminMain();
 }
 function renderAdminMain(){
-  if(_adminView==='scenarios')        renderScenarioPicker();
+  if(_adminView==='scenarios')             renderScenarioPicker();
   else if(_adminView==='scenario-sections') renderScenarioSections();
-  else if(_adminView==='sections')    renderAllSectionsEditor();
-  else if(_adminView==='history')     renderHistory();
-  else if(_adminView==='landing-text') renderLandingTextEditor();
-  else if(_adminView==='pricing') renderPricingEditor();
-  else if(_adminView==='pricing') renderPricingEditor();
+  else if(_adminView==='sections')          renderAllSectionsEditor();
+  else if(_adminView==='history')           renderHistory();
+  else if(_adminView==='landing-text')      renderLandingTextEditor();
+  else if(_adminView==='pricing'){
+    if(typeof renderPricingEditor==='function') renderPricingEditor();
+    else {
+      var m=document.getElementById('adminMain');
+      if(m) m.innerHTML='<div style="padding:1rem;color:var(--text-muted)">Pricing editor loading...</div>';
+    }
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -6361,8 +6321,40 @@ function loadDashboardData(){
       <span style="font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700;border:1px solid rgba(212,175,55,.3);padding:.2rem .6rem;border-radius:4px">Admin</span>
       <button class="btn btn-ghost" onclick="goToEval()" style="font-size:.72rem">Start Calculation</button>
       <button class="btn btn-ghost" onclick="previewLandingAsVisitor()" style="font-size:.72rem">Preview Site</button>
-      <button class="btn btn-ghost" onclick="openProfile()" style="font-size:.72rem">My Profile</button>
-      <button class="btn btn-ghost" onclick="handleSignOut()" style="font-size:.72rem">Sign Out</button>
+      <div class="nav-profile-menu" style="position:relative">
+        <div class="nav-profile-trigger" onclick="toggleNavDropdown()" style="cursor:pointer;display:flex;align-items:center;gap:.4rem;padding:.3rem .6rem;border-radius:8px;border:1px solid transparent" onmouseover="this.style.background='rgba(191,198,209,.1)'" onmouseout="this.style.background=''">
+          <div class="nav-profile-avatar" id="adminNavAvatar" style="width:28px;height:28px;border-radius:50%;background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.3);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:var(--gold)">A</div>
+          <span style="font-size:.78rem;color:var(--ivory)">Admin</span>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="nav-dropdown" id="navDropdown" style="right:0">
+          <button class="nav-dropdown-item" onclick="closeNavDropdown();openAdminDashboard()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            Dashboard
+          </button>
+          <button class="nav-dropdown-item" onclick="closeNavDropdown();openProfile()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            My Profile
+          </button>
+          <button class="nav-dropdown-item" onclick="closeNavDropdown();goToEval()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Start Calculation
+          </button>
+          <button class="nav-dropdown-item" onclick="closeNavDropdown();openAdminPanel()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+            Admin Panel
+          </button>
+          <button class="nav-dropdown-item" onclick="closeNavDropdown();previewLandingAsVisitor()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Preview as Visitor
+          </button>
+          <div class="nav-dropdown-divider"></div>
+          <button class="nav-dropdown-item danger" onclick="closeNavDropdown();handleSignOut()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Sign Out
+          </button>
+        </div>
+      </div>
     </div>
   </nav>
   <div style="max-width:1200px;margin:0 auto;padding:2rem 1.5rem">
@@ -6674,9 +6666,12 @@ function openUserDashboard(){
 /* ── Load dashboard data ── */
 function loadUserDashboard(){
   if(!CURRENT_USER) return;
-  /* Update nav name */
+  /* Update nav name and avatar */
   var navName = document.getElementById('udNavName');
-  if(navName) navName.textContent = USER_PROFILE.name || CURRENT_USER.displayName || CURRENT_USER.email;
+  var name = USER_PROFILE.name || CURRENT_USER.displayName || CURRENT_USER.email || '';
+  if(navName) navName.textContent = name;
+  var udAvatar = document.getElementById('udNavAvatar');
+  if(udAvatar && name) udAvatar.textContent = name.split(' ').map(function(w){return w[0];}).slice(0,2).join('').toUpperCase();
   /* Welcome name */
   var wName = document.getElementById('udWelcomeName');
   if(wName) wName.textContent = USER_PROFILE.name || CURRENT_USER.displayName || 'Welcome';
@@ -6987,16 +6982,19 @@ function updateLandingForUser(user){
    NAV DROPDOWN
 ════════════════════════════════════════════════════════════════ */
 function toggleNavDropdown(){
-  var dd = document.getElementById('navDropdown');
+  /* Find the nearest dropdown to the clicked trigger */
+  var trigger = event && event.currentTarget;
+  var parent = trigger ? trigger.closest('.nav-profile-menu') : null;
+  var dd = parent ? parent.querySelector('.nav-dropdown') : (document.getElementById('navDropdown') || document.getElementById('navDropdownUser'));
   if(!dd) return;
+  /* Close all others first */
+  document.querySelectorAll('.nav-dropdown.open').forEach(function(el){ if(el!==dd) el.classList.remove('open'); });
   dd.classList.toggle('open');
-  /* Close on outside click */
   if(dd.classList.contains('open')){
     setTimeout(function(){
       document.addEventListener('click', function closeDD(e){
-        if(!document.getElementById('navDropdown').contains(e.target) &&
-           !document.getElementById('navProfileTrigger').contains(e.target)){
-          closeNavDropdown();
+        if(!dd.contains(e.target) && !dd.previousElementSibling.contains(e.target)){
+          dd.classList.remove('open');
           document.removeEventListener('click', closeDD);
         }
       });
@@ -7004,8 +7002,7 @@ function toggleNavDropdown(){
   }
 }
 function closeNavDropdown(){
-  var dd = document.getElementById('navDropdown');
-  if(dd) dd.classList.remove('open');
+  document.querySelectorAll('.nav-dropdown.open').forEach(function(el){ el.classList.remove('open'); });
 }
 
 /* Show admin-only items in dropdown */
@@ -7120,20 +7117,7 @@ function loadDashboardData(){
    FIX 9: PRICING TAB — ensure renderAdminMain handles it
    (The handler exists but let's make it robust)
 ════════════════════════════════════════════════════════════════ */
-/* Patch switchAdminView to ensure pricing tab works */
-var _origSwitchAdminView = typeof switchAdminView === 'function' ? switchAdminView : null;
-if(_origSwitchAdminView){
-  switchAdminView = function(view){
-    _origSwitchAdminView(view);
-    /* Belt-and-suspenders: if view is pricing and adminMain is empty, render it */
-    if(view === 'pricing'){
-      var main = document.getElementById('adminMain');
-      if(main && main.innerHTML.trim() === ''){
-        if(typeof renderPricingEditor === 'function') renderPricingEditor();
-      }
-    }
-  };
-}
+/* switchAdminView pricing patch removed — renderAdminMain handles it directly */
 
 /* ════════════════════════════════════════════════════════════════
    WIRE updateLandingForUser to also update nav dropdown
@@ -7209,10 +7193,33 @@ if(!_origOpenAdminDash){
       <span style="font-family:'Cormorant Garamond',serif;font-weight:300;letter-spacing:.2em">SIRIUS</span>
     </div>
     <div style="display:flex;align-items:center;gap:.75rem">
-      <span style="font-size:.72rem;color:var(--text-muted)" id="udNavName"></span>
       <button class="btn btn-ghost" onclick="goToEval()" style="font-size:.72rem">Start Calculation</button>
-      <button class="btn btn-ghost" onclick="openProfile()" style="font-size:.72rem">My Profile</button>
-      <button class="btn btn-ghost" onclick="handleSignOut()" style="font-size:.72rem">Sign Out</button>
+      <div class="nav-profile-menu" style="position:relative">
+        <div class="nav-profile-trigger" onclick="toggleNavDropdown()" style="cursor:pointer;display:flex;align-items:center;gap:.4rem;padding:.3rem .6rem;border-radius:8px;border:1px solid transparent" onmouseover="this.style.background='rgba(191,198,209,.1)'" onmouseout="this.style.background=''">
+          <div style="width:28px;height:28px;border-radius:50%;background:rgba(191,198,209,.12);border:1px solid rgba(191,198,209,.2);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:var(--ivory)" id="udNavAvatar">?</div>
+          <span style="font-size:.78rem;color:var(--ivory);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="udNavName"></span>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="nav-dropdown" id="navDropdownUser" style="right:0">
+          <button class="nav-dropdown-item" onclick="closeNavDropdown();openUserDashboard()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            Dashboard
+          </button>
+          <button class="nav-dropdown-item" onclick="closeNavDropdown();openProfile()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            My Profile
+          </button>
+          <button class="nav-dropdown-item" onclick="closeNavDropdown();showPage('planSelectionPage');renderPlanSelectionGrid()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            Subscription / Plan
+          </button>
+          <div class="nav-dropdown-divider"></div>
+          <button class="nav-dropdown-item danger" onclick="closeNavDropdown();handleSignOut()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Sign Out
+          </button>
+        </div>
+      </div>
     </div>
   </nav>
   <div style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem">
