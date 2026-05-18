@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sirius — Dubai Real Estate Investment Engine</title>
+<title>SIRIUS — DXB</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,600;0,6..12,700;0,6..12,800;1,6..12,300&display=swap" rel="stylesheet">
@@ -1924,10 +1924,10 @@ body.auth-resetting { pointer-events: none; }
     </div>
     <div id="demoFormWrap">
       <div class="lnd-form-row">
-        <div class="lnd-fg"><label>First Name</label><input type="text" placeholder="Ahmad"></div>
-        <div class="lnd-fg"><label>Last Name</label><input type="text" placeholder="Al-Rashid"></div>
+        <div class="lnd-fg"><label>First Name</label><input type="text" placeholder="Lorenzo"></div>
+        <div class="lnd-fg"><label>Last Name</label><input type="text" placeholder="von Matterhorn"></div>
       </div>
-      <div class="lnd-fg"><label>Email</label><input type="text" placeholder="ahmad@example.com"></div>
+      <div class="lnd-fg"><label>Email</label><input type="text" placeholder="lorenzo@vonmatterhorn.com"></div>
       <div class="lnd-fg"><label>Phone</label><input type="text" placeholder="+971 50 000 0000"></div>
       <div class="lnd-form-row">
         <div class="lnd-fg"><label>I am a</label><select><option>Individual Investor</option><option>Real Estate Broker</option><option>Investment Company</option><option>Financial Advisor</option></select></div>
@@ -2091,10 +2091,10 @@ body.auth-resetting { pointer-events: none; }
       <div class="demo-form-card">
         <div class="form-title">Request Your <span class="gold">Demo</span></div>
         <div class="lnd-form-row">
-          <div class="lnd-fg"><label>First Name</label><input type="text" placeholder="Ahmad"></div>
-          <div class="lnd-fg"><label>Last Name</label><input type="text" placeholder="Al-Rashid"></div>
+          <div class="lnd-fg"><label>First Name</label><input type="text" placeholder="Lorenzo"></div>
+          <div class="lnd-fg"><label>Last Name</label><input type="text" placeholder="von Matterhorn"></div>
         </div>
-        <div class="lnd-fg"><label>Work Email</label><input type="text" placeholder="ahmad@brokerage.ae"></div>
+        <div class="lnd-fg"><label>Work Email</label><input type="text" placeholder="lorenzo@brokerage.ae"></div>
         <div class="lnd-fg"><label>Phone</label><input type="text" placeholder="+971 50 000 0000"></div>
         <div class="lnd-fg"><label>I am a</label><select><option>Individual Investor</option><option>Real Estate Broker</option><option>Investment Company</option></select></div>
         <div class="lnd-fg"><label>Preferred Demo Time</label><select><option>Morning (9&#8211;12pm GST)</option><option>Afternoon (12&#8211;5pm GST)</option><option>Evening (5&#8211;8pm GST)</option></select></div>
@@ -9094,88 +9094,57 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
     if(btn) return window.siriusReturnFromInternal(e);
   },true);
 
-  /* SIRIUS STEP 3G CLEAN FIX — ONE landing text source of truth.
-     Canonical Firestore document:
-       /config/landingText
-
-     Rules of this patch:
-     - Admin save writes ONLY /config/landingText as the plain text object.
-     - Public cold-load reads ONLY /config/landingText.
-     - No publicLanding / landingPage / local fallback source can override it.
-     - LocalStorage is only a temporary cache after a successful Firestore read/save. */
+  /* Public landing source-of-truth:
+     Admin saves to BOTH:
+       /config/publicLanding { texts: {...}, updatedAt, updatedBy }
+       /config/landingText {...}  (legacy fallback)
+     Public visitor pages read publicLanding first, then legacy landingText.
+     This fixes the split between admin/preview/local state and the real logged-out visitor page. */
   function firestore(){
     try{ if(window.db && db.collection) return db; }catch(e){}
     try{ if(window.firebase && firebase.firestore) return firebase.firestore(); }catch(e){}
     return null;
   }
-
   function normalizePublicDoc(data){
     if(!data) return null;
-    /* Defensive only: if an older wrapped payload exists, unwrap it. */
     if(data.texts && typeof data.texts==='object') return data.texts;
     return data;
   }
-
   function applyPublicLandingTexts(texts){
     texts=normalizePublicDoc(texts);
     if(!texts) return;
     window.__siriusPublicLandingTexts=texts;
-    window.__siriusPublicLandingText=texts;
-    try{window._landingTexts=texts;}catch(e){}
-    try{localStorage.setItem('sirius_public_landingText_cache',JSON.stringify(texts));}catch(e){}
     try{localStorage.setItem('sirius_public_landing_text_source_v3c',JSON.stringify(texts));}catch(e){}
-    try{localStorage.setItem('sirius_public_landing_text_v3b',JSON.stringify(texts));}catch(e){}
     if(typeof window.applyLandingTexts==='function'){
       try{window.applyLandingTexts(texts);}catch(e){}
-      [50,150,350,700,1200,2000,3200].forEach(function(ms){
-        setTimeout(function(){try{window.applyLandingTexts(texts);}catch(e){}},ms);
-      });
+      [80,250,600,1200,2200].forEach(function(ms){setTimeout(function(){try{window.applyLandingTexts(texts);}catch(e){}},ms);});
     }
   }
-
   function loadCachedPublic(){
-    var keys=['sirius_public_landingText_cache','sirius_public_landing_text_source_v3c','sirius_public_landing_text_v3b'];
-    for(var i=0;i<keys.length;i++){
-      try{var raw=localStorage.getItem(keys[i]); if(raw){applyPublicLandingTexts(JSON.parse(raw)); return true;}}catch(e){}
-    }
-    return false;
+    try{var raw=localStorage.getItem('sirius_public_landing_text_source_v3c'); if(raw) applyPublicLandingTexts(JSON.parse(raw));}catch(e){}
   }
-
   window.siriusLoadPublicLandingTexts=function(){
     loadCachedPublic();
     var f=firestore();
     if(!f) return false;
     try{
-      f.collection('config').doc('landingText').get().then(function(doc){
-        if(doc && doc.exists){
-          applyPublicLandingTexts(doc.data()||{});
+      f.collection('config').doc('publicLanding').get().then(function(doc){
+        if(doc && doc.exists){ applyPublicLandingTexts(doc.data()); }
+        else {
+          f.collection('config').doc('landingText').get().then(function(oldDoc){
+            if(oldDoc && oldDoc.exists) applyPublicLandingTexts(oldDoc.data());
+          }).catch(function(e){console.log('legacy landing load:',e.code||e.message);});
         }
-        try{document.body.classList.remove('sirius-public-config-loading');}catch(e){}
-      }).catch(function(e){
-        console.log('landingText public load:',e.code||e.message);
-        try{document.body.classList.remove('sirius-public-config-loading');}catch(x){}
-      });
-      if(!window.__siriusLandingTextCanonicalSnapshot){
-        window.__siriusLandingTextCanonicalSnapshot=true;
-        f.collection('config').doc('landingText').onSnapshot(function(doc){
-          if(doc && doc.exists){applyPublicLandingTexts(doc.data()||{});}
-          try{document.body.classList.remove('sirius-public-config-loading');}catch(e){}
-        },function(e){
-          console.log('landingText canonical snapshot:',e.code||e.message);
-          try{document.body.classList.remove('sirius-public-config-loading');}catch(x){}
-        });
+      }).catch(function(e){console.log('public landing load:',e.code||e.message);});
+      if(!window.__siriusPublicLandingSnapshotV3C){
+        window.__siriusPublicLandingSnapshotV3C=true;
+        f.collection('config').doc('publicLanding').onSnapshot(function(doc){
+          if(doc && doc.exists) applyPublicLandingTexts(doc.data());
+        },function(e){console.log('public landing snapshot:',e.code||e.message);});
       }
       return true;
-    }catch(e){
-      try{document.body.classList.remove('sirius-public-config-loading');}catch(x){}
-      return false;
-    }
+    }catch(e){return false;}
   };
-
-  /* Override older patch names so every old retry loop now calls the same canonical loader. */
-  window.siriusLoadPublicLandingTextNow=window.siriusLoadPublicLandingTexts;
-  window.siriusForcePublicLandingConfig=window.siriusLoadPublicLandingTexts;
-  window.siriusForcePublicLandingTextV3B=window.siriusLoadPublicLandingTexts;
 
   function collectLandingEditorTexts(){
     var texts={};
@@ -9190,6 +9159,7 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
     return texts;
   }
 
+  var oldSaveAll=window.saveAllLandingTexts;
   window.saveAllLandingTexts=function(){
     if(!window.CURRENT_USER){alert('You must be signed in to save.');return;}
     if(!window.IS_ADMIN){alert('Admin access required.');return;}
@@ -9199,14 +9169,17 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
     applyPublicLandingTexts(texts);
     var btns=qsa('[onclick="saveAllLandingTexts()"], .adm-pill.primary');
     btns.forEach(function(b){ if((b.textContent||'').toLowerCase().indexOf('save')>-1){ b.textContent='Saving...'; b.style.color=''; }});
-    f.collection('config').doc('landingText').set(texts,{merge:false}).then(function(){
+    var payload={texts:texts,updatedAt:new Date().toISOString(),updatedBy:(CURRENT_USER.email||CURRENT_USER.uid||'admin')};
+    var writePublic=f.collection('config').doc('publicLanding').set(payload,{merge:true});
+    var writeLegacy=f.collection('config').doc('landingText').set(texts,{merge:false});
+    Promise.all([writePublic,writeLegacy]).then(function(){
       btns.forEach(function(b){ if((b.textContent||'').indexOf('Saving')>-1){ b.textContent='✓ Saved publicly'; b.style.color='rgba(39,174,96,.9)'; }});
       window.siriusLoadPublicLandingTexts();
       setTimeout(function(){btns.forEach(function(b){ if((b.textContent||'').indexOf('Saved')>-1){ b.textContent='Save all text changes'; b.style.color=''; }});},2500);
     }).catch(function(e){
-      console.error('landingText save failed:',e.code,e.message);
+      console.error('public landing save failed:',e.code,e.message);
       var msg=(e.code==='permission-denied')
-        ? '✗ Permission denied. Check Firebase admin write rules for /config/{document}.'
+        ? '✗ Permission denied. Update Firebase rules with the admin email rule I provided.'
         : '✗ Failed: '+(e.code||e.message);
       btns.forEach(function(b){ if((b.textContent||'').indexOf('Saving')>-1){ b.textContent=msg; b.style.color='rgba(231,76,60,.9)'; }});
       alert(msg);
@@ -9439,12 +9412,141 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
 </script>
 
 
-<script id="sirius-step3g-final-landingText-safeguard">
+<!-- SIRIUS STEP 4 PATCH 2026-05-18: subscription settings, saved reports, usage limits, activity logs -->
+<style id="sirius-step4-saas-patch-css">
+  .sirius-saas-card{background:linear-gradient(135deg,rgba(17,43,77,.72),rgba(10,22,40,.72));border:1px solid rgba(191,198,209,.14);border-radius:16px;padding:1.35rem;box-shadow:0 18px 50px rgba(0,0,0,.22);position:relative;overflow:hidden}
+  .sirius-saas-card:before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(191,198,209,.55),transparent)}
+  .sirius-kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.85rem;margin-top:1rem}
+  .sirius-mini-kpi{background:rgba(255,255,255,.035);border:1px solid rgba(191,198,209,.09);border-radius:12px;padding:.9rem}
+  .sirius-mini-label{font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.48);font-weight:800;margin-bottom:.35rem}
+  .sirius-mini-value{font-size:.95rem;color:var(--ivory,#F7F6F2);font-weight:700;line-height:1.35}
+  .sirius-status-pill{display:inline-flex;align-items:center;gap:.4rem;padding:.24rem .65rem;border-radius:99px;border:1px solid rgba(46,204,113,.25);background:rgba(46,204,113,.09);color:#2ecc71;font-size:.62rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+  .sirius-status-pill.warn{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.08);color:#f59e0b}.sirius-status-pill.bad{border-color:rgba(231,76,60,.3);background:rgba(231,76,60,.08);color:#e74c3c}
+  .sirius-modal-shell{position:fixed;inset:0;background:rgba(5,12,24,.78);backdrop-filter:blur(10px);z-index:120000;display:none;align-items:center;justify-content:center;padding:1rem}.sirius-modal-shell.open{display:flex}
+  .sirius-modal-card{width:min(980px,96vw);max-height:92vh;overflow:auto;background:#0A1628;border:1px solid rgba(191,198,209,.2);border-radius:18px;box-shadow:0 28px 100px rgba(0,0,0,.55)}
+  .sirius-modal-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.25rem 1.4rem;border-bottom:1px solid rgba(191,198,209,.1)}
+  .sirius-modal-title{font-family:var(--font-display);font-size:1.45rem;font-weight:700;color:var(--ivory,#F7F6F2);letter-spacing:.04em}.sirius-modal-body{padding:1.4rem}
+  .sirius-settings-grid{display:grid;grid-template-columns:220px 1fr;gap:1rem}.sirius-settings-tabs{display:flex;flex-direction:column;gap:.45rem}.sirius-settings-tab{padding:.75rem .85rem;border-radius:10px;border:1px solid rgba(191,198,209,.08);background:rgba(255,255,255,.03);color:rgba(191,198,209,.72);font-size:.78rem;cursor:pointer;text-align:left}.sirius-settings-tab.active{background:rgba(191,198,209,.1);border-color:rgba(191,198,209,.24);color:#F7F6F2}
+  .sirius-table{width:100%;border-collapse:collapse}.sirius-table th{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(191,198,209,.45);padding:.7rem;text-align:left;border-bottom:1px solid rgba(191,198,209,.1)}.sirius-table td{padding:.75rem .7rem;border-bottom:1px solid rgba(191,198,209,.07);font-size:.78rem;color:rgba(247,246,242,.86);vertical-align:top}.sirius-table tr:hover td{background:rgba(191,198,209,.035)}
+  .sirius-report-actions{display:flex;gap:.45rem;flex-wrap:wrap}.sirius-soft-btn{border:1px solid rgba(191,198,209,.18);background:rgba(255,255,255,.035);color:#F7F6F2;border-radius:8px;padding:.38rem .65rem;font-size:.72rem;cursor:pointer}.sirius-soft-btn.danger{border-color:rgba(231,76,60,.28);color:#e74c3c}.sirius-soft-btn:hover{background:rgba(191,198,209,.08)}
+  #siriusSavedReportPage.active{display:block!important;background:var(--bg,#0A1628);min-height:100vh}.sirius-report-wrap{max-width:920px;margin:0 auto;padding:6.2rem 1.5rem 2rem}.sirius-report-title-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap}
+  @media(max-width:760px){.sirius-settings-grid{grid-template-columns:1fr}.sirius-kpi-row{grid-template-columns:1fr 1fr}}
+</style>
+<script id="sirius-step4-saas-patch-js">
 (function(){
-  function run(){try{ if(window.siriusLoadPublicLandingTexts) window.siriusLoadPublicLandingTexts(); }catch(e){}}
-  document.addEventListener('DOMContentLoaded',function(){run();setTimeout(run,500);setTimeout(run,1500);setTimeout(run,3000);});
-  window.addEventListener('load',function(){run();setTimeout(run,700);setTimeout(run,2200);});
+  'use strict';
+  function qs(s,r){return (r||document).querySelector(s)}
+  function qsa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+  function user(){return window.CURRENT_USER || (window.auth && auth.currentUser) || null}
+  function admin(){return !!window.IS_ADMIN}
+  function dbx(){return window.db || (window.firebase && firebase.firestore ? firebase.firestore() : null)}
+  function nowField(){return window.firebase&&firebase.firestore?firebase.firestore.FieldValue.serverTimestamp():new Date()}
+  function monthKey(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
+  function fmtDate(v){try{ if(!v) return '—'; var d=v.toDate?v.toDate():new Date(v); if(isNaN(d.getTime())) return '—'; return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}catch(e){return '—'}}
+  function daysLeft(v){try{ if(!v) return '—'; var d=v.toDate?v.toDate():new Date(v); var n=Math.ceil((d.getTime()-Date.now())/86400000); return isFinite(n)?Math.max(0,n)+' days':'—';}catch(e){return '—'}}
+  function cleanStatus(s){s=String(s||'trial').toLowerCase(); return s.charAt(0).toUpperCase()+s.slice(1).replace(/_/g,' ')}
+  function statusClass(s){s=String(s||'').toLowerCase(); if(/cancel|expire|past/.test(s))return 'bad'; if(/trial|pending/.test(s))return 'warn'; return ''}
+  function planLimit(data){ var p=String((data&&(data.planName||data.plan))||'starter').toLowerCase(); if(data && typeof data.monthlySaveLimit==='number') return data.monthlySaveLimit; if(admin()||p==='admin'||p==='agency'||p==='professional'||p==='pro') return 999999; if(p==='starter') return 5; return 5; }
+  function usedThisMonth(data){var mk=monthKey(); if(!data||data.saveUsageMonth!==mk) return 0; return Number(data.monthlySavesUsed||0)}
+  function safeUserUpdate(payload){var u=user(), d=dbx(); if(!u||!d) return Promise.resolve(); return d.collection('users').doc(u.uid).set(payload,{merge:true}).catch(function(e){console.warn('user update skipped',e.code||e.message);});}
+  window.siriusLogActivity=function(action, details, err){
+    var u=user(), d=dbx(); if(!u||!d) return Promise.resolve();
+    var payload={userId:u.uid,userEmail:u.email||'',actionType:action,timestamp:nowField(),details:details||{},errorMessage:err?(err.message||String(err)):''};
+    var writes=[d.collection('users').doc(u.uid).collection('activityLogs').add(payload).catch(function(){})];
+    try{writes.push(d.collection('activityLogs').add(payload).catch(function(){}));}catch(e){}
+    return Promise.all(writes);
+  };
+
+  function defaultSubscription(data){
+    var u=user(); data=data||{}; var plan=data.planName||data.plan||'Starter'; var status=data.subscriptionStatus||'trial';
+    return {planName:plan,subscriptionStatus:status,lastPaymentDate:data.lastPaymentDate||data.paymentDate||null,nextBillingDate:data.nextBillingDate||data.expiryDate||data.trialEndsAt||null,billingEmail:data.billingEmail||data.email||(u&&u.email)||'',paymentMethodSaved:!!data.paymentMethodSaved,maskedCard:data.maskedCard||'Not connected yet',monthlySaveLimit:planLimit(data),monthlySavesUsed:usedThisMonth(data),saveUsageMonth:monthKey()};
+  }
+  function subscriptionHTML(sub){
+    var remaining=Math.max(0,(sub.monthlySaveLimit||0)-(sub.monthlySavesUsed||0));
+    return '<div class="sirius-saas-card" id="siriusSubscriptionCard">'+
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap"><div><div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(191,198,209,.46);font-weight:900;margin-bottom:.4rem">Subscription Status</div><div style="font-size:1.25rem;color:#F7F6F2;font-weight:800">'+(sub.planName||'Starter')+' Plan</div></div><span class="sirius-status-pill '+statusClass(sub.subscriptionStatus)+'">'+cleanStatus(sub.subscriptionStatus)+'</span></div>'+
+      '<div class="sirius-kpi-row"><div class="sirius-mini-kpi"><div class="sirius-mini-label">Last Payment</div><div class="sirius-mini-value">'+fmtDate(sub.lastPaymentDate)+'</div></div><div class="sirius-mini-kpi"><div class="sirius-mini-label">Next Billing / Expiry</div><div class="sirius-mini-value">'+fmtDate(sub.nextBillingDate)+'</div></div><div class="sirius-mini-kpi"><div class="sirius-mini-label">Remaining Days</div><div class="sirius-mini-value">'+daysLeft(sub.nextBillingDate)+'</div></div><div class="sirius-mini-kpi"><div class="sirius-mini-label">Saved Reports</div><div class="sirius-mini-value">'+sub.monthlySavesUsed+' / '+sub.monthlySaveLimit+' used</div></div><div class="sirius-mini-kpi"><div class="sirius-mini-label">Remaining Saves</div><div class="sirius-mini-value">'+remaining+'</div></div></div>'+
+      '<div style="margin-top:1rem;font-size:.72rem;color:rgba(191,198,209,.48);line-height:1.55">Billing data is structured for Paddle. Live card/payment fields will update once Paddle webhooks write real billing data to Firebase.</div></div>';
+  }
+  function patchDashboardSubscription(){
+    var page=qs('#userDashboardPage > div[style*="max-width:960px"]'); if(!page||qs('#siriusSubscriptionCard',page)) return;
+    var usage=qs('#udUsageCard',page); var holder=document.createElement('div'); holder.id='siriusSubscriptionHolder'; holder.style.marginBottom='1.5rem'; holder.innerHTML=subscriptionHTML(defaultSubscription({}));
+    if(usage) page.insertBefore(holder,usage); else page.appendChild(holder);
+    refreshSubscriptionUI();
+  }
+  window.refreshSubscriptionUI=function(){
+    var u=user(),d=dbx(); if(!u||!d) return;
+    d.collection('users').doc(u.uid).get().then(function(doc){var data=doc.exists?doc.data():{}; var sub=defaultSubscription(data); var h=qs('#siriusSubscriptionHolder'); if(h) h.innerHTML=subscriptionHTML(sub); var txt=qs('#udUsageText'); if(txt) txt.textContent=sub.monthlySavesUsed+' / '+sub.monthlySaveLimit+' saves used'; var fill=qs('#udUsageFill'); if(fill) fill.style.width=Math.min(100,(sub.monthlySavesUsed/sub.monthlySaveLimit)*100)+'%';}).catch(function(e){console.warn('subscription ui',e.code||e.message);});
+  };
+
+  function ensureSettingsModal(){
+    if(qs('#siriusSettingsModal')) return;
+    var m=document.createElement('div'); m.id='siriusSettingsModal'; m.className='sirius-modal-shell';
+    m.innerHTML='<div class="sirius-modal-card"><div class="sirius-modal-head"><div><div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(191,198,209,.45);font-weight:900">SIRIUS</div><div class="sirius-modal-title">Settings</div></div><button class="modal-close" onclick="closeSiriusSettings()">&#10005;</button></div><div class="sirius-modal-body"><div class="sirius-settings-grid"><div class="sirius-settings-tabs"><button class="sirius-settings-tab active" data-tab="account">Account</button><button class="sirius-settings-tab" data-tab="subscription">Subscription</button><button class="sirius-settings-tab" data-tab="billing">Billing</button><button class="sirius-settings-tab" data-tab="payment">Payment Method</button><button class="sirius-settings-tab" data-tab="usage">Saved Reports Usage</button><button class="sirius-settings-tab" data-tab="admin">Admin</button></div><div id="siriusSettingsContent"></div></div></div></div>';
+    document.body.appendChild(m); m.addEventListener('click',function(e){if(e.target===m) closeSiriusSettings();});
+    qsa('.sirius-settings-tab',m).forEach(function(b){b.onclick=function(){qsa('.sirius-settings-tab',m).forEach(function(x){x.classList.remove('active')});b.classList.add('active');renderSettingsTab(b.getAttribute('data-tab'));};});
+  }
+  window.openSiriusSettings=function(tab){ensureSettingsModal(); qs('#siriusSettingsModal').classList.add('open'); renderSettingsTab(tab||'account'); try{siriusLogActivity('settings_viewed',{tab:tab||'account'});}catch(e){}};
+  window.closeSiriusSettings=function(){var m=qs('#siriusSettingsModal'); if(m)m.classList.remove('open');};
+  function renderSettingsTab(tab){
+    var c=qs('#siriusSettingsContent'),u=user(),d=dbx(); if(!c) return; c.innerHTML='<div class="sirius-saas-card">Loading settings...</div>';
+    if(!u||!d){c.innerHTML='<div class="sirius-saas-card">Please sign in to view settings.</div>';return;}
+    d.collection('users').doc(u.uid).get().then(function(doc){var data=doc.exists?doc.data():{};var sub=defaultSubscription(data); var html='';
+      if(tab==='account') html='<div class="sirius-saas-card"><div class="sirius-mini-label">Account</div><div class="sirius-kpi-row"><div class="sirius-mini-kpi"><div class="sirius-mini-label">Name</div><div class="sirius-mini-value">'+(data.displayName||u.displayName||'—')+'</div></div><div class="sirius-mini-kpi"><div class="sirius-mini-label">Email</div><div class="sirius-mini-value">'+(u.email||data.email||'—')+'</div></div><div class="sirius-mini-kpi"><div class="sirius-mini-label">Role</div><div class="sirius-mini-value">'+(admin()?'Admin':'User')+'</div></div></div></div>';
+      if(tab==='subscription') html=subscriptionHTML(sub);
+      if(tab==='billing') html='<div class="sirius-saas-card"><div class="sirius-mini-label">Billing</div><div class="sirius-kpi-row"><div class="sirius-mini-kpi"><div class="sirius-mini-label">Billing Email</div><div class="sirius-mini-value">'+(sub.billingEmail||'—')+'</div></div><div class="sirius-mini-kpi"><div class="sirius-mini-label">Last Payment</div><div class="sirius-mini-value">'+fmtDate(sub.lastPaymentDate)+'</div></div><div class="sirius-mini-kpi"><div class="sirius-mini-label">Next Billing / Expiry</div><div class="sirius-mini-value">'+fmtDate(sub.nextBillingDate)+'</div></div></div><p style="margin-top:1rem;color:rgba(191,198,209,.5);font-size:.75rem">Paddle integration placeholder: this will show live invoice/payment dates once Paddle webhooks write to Firestore.</p></div>';
+      if(tab==='payment') html='<div class="sirius-saas-card"><div class="sirius-mini-label">Payment Method</div><div class="sirius-kpi-row"><div class="sirius-mini-kpi"><div class="sirius-mini-label">Card Saved</div><div class="sirius-mini-value">'+(sub.paymentMethodSaved?'Yes':'No / not connected')+'</div></div><div class="sirius-mini-kpi"><div class="sirius-mini-label">Masked Card</div><div class="sirius-mini-value">'+(sub.maskedCard||'Not connected yet')+'</div></div></div><p style="margin-top:1rem;color:rgba(191,198,209,.5);font-size:.75rem">No real card data is displayed unless it is supplied by Paddle/Firebase.</p></div>';
+      if(tab==='usage') html=subscriptionHTML(sub)+'<div style="height:1rem"></div><button class="btn btn-outline" onclick="openSavedReports()">Open Saved Reports</button>';
+      if(tab==='admin') html=admin()?'<div class="sirius-saas-card"><div class="sirius-mini-label">Admin Settings</div><div class="sirius-kpi-row"><div class="sirius-mini-kpi"><div class="sirius-mini-label">Access</div><div class="sirius-mini-value">Admin account</div></div><div class="sirius-mini-kpi"><div class="sirius-mini-label">Tools</div><div class="sirius-mini-value">User management / activity logs ready</div></div></div><div style="display:flex;gap:.65rem;margin-top:1rem;flex-wrap:wrap"><button class="btn btn-outline" onclick="openSiriusActivityLogs()">Activity Logs</button><button class="btn btn-outline" onclick="openAdminDashboard&&openAdminDashboard()">Admin Dashboard</button></div></div>':'<div class="sirius-saas-card">Admin settings are only visible to admin users.</div>';
+      c.innerHTML=html;
+    }).catch(function(e){c.innerHTML='<div class="sirius-saas-card">Could not load settings: '+(e.code||e.message)+'</div>';});
+  }
+
+  function patchDropdownSettings(){
+    qsa('.nav-dropdown').forEach(function(menu){ if(qs('[data-sirius-settings-item]',menu)) return; var btn=document.createElement('button'); btn.className='nav-dropdown-item'; btn.setAttribute('data-sirius-settings-item','1'); btn.textContent='Settings'; btn.onclick=function(){ if(window.closeNavDropdown) closeNavDropdown(); openSiriusSettings('account');}; var div=menu.querySelector('.nav-dropdown-divider'); if(div) menu.insertBefore(btn,div); else menu.appendChild(btn); });
+  }
+
+  function ensureSavedReportPage(){
+    if(qs('#siriusSavedReportPage')) return;
+    var p=document.createElement('div'); p.id='siriusSavedReportPage'; p.className='page'; p.innerHTML='<nav class="nav"><div class="nav-logo" onclick="goDashboard&&goDashboard()" style="cursor:pointer"><span style="font-family:\'Cormorant Garamond\',serif;font-weight:300;letter-spacing:.2em">SIRIUS</span></div><div style="display:flex;gap:.75rem;align-items:center"><button class="btn btn-ghost" onclick="openSavedReports()" style="font-size:.72rem">← Saved Reports</button><button class="btn btn-primary" onclick="goDashboard&&goDashboard()" style="font-size:.72rem">Dashboard</button></div></nav><div class="sirius-report-wrap"><div class="sirius-report-title-row"><div><div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(191,198,209,.45);font-weight:900">Saved Evaluation</div><h1 id="siriusSavedReportTitle" style="font-family:var(--font-display);font-weight:700;color:#F7F6F2">Report</h1></div></div><div id="siriusSavedReportContent"></div></div>'; document.body.appendChild(p);
+  }
+  function collectEvaluationData(){
+    var inputs={}; qsa('#evaluation input,#evaluation select,#evaluation textarea').forEach(function(el){ if(el.id) inputs[el.id]=(el.type==='checkbox'?el.checked:el.value); });
+    var results=qs('#step-3'); return {schemaVersion:'step4-html-snapshot-v1',state:window.S?JSON.parse(JSON.stringify(window.S)):null,inputs:inputs,resultsHTML:results?results.innerHTML:'',createdFromTitle:document.title,createdAtClient:new Date().toISOString()};
+  }
+  function saveUsageTransaction(u,d){
+    var ref=d.collection('users').doc(u.uid); return d.runTransaction(function(tx){return tx.get(ref).then(function(snap){var data=snap.exists?snap.data():{};var mk=monthKey();var used=(data.saveUsageMonth===mk)?Number(data.monthlySavesUsed||0):0;var limit=planLimit(data); if(used>=limit){throw new Error('MONTHLY_LIMIT_REACHED');} tx.set(ref,{monthlySavesUsed:used+1,saveUsageMonth:mk,monthlySaveLimit:limit},{merge:true}); return {used:used+1,limit:limit};});});
+  }
+  window.saveCurrentEvaluationReport=function(){
+    var u=user(),d=dbx(); if(!u||!d){alert('Please sign in first.');return;} if(qs('#step-3')&&window.S){try{calc&&calc();}catch(e){}}
+    saveUsageTransaction(u,d).then(function(usage){ var name=prompt('Report name','SIRIUS Evaluation '+new Date().toLocaleDateString('en-GB')); if(name===null) return null; var data=collectEvaluationData(); var payload={userId:u.uid,reportName:name||'Untitled Report',createdAt:nowField(),updatedAt:nowField(),fullEvaluationData:data,renderedVersion:data.schemaVersion}; return d.collection('users').doc(u.uid).collection('savedReports').add(payload).then(function(){siriusLogActivity('report_saved',{reportName:payload.reportName,usage:usage}); alert('Report saved. '+(usage.limit-usage.used)+' saves remaining this month.'); refreshSubscriptionUI();}); }).catch(function(e){ if(String(e.message)==='MONTHLY_LIMIT_REACHED'){alert('You reached your monthly saved evaluation limit. Starter allows 5 saved evaluations per month. Upgrade your plan to save more.'); siriusLogActivity('save_blocked_limit',{month:monthKey()});} else {alert('Could not save report: '+(e.code||e.message)); siriusLogActivity('report_save_error',{},e);} });
+  };
+  function patchSaveButton(){var a=qs('#resultDownloadActions div'); if(!a||qs('#siriusSaveReportBtn')) return; var b=document.createElement('button'); b.id='siriusSaveReportBtn'; b.className='btn btn-primary'; b.style.cssText='font-size:.72rem;padding:.45rem .9rem'; b.textContent='Save Report'; b.onclick=saveCurrentEvaluationReport; a.insertBefore(b,a.firstChild);}
+
+  window.openSavedReports=function(){
+    var u=user(),d=dbx(); if(!u||!d){alert('Please sign in first.');return;} ensureReportsModal(); var body=qs('#siriusReportsBody'); body.innerHTML='<div class="sirius-saas-card">Loading saved reports...</div>'; qs('#siriusReportsModal').classList.add('open');
+    d.collection('users').doc(u.uid).collection('savedReports').orderBy('createdAt','desc').get().then(function(snap){ if(snap.empty){body.innerHTML='<div class="sirius-saas-card">No saved reports yet. Save an evaluation from the Results screen.</div>';return;} var rows=[]; snap.forEach(function(doc){var r=doc.data(); rows.push('<tr><td><strong>'+escapeHTML(r.reportName||'Untitled Report')+'</strong><div style="font-size:.68rem;color:rgba(191,198,209,.42);margin-top:.2rem">Created '+fmtDate(r.createdAt)+'</div></td><td>'+fmtDate(r.updatedAt||r.createdAt)+'</td><td><div class="sirius-report-actions"><button class="sirius-soft-btn" onclick="openSavedReportById(\''+doc.id+'\')">Open</button><button class="sirius-soft-btn" onclick="renameSavedReport(\''+doc.id+'\',\''+escapeAttr(r.reportName||'Untitled Report')+'\')">Rename</button><button class="sirius-soft-btn danger" onclick="deleteSavedReport(\''+doc.id+'\')">Delete</button></div></td></tr>');}); body.innerHTML='<table class="sirius-table"><thead><tr><th>Report</th><th>Updated</th><th>Actions</th></tr></thead><tbody>'+rows.join('')+'</tbody></table>'; siriusLogActivity('saved_reports_viewed',{}); }).catch(function(e){body.innerHTML='<div class="sirius-saas-card">Could not load saved reports: '+(e.code||e.message)+'</div>';});
+  };
+  function ensureReportsModal(){ if(qs('#siriusReportsModal')) return; var m=document.createElement('div'); m.id='siriusReportsModal'; m.className='sirius-modal-shell'; m.innerHTML='<div class="sirius-modal-card"><div class="sirius-modal-head"><div><div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(191,198,209,.45);font-weight:900">SIRIUS</div><div class="sirius-modal-title">Saved Reports</div></div><button class="modal-close" onclick="document.getElementById(\'siriusReportsModal\').classList.remove(\'open\')">&#10005;</button></div><div class="sirius-modal-body" id="siriusReportsBody"></div></div>'; document.body.appendChild(m); }
+  window.openSavedReportById=function(id){var u=user(),d=dbx(); if(!u||!d)return; d.collection('users').doc(u.uid).collection('savedReports').doc(id).get().then(function(doc){ if(!doc.exists){alert('Report not found.');return;} var r=doc.data(), data=r.fullEvaluationData||{}; ensureSavedReportPage(); qs('#siriusSavedReportTitle').textContent=r.reportName||'Saved Report'; qs('#siriusSavedReportContent').innerHTML=data.resultsHTML||'<div class="sirius-saas-card">This older report has no saved layout snapshot.</div>'; if(qs('#siriusReportsModal')) qs('#siriusReportsModal').classList.remove('open'); if(window.showPage) showPage('siriusSavedReportPage'); else qs('#siriusSavedReportPage').classList.add('active'); siriusLogActivity('report_opened',{reportId:id,reportName:r.reportName||''}); });};
+  window.renameSavedReport=function(id,current){var u=user(),d=dbx(); if(!u||!d)return; var n=prompt('Rename report',current||'Untitled Report'); if(!n)return; d.collection('users').doc(u.uid).collection('savedReports').doc(id).set({reportName:n,updatedAt:nowField()},{merge:true}).then(function(){siriusLogActivity('report_renamed',{reportId:id,reportName:n}); openSavedReports();});};
+  window.deleteSavedReport=function(id){var u=user(),d=dbx(); if(!u||!d)return; if(!confirm('Delete this saved report? This cannot be undone.'))return; d.collection('users').doc(u.uid).collection('savedReports').doc(id).delete().then(function(){siriusLogActivity('report_deleted',{reportId:id}); openSavedReports(); refreshSubscriptionUI();});};
+  function escapeHTML(s){return String(s||'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})} function escapeAttr(s){return escapeHTML(s).replace(/'/g,'&#39;').replace(/"/g,'&quot;')}
+
+  window.openSiriusActivityLogs=function(){
+    if(!admin()){alert('Admin access required.');return;} ensureActivityModal(); var body=qs('#siriusActivityBody'); body.innerHTML='<div class="sirius-saas-card">Loading activity logs...</div>'; qs('#siriusActivityModal').classList.add('open'); var d=dbx(); if(!d)return;
+    var q; try{q=d.collectionGroup('activityLogs').orderBy('timestamp','desc').limit(80);}catch(e){q=null;} (q?q.get():d.collection('activityLogs').orderBy('timestamp','desc').limit(80).get()).then(function(snap){ if(snap.empty){body.innerHTML='<div class="sirius-saas-card">No activity logs yet.</div>';return;} var rows=[]; snap.forEach(function(doc){var x=doc.data(); rows.push('<tr><td>'+fmtDate(x.timestamp)+'</td><td>'+escapeHTML(x.userEmail||x.userId||'—')+'</td><td><strong>'+escapeHTML(x.actionType||'—')+'</strong></td><td><pre style="white-space:pre-wrap;margin:0;color:rgba(191,198,209,.65);font-size:.7rem">'+escapeHTML(JSON.stringify(x.details||{},null,2))+'</pre>'+(x.errorMessage?'<div style="color:#e74c3c">'+escapeHTML(x.errorMessage)+'</div>':'')+'</td></tr>');}); body.innerHTML='<table class="sirius-table"><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Details</th></tr></thead><tbody>'+rows.join('')+'</tbody></table>';}).catch(function(e){body.innerHTML='<div class="sirius-saas-card">Could not load logs: '+(e.code||e.message)+'</div>';});
+  };
+  function ensureActivityModal(){ if(qs('#siriusActivityModal')) return; var m=document.createElement('div'); m.id='siriusActivityModal'; m.className='sirius-modal-shell'; m.innerHTML='<div class="sirius-modal-card"><div class="sirius-modal-head"><div><div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(191,198,209,.45);font-weight:900">Admin</div><div class="sirius-modal-title">Activity Logs</div></div><button class="modal-close" onclick="document.getElementById(\'siriusActivityModal\').classList.remove(\'open\')">&#10005;</button></div><div class="sirius-modal-body" id="siriusActivityBody"></div></div>'; document.body.appendChild(m); }
+  function patchAdminActivityEntry(){ var page=qs('#adminDashboardPage'); if(!page||qs('#siriusAdminActivityShortcut')) return; var grid=qs('.dash-grid',page)||qs('[class*="dash-grid"]',page); if(grid){var c=document.createElement('div');c.className='dash-card';c.id='siriusAdminActivityShortcut';c.onclick=openSiriusActivityLogs;c.innerHTML='<div class="dash-card-icon">☷</div><div class="dash-card-title">Activity Logs</div><div class="dash-card-sub">View user logins, saves, blocked saves, settings views and report actions.</div>';grid.appendChild(c);} }
+
+  function wrapAuthLogs(){ if(window.__siriusStep4AuthWrapped)return; window.__siriusStep4AuthWrapped=true; var oldOut=window.handleSignOut; if(typeof oldOut==='function'){window.handleSignOut=function(){try{siriusLogActivity('user_logout',{});}catch(e){} return oldOut.apply(this,arguments);};} try{ if(window.auth&&auth.onAuthStateChanged){auth.onAuthStateChanged(function(u){if(u){setTimeout(function(){siriusLogActivity('user_login',{}); safeUserUpdate({email:u.email||'',billingEmail:u.email||'',saveUsageMonth:monthKey()});},700);}});}}catch(e){} }
+  var oldCalc=window.calc; if(typeof oldCalc==='function'&&!oldCalc.__siriusStep4){window.calc=function(){var r=oldCalc.apply(this,arguments); try{siriusLogActivity('evaluation_calculated',{scenario:window.S&&(S.status+' / '+S.financing+' / '+S.purpose)});}catch(e){} patchSaveButton(); return r;}; window.calc.__siriusStep4=true;}
+  var oldDash=window.openUserDashboard; if(typeof oldDash==='function'&&!oldDash.__siriusStep4){window.openUserDashboard=function(){var r=oldDash.apply(this,arguments); setTimeout(function(){patchDashboardSubscription(); refreshSubscriptionUI(); patchDropdownSettings();},250); return r;}; window.openUserDashboard.__siriusStep4=true;}
+  function applyAll(){ document.title='SIRIUS — DXB'; patchDashboardSubscription(); patchDropdownSettings(); patchSaveButton(); patchAdminActivityEntry(); wrapAuthLogs(); }
+  document.addEventListener('DOMContentLoaded',function(){applyAll(); setTimeout(applyAll,600); setTimeout(applyAll,1600);}); window.addEventListener('load',function(){applyAll(); setTimeout(applyAll,800);}); setInterval(applyAll,2500);
 })();
 </script>
+
 </body>
 </html>
