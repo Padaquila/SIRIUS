@@ -8518,5 +8518,164 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
 })();
 </script>
 
+
+
+<!-- SIRIUS STEP 3 PATCH 2026-05-18: dashboard-origin back logic + cold public landing sync -->
+<style id="sirius-step3-public-sync-css">
+  body.sirius-public-config-loading:not(.sirius-logged-in) #landing{
+    visibility:hidden!important;
+  }
+</style>
+<script id="sirius-step3-dashboard-back-public-sync">
+(function(){
+  function qs(s,r){return (r||document).querySelector(s)}
+  function qsa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+  function activePageId(){var p=qs('.page.active');return p&&p.id?p.id:null}
+  function isDashOrigin(){return activePageId()==='userDashboardPage'}
+  function setDashboardReturn(){window.SIRIUS_RETURN_PAGE='userDashboardPage'}
+  function clearPublicLoadingSoon(){setTimeout(function(){document.body.classList.remove('sirius-public-config-loading')},120)}
+
+  /* Hide cold visitor page briefly until public Firebase text has had a chance to load. */
+  if(!document.body.classList.contains('sirius-logged-in')){
+    document.body.classList.add('sirius-public-config-loading');
+    setTimeout(function(){document.body.classList.remove('sirius-public-config-loading')},3500);
+  }
+
+  function applyPublicLandingSnapshot(data){
+    if(!data) return;
+    try{window._landingTexts=data||{};}catch(e){}
+    try{localStorage.setItem('sirius_public_landingText_cache', JSON.stringify(data||{}));}catch(e){}
+    if(typeof applyLandingTexts==='function'){
+      applyLandingTexts(data||{});
+      /* Some earlier state functions rewrite visitor DOM after first load; re-apply a few times. */
+      [60,180,450,900,1600].forEach(function(ms){setTimeout(function(){try{applyLandingTexts(data||{})}catch(e){}},ms)});
+    }
+  }
+
+  function loadCachedPublicText(){
+    try{
+      var cached=localStorage.getItem('sirius_public_landingText_cache');
+      if(cached) applyPublicLandingSnapshot(JSON.parse(cached));
+    }catch(e){}
+  }
+
+  window.siriusLoadPublicLandingTextNow=function(){
+    loadCachedPublicText();
+    if(!window.db || !db.collection){return false;}
+    try{
+      db.collection('config').doc('landingText').get().then(function(doc){
+        if(doc && doc.exists){applyPublicLandingSnapshot(doc.data()||{});}
+        clearPublicLoadingSoon();
+      }).catch(function(e){console.log('landingText public get:', e.code||e.message); clearPublicLoadingSoon();});
+      return true;
+    }catch(e){clearPublicLoadingSoon(); return false;}
+  };
+
+  function initPublicLandingWatcher(){
+    if(!window.db || !db.collection) return false;
+    if(window.__siriusPublicLandingWatcherReady) return true;
+    window.__siriusPublicLandingWatcherReady=true;
+    try{
+      db.collection('config').doc('landingText').onSnapshot(function(doc){
+        if(doc && doc.exists){applyPublicLandingSnapshot(doc.data()||{});}
+        clearPublicLoadingSoon();
+      }, function(e){console.log('landingText public listener:', e.code||e.message); clearPublicLoadingSoon();});
+      return true;
+    }catch(e){clearPublicLoadingSoon(); return false;}
+  }
+
+  function bootPublicLandingSync(){
+    loadCachedPublicText();
+    var tries=0;
+    var t=setInterval(function(){
+      tries++;
+      var ok1=window.siriusLoadPublicLandingTextNow();
+      var ok2=initPublicLandingWatcher();
+      if((ok1&&ok2) || tries>=40) clearInterval(t);
+    },150);
+  }
+
+  function patchBackButtons(){
+    /* Any journey that starts from the user dashboard must return to the user dashboard. */
+    qsa('#userDashboardPage .dash-card, #userDashboardPage button').forEach(function(el){
+      if(el.__siriusDashReturnPatched) return;
+      el.__siriusDashReturnPatched=true;
+      el.addEventListener('click', function(){setDashboardReturn();}, true);
+    });
+
+    /* Internal pages must use logical back, not default landing. */
+    var selectors=['#profilePage button.btn-ghost','#evaluation .eval-header-actions button.btn-ghost','#planSelectionPage button.btn-ghost'];
+    selectors.forEach(function(sel){
+      qsa(sel).forEach(function(btn){
+        if((btn.textContent||'').indexOf('Back')>-1){
+          btn.setAttribute('onclick','siriusBack&&siriusBack()');
+        }
+      });
+    });
+  }
+
+  /* Wrap key navigation functions so dashboard-origin context is remembered. */
+  var oldOpenProfile=window.openProfile;
+  if(oldOpenProfile && !oldOpenProfile.__siriusStep3){
+    window.openProfile=function(){ if(isDashOrigin()) setDashboardReturn(); return oldOpenProfile.apply(this, arguments); };
+    window.openProfile.__siriusStep3=true;
+  }
+
+  var oldGoToEval=window.goToEval;
+  if(oldGoToEval && !oldGoToEval.__siriusStep3){
+    window.goToEval=function(){ if(isDashOrigin()) setDashboardReturn(); return oldGoToEval.apply(this, arguments); };
+    window.goToEval.__siriusStep3=true;
+  }
+
+  var oldOpenSub=window.openSubscriptionPlan;
+  if(oldOpenSub && !oldOpenSub.__siriusStep3){
+    window.openSubscriptionPlan=function(){ if(isDashOrigin()) setDashboardReturn(); return oldOpenSub.apply(this, arguments); };
+    window.openSubscriptionPlan.__siriusStep3=true;
+  }
+
+  /* Stronger logical back. */
+  window.siriusBack=function(){
+    var target=window.SIRIUS_RETURN_PAGE || 'landing';
+    if(target==='userDashboardPage'){
+      if(typeof goDashboard==='function') return goDashboard();
+      if(typeof showPage==='function') return showPage('userDashboardPage');
+    }
+    if(target==='adminDashboardPage'){
+      if(typeof openAdminPanel==='function') return openAdminPanel();
+      if(typeof openAdminDashboard==='function') return openAdminDashboard();
+      if(typeof showPage==='function') return showPage('adminDashboardPage');
+    }
+    if(target==='landing' && typeof goToLanding==='function') return goToLanding();
+    if(typeof showPage==='function') return showPage(target||'landing');
+  };
+
+  var oldShow=window.showPage;
+  if(oldShow && !oldShow.__siriusStep3){
+    window.showPage=function(id){
+      var prev=activePageId();
+      if(prev==='userDashboardPage' && id && id!=='userDashboardPage' && id!=='landing') setDashboardReturn();
+      oldShow.apply(this, arguments);
+      setTimeout(function(){
+        patchBackButtons();
+        if(id==='landing' || !document.body.classList.contains('sirius-logged-in')) window.siriusLoadPublicLandingTextNow();
+        if(id==='userDashboardPage') window.SIRIUS_RETURN_PAGE='landing';
+      },40);
+    };
+    window.showPage.__siriusStep3=true;
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    bootPublicLandingSync();
+    patchBackButtons();
+    setTimeout(patchBackButtons,500);
+  });
+  bootPublicLandingSync();
+  setInterval(function(){
+    patchBackButtons();
+    if(activePageId()==='landing' && !document.body.classList.contains('sirius-logged-in')) window.siriusLoadPublicLandingTextNow();
+  },1500);
+})();
+</script>
+
 </body>
 </html>
