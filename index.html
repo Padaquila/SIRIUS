@@ -3340,8 +3340,7 @@ function cn(n){return Math.round(n).toLocaleString('en-AE');}
 
 /* PAGES */
 function showPage(id){
-  console.log('[SIRIUS DEBUG] showPage called with id=', id);
-  /* CSS handles display via .page.active — just toggle the class */
+   /* CSS handles display via .page.active — just toggle the class */
   document.querySelectorAll('.page').forEach(function(p){
     p.classList.remove('active');
     p.style.cssText = ''; /* clear any inline styles */
@@ -3360,7 +3359,7 @@ function goToLanding(){showPage('landing');}
 function scrollTo2(sel){var el=document.querySelector(sel);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
 
 /* MODAL */
-function openModal(){ console.log('[SIRIUS DEBUG] openModal called'); document.getElementById('demoModal').classList.add('open');document.getElementById('demoFormWrap').classList.remove('hidden');document.getElementById('demoSuccess').classList.add('hidden');}
+function openModal(){document.getElementById('demoModal').classList.add('open');document.getElementById('demoFormWrap').classList.remove('hidden');document.getElementById('demoSuccess').classList.add('hidden');}
 function closeModal(){document.getElementById('demoModal').classList.remove('open');}
 function submitDemo(){document.getElementById('demoFormWrap').classList.add('hidden');document.getElementById('demoSuccess').classList.remove('hidden');}
 document.getElementById('demoModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
@@ -5642,8 +5641,7 @@ auth.onAuthStateChanged(function(user){
       updateLandingForUser(user);
       updateNavAvatar(user.displayName || user.email || '');
       /* Route AFTER admin status confirmed */
-      console.log('[SIRIUS DEBUG] routing: IS_ADMIN=', IS_ADMIN, 'CURRENT_USER=', CURRENT_USER && CURRENT_USER.email);
-      routeAfterAuth(user);
+       routeAfterAuth(user);
     }).catch(function(){
       IS_ADMIN = false;
       routeAfterAuth(user);
@@ -6690,7 +6688,6 @@ function getDisplayPlan(){
 
 /* ── Admin Dashboard ── */
 function openAdminDashboard(){
-  console.log('[SIRIUS DEBUG] openAdminDashboard called, IS_ADMIN=', IS_ADMIN);
   if(!IS_ADMIN){
     /* Fall through to user dashboard silently */
     openUserDashboard();
@@ -7008,13 +7005,9 @@ function loadDashboardData(){
 
       <!-- PADDLE: Replace this button's onclick with Paddle.js checkout -->
       <!-- When Paddle is ready:
-           1. Load Paddle.js: <script src="https://cdn.paddle.com/paddle/v2/paddle.js">
-/* ════════════════════════════════════════════════════════════════
-   SIRIUS USER FLOW
-   Plan selection → Account creation → Dashboard
-   PADDLE: Search for "PADDLE:" comments to integrate payments
-════════════════════════════════════════════════════════════════ */
-
+           1. Load Paddle.js: <!-- PADDLE: when your account is ready, load Paddle.js here:
+     <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script> -->
+<script>
 var _selectedPlan    = null; /* { key, name, price, billing } */
 var _psBilling       = 'yearly';
 var _planLimits      = {
@@ -7190,7 +7183,6 @@ function createUserAccount(name, email, pass, plan){
 
 /* ── Open user dashboard ── */
 function openUserDashboard(){
-  console.log('[SIRIUS DEBUG] openUserDashboard called, CURRENT_USER=', CURRENT_USER && CURRENT_USER.email);
   if(!CURRENT_USER) return;
   showPage('userDashboardPage');
   loadUserDashboard();
@@ -7261,7 +7253,6 @@ function openComparisons(){
 /* ── Auth state: route signed-in users to dashboard ── */
 /* This is called from the existing onAuthStateChanged */
 function routeAfterAuth(user){
-  console.log('[SIRIUS DEBUG] routeAfterAuth: IS_ADMIN=', IS_ADMIN, 'user=', user && user.email);
   /* Ensure CURRENT_USER is set before routing */
   if(user) CURRENT_USER = user;
   if(IS_ADMIN){
@@ -7276,7 +7267,6 @@ function routeAfterAuth(user){
 
 /* ── Nav Dropdown ── */
 function toggleNavDropdown(el){
-  console.log('[SIRIUS DEBUG] toggleNavDropdown called, el=', el);
   var dd = null;
   if(el){
     var container = el.parentElement;
@@ -7302,7 +7292,6 @@ function toggleNavDropdown(el){
     /* Position dropdown below the trigger element */
     if(el){
       var rect = el.getBoundingClientRect();
-      console.log('[SIRIUS DEBUG] trigger rect:', rect.top, rect.bottom, rect.right, 'windowW:', window.innerWidth);
       if(rect.bottom > 0){
         dd.style.top = (rect.bottom + 6) + 'px';
         dd.style.right = (window.innerWidth - rect.right) + 'px';
@@ -7358,8 +7347,6 @@ function previewLandingAsVisitor(){
 }
 
 /* ── updateLandingForUser ── */
-
-
 </script>
            2. Initialize: Paddle.Initialize({ token: 'YOUR_CLIENT_TOKEN' })
            3. On button click: Paddle.Checkout.open({ priceId: selectedPriceId, ... })
