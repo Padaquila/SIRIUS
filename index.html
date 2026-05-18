@@ -8210,5 +8210,159 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
 })();
 
 </script>
+
+
+<!-- SIRIUS STEP 1 PATCH 2026-05-18: public text sync + unified logged-in nav -->
+<style>
+  body.sirius-logged-in:not(.sirius-preview-mode) #mainHero .btn-outline[onclick*="openModal"],
+  body.sirius-logged-in:not(.sirius-preview-mode) #navAuthArea > .btn-ghost[onclick*="openModal"]{display:none!important}
+  body.sirius-logged-in:not(.sirius-preview-mode) #landing > section:not(#mainHero):not(#loggedInUpgradeSection){display:none!important}
+  body.sirius-logged-in:not(.sirius-preview-mode) #landing footer{display:none!important}
+  body.sirius-preview-mode #landing > section:not(#loggedInUpgradeSection),
+  body.sirius-preview-mode #landing footer{display:block!important}
+  body.sirius-preview-mode #loggedInUpgradeSection{display:none!important}
+  .sirius-unified-actions{display:flex;gap:.75rem;align-items:center}
+  .sirius-user-trigger{display:flex;align-items:center;gap:.55rem;cursor:pointer;border:1px solid rgba(191,198,209,.18);background:rgba(255,255,255,.035);border-radius:999px;padding:.28rem .45rem .28rem .32rem;transition:.2s ease}
+  .sirius-user-trigger:hover{border-color:rgba(191,198,209,.35);background:rgba(191,198,209,.07)}
+  .sirius-user-trigger-name{font-size:.76rem;color:var(--ivory,#F7F6F2);max-width:135px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style>
+<script>
+(function(){
+  function qs(s,r){return (r||document).querySelector(s)}
+  function qsa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+  function logged(){return !!(window.CURRENT_USER || (window.auth && auth.currentUser));}
+  function admin(){return !!window.IS_ADMIN;}
+  function plan(){return String(window._userPlan || (admin()?'free':'free')).toLowerCase();}
+  function displayName(){
+    var u=window.CURRENT_USER || (window.auth && auth.currentUser) || {};
+    return (window.USER_PROFILE && USER_PROFILE.name) || u.displayName || u.email || 'Account';
+  }
+  function initial(){return (displayName().trim()[0]||'?').toUpperCase();}
+  function escapeHtml(x){return String(x||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+  function dropdownHTML(){
+    if(!logged()) return '';
+    var userUpgrade=(!admin() && ['free','starter','trial'].indexOf(plan())>-1)?'<button class="nav-dropdown-item" onclick="closeNavDropdown();openSubscriptionPlan&&openSubscriptionPlan()">Upgrade Your Plan</button>':'';
+    return ''+
+      '<button class="nav-dropdown-item" onclick="closeNavDropdown();goDashboard&&goDashboard()">Dashboard</button>'+ 
+      '<button class="nav-dropdown-item" onclick="closeNavDropdown();openProfile&&openProfile()">My Profile</button>'+ 
+      '<button class="nav-dropdown-item" onclick="closeNavDropdown();openSubscriptionPlan&&openSubscriptionPlan()">Subscription / Plan</button>'+userUpgrade+
+      '<div class="nav-dropdown-divider"></div>'+ 
+      '<button class="nav-dropdown-item" onclick="closeNavDropdown();goToEval&&goToEval()">Evaluate a Property</button>'+ 
+      (admin()?'<button class="nav-dropdown-item" onclick="closeNavDropdown();openAdminPanel&&openAdminPanel()">Admin Panel</button><button class="nav-dropdown-item" onclick="closeNavDropdown();previewLandingAsVisitor&&previewLandingAsVisitor()">Preview as Visitor</button>':'')+
+      '<div class="nav-dropdown-divider"></div>'+ 
+      '<button class="nav-dropdown-item danger" onclick="closeNavDropdown();handleSignOut&&handleSignOut()">Sign Out</button>';
+  }
+  function userMenuHTML(id){
+    return '<div data-dropdown-container style="position:relative">'+
+      '<div class="sirius-user-trigger nav-profile-trigger" onclick="toggleNavDropdown(this)">'+
+        '<div class="nav-profile-avatar-sm" id="'+id+'">'+escapeHtml(initial())+'</div>'+ 
+        '<span class="sirius-user-trigger-name">'+escapeHtml(displayName())+'</span>'+ 
+        '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.45)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'+ 
+      '</div><div class="nav-dropdown" style="right:0">'+dropdownHTML()+'</div></div>';
+  }
+  function setActions(sel, html){var el=qs(sel); if(el) el.innerHTML=html;}
+  function patchLoggedInHero(){
+    var cta=qs('#heroCtaBtn');
+    if(logged() && !document.body.classList.contains('sirius-preview-mode')){
+      if(cta){cta.textContent='Open Calculator'; cta.onclick=function(){goToEval&&goToEval();};}
+      var demo=qs('#mainHero .btn-outline[onclick*="openModal"]'); if(demo) demo.style.display='none';
+      var topDemo=qs('#navAuthArea > .btn-ghost[onclick*="openModal"]'); if(topDemo) topDemo.style.display='none';
+    }else if(!logged() || document.body.classList.contains('sirius-preview-mode')){
+      if(cta){cta.textContent='Start free — no charge for 7 days'; cta.onclick=function(){openPlanSelection&&openPlanSelection();};}
+      var demo2=qs('#mainHero .btn-outline[onclick*="openModal"]'); if(demo2) demo2.style.display='inline-flex';
+      var topDemo2=qs('#navAuthArea > .btn-ghost[onclick*="openModal"]'); if(topDemo2) topDemo2.style.display='inline-flex';
+    }
+  }
+  function patchNavs(){
+    if(!logged()){ patchLoggedInHero(); return; }
+    qsa('.nav-dropdown').forEach(function(dd){dd.innerHTML=dropdownHTML();});
+    var landingSign=qs('#navSignInBtn'), landingInfo=qs('#navUserInfo');
+    if(!document.body.classList.contains('sirius-preview-mode')){
+      if(landingSign) landingSign.style.display='none';
+      if(landingInfo){landingInfo.style.display='block'; var wrap=landingInfo.querySelector('[data-dropdown-container]'); if(wrap) wrap.outerHTML=userMenuHTML('navAvatar_unified');}
+      var navLinks=qs('#landing .nav-links'); if(navLinks) navLinks.style.display='none';
+    }
+    setActions('#profilePage > nav > div:last-child','<button class="btn btn-ghost" onclick="goToLanding&&goToLanding()" style="font-size:.75rem">← Back</button>'+userMenuHTML('navAvatar_profile'));
+    setActions('#planSelectionPage > nav','<div class="nav-logo" onclick="goToLanding&&goToLanding()" style="cursor:pointer"><span style="font-family:\'Cormorant Garamond\',serif;font-weight:300;letter-spacing:.2em">SIRIUS</span></div><div class="sirius-unified-actions"><button class="btn btn-ghost" onclick="goToLanding&&goToLanding()" style="font-size:.75rem">← Back</button>'+userMenuHTML('navAvatar_plan')+'</div>');
+    setActions('#userDashboardPage > nav > div:last-child',userMenuHTML('navAvatar_userdash'));
+    setActions('#adminDashboardPage > nav > div:last-child','<span style="font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700;border:1px solid rgba(212,175,55,.25);padding:.2rem .55rem;border-radius:4px">Admin</span>'+userMenuHTML('navAvatar_admindash'));
+    var evalActions=qs('#evaluation .eval-header-actions');
+    if(evalActions){evalActions.innerHTML='<button class="btn btn-ghost btn-sm" onclick="goToLanding&&goToLanding()">← Back</button><div class="plan-chip" id="planChip">'+(admin()?'Free Plan':escapeHtml((plan()||'free').replace(/\b\w/g,function(m){return m.toUpperCase();}))+' Plan')+'</div>'+userMenuHTML('navAvatar_eval');}
+    patchLoggedInHero();
+  }
+  window.syncSiriusNavs=patchNavs;
+
+  function applyLoggedInVisibility(){
+    var preview=document.body.classList.contains('sirius-preview-mode');
+    document.body.classList.toggle('sirius-logged-in', logged() && !preview);
+    if(logged() && !preview){
+      qsa('#landing > section').forEach(function(sec){ if(sec.id && sec.id!=='mainHero' && sec.id!=='loggedInUpgradeSection') sec.style.display='none'; });
+      var foot=qs('#landing footer'); if(foot) foot.style.display='none';
+      var up=qs('#loggedInUpgradeSection'); if(up) up.style.display=(!admin() && ['free','starter','trial'].indexOf(plan())>-1)?'block':'none';
+    }else if(!logged() || preview){
+      qsa('#landing > section').forEach(function(sec){ if(sec.id==='loggedInUpgradeSection') sec.style.display='none'; else sec.style.display=''; });
+      var foot2=qs('#landing footer'); if(foot2) foot2.style.display='';
+    }
+    patchLoggedInHero();
+  }
+  window.applySiriusLandingState=function(){applyLoggedInVisibility(); patchNavs();};
+
+  function forcePublicLandingTextSync(){
+    if(!window.db || !db.collection) return;
+    try{
+      db.collection('config').doc('landingText').get().then(function(doc){
+        if(doc.exists && typeof applyLandingTexts==='function'){
+          window._landingTexts=doc.data()||{};
+          applyLandingTexts(window._landingTexts);
+        }
+      });
+    }catch(e){}
+  }
+  try{
+    if(window.db && db.collection){
+      db.collection('config').doc('landingText').onSnapshot(function(doc){
+        if(doc.exists && typeof applyLandingTexts==='function'){
+          window._landingTexts=doc.data()||{};
+          applyLandingTexts(window._landingTexts);
+        }
+      });
+    }
+  }catch(e){}
+
+  var oldShowPage=window.showPage;
+  if(oldShowPage){
+    window.showPage=function(id){
+      oldShowPage(id);
+      setTimeout(function(){forcePublicLandingTextSync(); applyLoggedInVisibility(); patchNavs(); window.scrollTo(0,0);},30);
+    };
+  }
+  var oldPreview=window.previewLandingAsVisitor;
+  window.previewLandingAsVisitor=function(){
+    if(!admin()) return;
+    if(oldPreview) oldPreview();
+    setTimeout(function(){
+      document.body.classList.add('sirius-preview-mode');
+      forcePublicLandingTextSync();
+      qsa('#landing > section').forEach(function(sec){ if(sec.id!=='loggedInUpgradeSection') sec.style.display=''; });
+      var f=qs('#landing footer'); if(f) f.style.display='';
+      var navLinks=qs('#landing .nav-links'); if(navLinks) navLinks.style.display='flex';
+      var sign=qs('#navSignInBtn'); if(sign){sign.style.display='inline-flex'; sign.textContent='Sign In'; sign.onclick=function(){openAuthModal&&openAuthModal('signin');};}
+      var info=qs('#navUserInfo'); if(info) info.style.display='none';
+      patchLoggedInHero();
+      var b=qs('#adminPreviewBanner'); if(b){ b.innerHTML='<div class="admin-preview-left">Admin Preview Mode</div><div class="admin-preview-right"><button onclick="toggleAdminPreviewMenu&&toggleAdminPreviewMenu()">Admin Menu</button><div class="admin-preview-menu" id="adminPreviewMenu">'+
+      '<button onclick="exitVisitorPreview&&exitVisitorPreview()">Return to Main Page</button><button onclick="exitVisitorPreview&&exitVisitorPreview();setTimeout(function(){openAdminPanel&&openAdminPanel();},50)">Admin Panel</button><button onclick="exitVisitorPreview&&exitVisitorPreview();setTimeout(function(){goDashboard&&goDashboard();},50)">Dashboard</button><button class="danger" onclick="exitVisitorPreview&&exitVisitorPreview();setTimeout(function(){handleSignOut&&handleSignOut();},50)">Sign Out</button></div></div>'; }
+    },60);
+  };
+  var oldExit=window.exitVisitorPreview;
+  window.exitVisitorPreview=function(){ if(oldExit) oldExit(); setTimeout(function(){document.body.classList.remove('sirius-preview-mode'); showPage&&showPage('landing'); applyLoggedInVisibility(); patchNavs();},30); };
+
+  if(window.auth && auth.onAuthStateChanged){auth.onAuthStateChanged(function(u){window.CURRENT_USER=u||null; setTimeout(function(){forcePublicLandingTextSync(); applyLoggedInVisibility(); patchNavs();},120);});}
+  document.addEventListener('DOMContentLoaded',function(){forcePublicLandingTextSync(); applyLoggedInVisibility(); patchNavs(); setTimeout(forcePublicLandingTextSync,700); setTimeout(function(){applyLoggedInVisibility(); patchNavs();},900);});
+  setTimeout(function(){forcePublicLandingTextSync(); applyLoggedInVisibility(); patchNavs();},300);
+  setTimeout(function(){forcePublicLandingTextSync(); applyLoggedInVisibility(); patchNavs();},1400);
+})();
+</script>
+
 </body>
 </html>
