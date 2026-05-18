@@ -1803,31 +1803,6 @@ body.auth-resetting { pointer-events: none; }
 .version-row{display:flex;align-items:center;justify-content:space-between;padding:.5rem .65rem;border-radius:6px;background:rgba(10,22,40,.5);border:1px solid rgba(191,198,209,.08);margin-bottom:5px}
 .version-ts{font-size:.72rem;color:var(--brushed-silver)}.version-note{font-size:.68rem;color:var(--text-muted)}
 </style>
-  <script>
-  /* Pre-fetch landing text from Firestore REST API — no SDK, no App Check, no auth needed.
-     /config/landingText has allow read: if true, so this works for any visitor. */
-  (function(){
-    var PROJECT = 'sirius-8c655';
-    var URL = 'https://firestore.googleapis.com/v1/projects/' + PROJECT
-            + '/databases/(default)/documents/config/landingText';
-    fetch(URL).then(function(r){ return r.json(); }).then(function(data){
-      if(!data || !data.fields) return;
-      /* Convert Firestore REST format {fieldName:{stringValue:'...'}} to flat object */
-      var texts = {};
-      Object.keys(data.fields).forEach(function(k){
-        var fv = data.fields[k];
-        texts[k] = fv.stringValue || fv.integerValue || fv.booleanValue || '';
-      });
-      /* If applyLandingTexts is already defined (scripts loaded), call it directly */
-      if(typeof applyLandingTexts === 'function'){
-        applyLandingTexts(texts);
-      } else {
-        /* Store for pickup once the main script initialises */
-        window._preFetchedLandingTexts = texts;
-      }
-    }).catch(function(){ /* silently fail — default HTML text stays */ });
-  })();
-  </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.3/math.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <!-- Firebase SDK -->
@@ -5825,36 +5800,19 @@ function applyLandingTexts(texts){
   });
 }
 
-/* Called once on DOMContentLoaded to pick up any pre-fetched landing text */
-function _applyPreFetchedLandingText(){
-  if(window._preFetchedLandingTexts){
-    applyLandingTexts(window._preFetchedLandingTexts);
-    window._preFetchedLandingTexts = null;
-  }
-}
-
 function saveLandingTexts(texts, onDone){
   db.collection('config').doc('landingText').set(texts)
     .then(function(){ if(onDone) onDone(true); })
     .catch(function(e){ if(onDone) onDone(false, e.message); });
 }
 
-var _landingTextListenerActive = false;
 function initLandingTextListener(){
-  if(_landingTextListenerActive) return; /* already listening */
-  _landingTextListenerActive = true;
   db.collection('config').doc('landingText').onSnapshot(function(doc){
     if(doc.exists) applyLandingTexts(doc.data());
-  }, function(e){
-    console.log('landingText listener:', e.code);
-    _landingTextListenerActive = false; /* allow retry on failure */
-  });
+  }, function(e){ console.log('landingText listener:', e.code); });
 }
-/* Landing text is loaded after App Check initialises (see App Check block below) */
-/* Also apply any text pre-fetched before SDK loaded */
-document.addEventListener('DOMContentLoaded', function(){
-  if(typeof _applyPreFetchedLandingText === 'function') _applyPreFetchedLandingText();
-});
+/* Try immediately and also after auth state resolves */
+try{ initLandingTextListener(); } catch(e){}
 
 /* Admin render function */
 function renderLandingTextEditor(){
@@ -6702,10 +6660,6 @@ function loadAllConfigs(){
           true
         );
         console.log('App Check initialised OK');
-        /* Now safe to read public Firestore docs as visitor */
-        if(typeof initLandingTextListener === 'function'){
-          try{ initLandingTextListener(); } catch(e){ console.warn('landingText init failed:', e); }
-        }
       } catch(e) {
         console.warn('App Check failed:', e.message);
       }
