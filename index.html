@@ -9978,5 +9978,149 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
 })();
 </script>
 
+<!-- SIRIUS STEP 4H PATCH 2026-05-18: permission-safe saved work + stable logged-in breakdown buttons -->
+<style id="sirius-step4h-css">
+  /* Keep payment-breakdown CTAs out of landing/preview, but allow logged-in dashboards. */
+  #landing #heroBuyerBreakdownBtn,
+  #landing #heroSellerBreakdownBtn,
+  body.sirius-preview-mode #heroBuyerBreakdownBtn,
+  body.sirius-preview-mode #heroSellerBreakdownBtn,
+  body.preview-mode #heroBuyerBreakdownBtn,
+  body.preview-mode #heroSellerBreakdownBtn { display:none!important; }
+
+  .sirius-step4h-tool-row{display:flex;gap:.75rem;flex-wrap:wrap;margin:1rem 0 1.25rem;align-items:stretch}
+  .sirius-step4h-tool-btn{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;min-height:42px;padding:.72rem 1rem;border-radius:8px;border:1px solid rgba(191,198,209,.24);background:rgba(191,198,209,.055);color:var(--white,#F7F6F2);font-family:var(--font-body,system-ui);font-size:.78rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;text-decoration:none;transition:all .18s ease;white-space:normal;text-align:center;line-height:1.25;overflow-wrap:anywhere;max-width:100%}
+  .sirius-step4h-tool-btn:hover{border-color:rgba(191,198,209,.45);background:rgba(191,198,209,.1);transform:translateY(-1px)}
+  .sirius-step4h-permission-note{font-size:.78rem;line-height:1.55;color:rgba(191,198,209,.7);border:1px solid rgba(231,76,60,.25);background:rgba(231,76,60,.07);border-radius:8px;padding:.85rem 1rem;margin-top:.75rem;overflow-wrap:anywhere}
+</style>
+<script id="sirius-step4h-script">
+(function(){
+  function qs(s,r){return (r||document).querySelector(s)}
+  function qsa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+  function user(){try{return window.CURRENT_USER||(window.auth&&auth.currentUser)||null}catch(e){return null}}
+  function isLogged(){return !!user()}
+  function isAdmin(){var u=user();return !!(window.IS_ADMIN || (u&&String(u.email||'').toLowerCase()==='netflix.officiel.moncef@gmail.com'))}
+  function activePage(){var p=qs('.page.active');return p&&p.id?p.id:''}
+  function isPreview(){return !!(window.SIRIUS_PREVIEW_MODE||document.body.classList.contains('sirius-preview-mode')||document.body.classList.contains('preview-mode')||qs('.visitor-preview-banner'))}
+  function dbx(){try{return window.db&&db.collection?db:(window.firebase&&firebase.firestore?firebase.firestore():null)}catch(e){return null}}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function escAttr(v){return esc(v).replace(/`/g,'&#96;')}
+  function text(el){return (el&&el.textContent||'').trim().replace(/\s+/g,' ')}
+  function nowField(){try{return firebase.firestore.FieldValue.serverTimestamp()}catch(e){return new Date().toISOString()}}
+  function fmtDate(v){try{if(!v)return '—'; if(v.toDate)v=v.toDate(); return new Date(v).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}catch(e){return '—'}}
+  function colTitle(c){return c==='savedBuyerBreakdowns'?'Saved Buyer Payment Breakdowns':c==='savedSellerBreakdowns'?'Saved Seller Payment Breakdowns':'Saved Property Evaluations'}
+
+  function shouldShowLoggedInTools(){
+    var p=activePage();
+    return isLogged() && !isPreview() && (p==='userDashboardPage' || p==='adminDashboardPage' || p==='profilePage' || p==='evaluation' || p==='buyerBreakdownPage' || p==='sellerBreakdownPage');
+  }
+
+  /* Landing/visitor/preview must never show buyer/seller payment breakdown CTAs. */
+  function hidePublicBreakdownCTAs(){
+    var landing=qs('#landing');
+    if(landing){
+      qsa('#heroBuyerBreakdownBtn,#heroSellerBreakdownBtn',landing).forEach(function(el){el.remove();});
+      qsa('button,a',landing).forEach(function(el){
+        var t=text(el); if(t==='Buyer Payment Breakdown'||t==='Seller Payment Breakdown') el.remove();
+      });
+    }
+    if(isPreview()){
+      qsa('button,a').forEach(function(el){var t=text(el); if(t==='Buyer Payment Breakdown'||t==='Seller Payment Breakdown') el.remove();});
+    }
+  }
+
+  /* Logged-in dashboards should have stable buttons near the dashboard tools, not on public landing. */
+  function ensureDashboardBreakdownButtons(){
+    if(!shouldShowLoggedInTools()) return;
+    ['userDashboardPage','adminDashboardPage'].forEach(function(pid){
+      var page=qs('#'+pid); if(!page || !page.classList.contains('active')) return;
+      var anchor=qs('#siriusSavedWorkPanel',page) || qs('.dash-grid',page) || qs('[class*="grid"]',page) || page;
+      if(qs('#siriusStep4HToolRow',page)) return;
+      var row=document.createElement('div'); row.id='siriusStep4HToolRow'; row.className='sirius-step4h-tool-row';
+      row.innerHTML='<button type="button" class="sirius-step4h-tool-btn" onclick="goToBuyerBreakdown&&goToBuyerBreakdown()">Buyer Payment Breakdown</button><button type="button" class="sirius-step4h-tool-btn" onclick="goToSellerBreakdown&&goToSellerBreakdown()">Seller Payment Breakdown</button>';
+      if(anchor.id==='siriusSavedWorkPanel') anchor.parentNode.insertBefore(row,anchor);
+      else if(anchor.parentNode) anchor.parentNode.insertBefore(row,anchor.nextSibling);
+      else page.appendChild(row);
+    });
+  }
+
+  function canonicalDropdownHTML(){
+    var admin=isAdmin();
+    var breakdowns=shouldShowLoggedInTools()?'<button class="nav-dropdown-item" data-sirius-breakdown-item="buyer" onclick="closeNavDropdown&&closeNavDropdown();goToBuyerBreakdown&&goToBuyerBreakdown()">Buyer Payment Breakdown</button><button class="nav-dropdown-item" data-sirius-breakdown-item="seller" onclick="closeNavDropdown&&closeNavDropdown();goToSellerBreakdown&&goToSellerBreakdown()">Seller Payment Breakdown</button>':'';
+    return '<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();goDashboard&&goDashboard()">Dashboard</button>'+ 
+      '<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();openProfile&&openProfile()">My Profile</button>'+ 
+      '<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();openSubscriptionPlan&&openSubscriptionPlan()">Subscription / Plan</button>'+ 
+      '<div class="nav-dropdown-divider"></div>'+ 
+      '<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();goToEval&&goToEval()">Evaluate a Property</button>'+breakdowns+
+      (admin?'<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();openAdminPanel&&openAdminPanel()">Admin Panel</button><button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();previewLandingAsVisitor&&previewLandingAsVisitor()">Preview as Visitor</button>':'')+
+      '<button class="nav-dropdown-item" data-sirius-settings-item="1" onclick="closeNavDropdown&&closeNavDropdown();openSiriusSettings&&openSiriusSettings(\'subscription\')">Settings</button>'+ 
+      '<div class="nav-dropdown-divider"></div>'+ 
+      '<button class="nav-dropdown-item danger" onclick="closeNavDropdown&&closeNavDropdown();handleSignOut&&handleSignOut()">Sign Out</button>';
+  }
+
+  /* Stop dropdown flicker by writing one canonical menu only when logged in. */
+  function stabilizeDropdowns(){
+    if(!isLogged()) return;
+    var html=canonicalDropdownHTML();
+    qsa('.nav-dropdown').forEach(function(dd){
+      if(dd.getAttribute('data-step4h-menu')==='1' && dd.innerHTML===html) return;
+      dd.innerHTML=html; dd.setAttribute('data-step4h-menu','1');
+    });
+  }
+
+  function ensureCollectionModal(){
+    if(qs('#siriusCollectionModal')) return;
+    var m=document.createElement('div');m.id='siriusCollectionModal';m.className='sirius-modal-shell';
+    m.innerHTML='<div class="sirius-modal-card"><div class="sirius-modal-head"><div><div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(191,198,209,.45);font-weight:900">SIRIUS</div><div class="sirius-modal-title" id="siriusCollectionTitle">Saved Work</div></div><button class="modal-close" onclick="document.getElementById(\'siriusCollectionModal\').classList.remove(\'open\')">&#10005;</button></div><div class="sirius-modal-body" id="siriusCollectionBody"></div></div>';
+    document.body.appendChild(m);
+  }
+
+  /* Permission-safe saved work reader. If orderBy is blocked or fields are missing, retry plain get(). */
+  window.openSavedCollection=function(collection,title){
+    var u=user(),d=dbx(); if(!u||!d){alert('Please sign in first.');return;}
+    ensureCollectionModal(); qs('#siriusCollectionTitle').textContent=title||colTitle(collection); var body=qs('#siriusCollectionBody');
+    body.innerHTML='<div class="sirius-saas-card">Loading...</div>'; qs('#siriusCollectionModal').classList.add('open');
+    var ref=d.collection('users').doc(u.uid).collection(collection);
+    var read=ref.orderBy('createdAt','desc').get().catch(function(){return ref.get();});
+    read.then(function(snap){
+      var docs=[]; snap.forEach(function(doc){docs.push({id:doc.id,data:doc.data()||{}})});
+      docs.sort(function(a,b){var av=a.data.createdAt&&a.data.createdAt.toMillis?a.data.createdAt.toMillis():0;var bv=b.data.createdAt&&b.data.createdAt.toMillis?b.data.createdAt.toMillis():0;return bv-av;});
+      if(!docs.length){body.innerHTML='<div class="sirius-saas-card">Nothing saved here yet. Completed results will auto-save here.</div>';return;}
+      var rows=docs.map(function(x){var r=x.data,name=r.reportName||r.name||r.title||'Untitled';return '<tr data-id="'+escAttr(x.id)+'"><td class="sirius-check-cell"><input type="checkbox" class="sirius-row-check" value="'+escAttr(x.id)+'"></td><td><strong>'+esc(name)+'</strong><div style="font-size:.68rem;color:rgba(191,198,209,.42);margin-top:.2rem">Created '+fmtDate(r.createdAt)+'</div></td><td>'+fmtDate(r.updatedAt||r.createdAt)+'</td><td><div class="sirius-report-actions"><button class="sirius-soft-btn" onclick="openSavedSnapshot(\''+collection+'\',\''+x.id+'\')">Open</button><button class="sirius-soft-btn" onclick="renameSavedItem(\''+collection+'\',\''+x.id+'\',\''+escAttr(name)+'\')">Rename</button><button class="sirius-soft-btn danger" onclick="deleteSavedItem(\''+collection+'\',\''+x.id+'\')">Delete</button></div></td></tr>';}).join('');
+      body.innerHTML='<div class="sirius-bulk-row"><div class="sirius-bulk-left"><label><input type="checkbox" id="siriusSelectAllSaved"> Select all</label><span id="siriusSelectedCount">0 selected</span></div><button class="sirius-soft-btn danger" onclick="deleteSelectedSavedItems(\''+collection+'\')">Delete selected</button></div><table class="sirius-table"><thead><tr><th class="sirius-check-cell"></th><th>Name</th><th>Updated</th><th>Actions</th></tr></thead><tbody>'+rows+'</tbody></table>';
+      var all=qs('#siriusSelectAllSaved'), count=qs('#siriusSelectedCount');
+      function sync(){var n=qsa('#siriusCollectionBody .sirius-row-check:checked').length;if(count)count.textContent=n+' selected';}
+      if(all) all.onchange=function(){qsa('#siriusCollectionBody .sirius-row-check').forEach(function(c){c.checked=all.checked});sync();};
+      qsa('#siriusCollectionBody .sirius-row-check').forEach(function(c){c.onchange=sync;});
+    }).catch(function(e){
+      body.innerHTML='<div class="sirius-step4h-permission-note"><strong>Could not load saved work:</strong> '+esc(e.code||e.message)+'<br><br>If this says permission-denied, publish the Step 4H Firestore rules, then sign out and sign back in so Firebase refreshes your auth token.</div>';
+    });
+  };
+
+  window.renameSavedItem=function(collection,id,current){
+    var u=user(),d=dbx(); if(!u||!d)return; var n=prompt('Rename',current||'Untitled'); if(!n)return;
+    d.collection('users').doc(u.uid).collection(collection).doc(id).set({reportName:n,name:n,updatedAt:nowField()},{merge:true}).then(function(){openSavedCollection(collection,colTitle(collection));}).catch(function(e){alert('Could not rename: '+(e.code||e.message));});
+  };
+  window.deleteSavedItem=function(collection,id){
+    var u=user(),d=dbx(); if(!u||!d)return; if(!confirm('Delete this saved item? This cannot be undone.'))return;
+    d.collection('users').doc(u.uid).collection(collection).doc(id).delete().then(function(){openSavedCollection(collection,colTitle(collection));}).catch(function(e){alert('Could not delete: '+(e.code||e.message));});
+  };
+  window.deleteSelectedSavedItems=function(collection){
+    var u=user(),d=dbx(); if(!u||!d)return; var ids=qsa('#siriusCollectionBody .sirius-row-check:checked').map(function(c){return c.value;}).filter(Boolean);
+    if(!ids.length){alert('Select at least one item to delete.');return;} if(!confirm('Delete '+ids.length+' selected item(s)? This cannot be undone.'))return;
+    var batch=d.batch(); ids.forEach(function(id){batch.delete(d.collection('users').doc(u.uid).collection(collection).doc(id));});
+    batch.commit().then(function(){openSavedCollection(collection,colTitle(collection));}).catch(function(e){alert('Could not delete selected items: '+(e.code||e.message));});
+  };
+
+  function sync(){hidePublicBreakdownCTAs();ensureDashboardBreakdownButtons();stabilizeDropdowns();}
+  document.addEventListener('DOMContentLoaded',function(){sync();setTimeout(sync,250);setTimeout(sync,900);setTimeout(sync,1800);});
+  window.addEventListener('load',function(){sync();setTimeout(sync,400);setTimeout(sync,1300);});
+  if(window.auth&&auth.onAuthStateChanged){try{auth.onAuthStateChanged(function(){setTimeout(sync,250);setTimeout(sync,1200);});}catch(e){}}
+  var obs=new MutationObserver(function(){clearTimeout(window.__sirius4hSyncTimer);window.__sirius4hSyncTimer=setTimeout(sync,80);});
+  try{obs.observe(document.documentElement,{childList:true,subtree:true});}catch(e){}
+  setInterval(sync,850);
+})();
+</script>
+
 </body>
 </html>
