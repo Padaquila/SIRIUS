@@ -1532,7 +1532,12 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
   display: block !important;
   background: var(--bg);
   min-height: 100vh;
+  overflow-y: auto;
 }
+#adminDashboardPage.active {
+  overflow-y: auto;
+}
+body.auth-resetting { pointer-events: none; }
 
 
 .nav-dropdown {
@@ -3354,7 +3359,7 @@ function showPage(id){
   document.documentElement.scrollTop = 0;
   document.body.scrollTop = 0;
 }
-function goToEval(plan){var chip=document.getElementById('planChip');if(chip)chip.textContent=(plan||'Free')+' Plan';showPage('evaluation');stepUI();}
+function goToEval(plan){if(!CURRENT_USER){showPage('landing');openAuthModal();return;}var chip=document.getElementById('planChip');if(chip)chip.textContent=(plan||'Free')+' Plan';showPage('evaluation');stepUI();}
 function goToLanding(){showPage('landing');}
 function scrollTo2(sel){var el=document.querySelector(sel);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
 
@@ -5606,7 +5611,33 @@ function signInWithGoogle(){
 
 /* ── Sign out ── */
 function handleSignOut(){
-  auth.signOut();
+  closeNavDropdown();
+  document.body.classList.add('auth-resetting');
+
+  auth.signOut().then(function(){
+    CURRENT_USER = null;
+    IS_ADMIN = false;
+    window._userPlan = 'free';
+    USER_PROFILE = {};
+    resetLandingForVisitor();
+
+    var navSignIn = document.getElementById('navSignInBtn');
+    var navUserInfo = document.getElementById('navUserInfo');
+    if(navSignIn) navSignIn.style.display = '';
+    if(navUserInfo) navUserInfo.style.display = 'none';
+
+    var fab = document.getElementById('adminFab');
+    if(fab) fab.style.display = 'none';
+    var adminOverlay = document.getElementById('adminOverlay');
+    if(adminOverlay) adminOverlay.classList.remove('open');
+
+    showPage('landing');
+  }).catch(function(e){
+    console.error('Sign out failed:', e);
+    alert('Sign out failed. Please refresh and try again.');
+  }).finally(function(){
+    document.body.classList.remove('auth-resetting');
+  });
 }
 
 /* ── Auth state listener — fires whenever login state changes ── */
@@ -5648,11 +5679,21 @@ auth.onAuthStateChanged(function(user){
     });
   } else {
     /* Not signed in */
-    CURRENT_USER = null; IS_ADMIN = false;
-    document.getElementById('navSignInBtn').style.display  = '';
-    document.getElementById('navUserInfo').style.display   = 'none';
+    CURRENT_USER = null;
+    IS_ADMIN = false;
+    window._userPlan = 'free';
+    USER_PROFILE = {};
+    resetLandingForVisitor();
+    closeNavDropdown();
+    var navSignIn = document.getElementById('navSignInBtn');
+    var navUserInfo = document.getElementById('navUserInfo');
+    if(navSignIn) navSignIn.style.display  = '';
+    if(navUserInfo) navUserInfo.style.display   = 'none';
     var fab = document.getElementById('adminFab');
     if(fab) fab.style.display = 'none';
+    if(document.querySelector('.page.active') && document.querySelector('.page.active').id !== 'landing'){
+      showPage('landing');
+    }
   }
 });
 
@@ -6623,8 +6664,35 @@ function loadAllConfigs(){
         console.warn('App Check failed:', e.message);
       }
     });
+/* ── Reset landing page to logged-out visitor state ── */
+function resetLandingForVisitor(){
+  var heroBtn = document.getElementById('heroCtaBtn');
+  if(heroBtn){
+    heroBtn.textContent = 'Start free — no charge for 7 days';
+    heroBtn.onclick = function(){ openPlanSelection(); };
+  }
+
+  var pricingEl = document.getElementById('pricing');
+  if(pricingEl) pricingEl.style.display = '';
+
+  var demoSec = document.getElementById('demoSection');
+  if(demoSec) demoSec.style.display = '';
+
+  var dashBtn = document.getElementById('adminDashBtn');
+  if(dashBtn) dashBtn.remove();
+
+  var previewBanner = document.getElementById('adminPreviewBanner');
+  if(previewBanner) previewBanner.remove();
+
+  document.querySelectorAll('[data-sirius-auth-cta="1"]').forEach(function(btn){
+    btn.textContent = btn.getAttribute('data-visitor-text') || 'Start free — 7 days on us';
+    btn.onclick = function(){ openPlanSelection(); };
+  });
+}
+
 /* ── Update landing page based on auth state ── */
 function updateLandingForUser(user){
+  resetLandingForVisitor();
   var isAdmin = IS_ADMIN;
   var heroBtn = document.getElementById('heroCtaBtn');
   var navSignIn = document.getElementById('navSignInBtn');
@@ -6655,8 +6723,10 @@ function updateLandingForUser(user){
       navUserInfoEl.insertBefore(dashBtn, navUserInfoEl.firstChild);
     }
     /* Replace all subscription CTAs with calculator */
-    document.querySelectorAll('[onclick*="openAuthModal"]').forEach(function(btn){
+    document.querySelectorAll('[onclick*="openAuthModal"], [onclick*="openPlanSelection"]').forEach(function(btn){
       if(btn.id !== 'heroCtaBtn'){
+        if(!btn.getAttribute('data-visitor-text')) btn.setAttribute('data-visitor-text', btn.textContent);
+        btn.setAttribute('data-sirius-auth-cta','1');
         btn.textContent = 'Open Calculator';
         btn.onclick = function(){ goToEval(); };
       }
@@ -7199,7 +7269,7 @@ function createUserAccount(name, email, pass, plan){
 
 /* ── Open user dashboard ── */
 function openUserDashboard(){
-  if(!CURRENT_USER) return;
+  if(!CURRENT_USER){ showPage('landing'); openAuthModal(); return; }
   showPage('userDashboardPage');
   loadUserDashboard();
 }
@@ -7346,19 +7416,26 @@ function updateNavAvatar(name){
 
 /* ── goDashboard helper ── */
 function goDashboard(){
+  if(!CURRENT_USER){ showPage('landing'); openAuthModal(); return; }
   if(IS_ADMIN) openAdminDashboard();
   else openUserDashboard();
 }
 
 /* ── previewLandingAsVisitor ── */
 function previewLandingAsVisitor(){
+  resetLandingForVisitor();
   showPage('landing');
+  var pricingEl = document.getElementById('pricing');
+  if(pricingEl) pricingEl.style.display = '';
+  var demoSec = document.getElementById('demoSection');
+  if(demoSec) demoSec.style.display = '';
+
   var existing = document.getElementById('adminPreviewBanner');
   if(existing) existing.remove();
   var banner = document.createElement('div');
   banner.id = 'adminPreviewBanner';
-  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:8999;background:rgba(212,175,55,.95);color:rgba(8,18,34,1);text-align:center;padding:.55rem 1rem;font-size:.78rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:1rem';
-  banner.innerHTML = '&#128065; Visitor Preview — <button onclick="document.getElementById(\'adminPreviewBanner\').remove();openAdminDashboard()" style="background:rgba(8,18,34,.2);border:1px solid rgba(8,18,34,.3);color:rgba(8,18,34,.9);padding:.25rem .75rem;border-radius:6px;cursor:pointer;font-weight:700;font-size:.75rem">&#8592; Return to Dashboard</button>';
+  banner.style.cssText = 'position:fixed;top:64px;left:0;right:0;z-index:8999;background:rgba(212,175,55,.95);color:rgba(8,18,34,1);text-align:center;padding:.55rem 1rem;font-size:.78rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:1rem';
+  banner.innerHTML = '&#128065; Visitor Preview — <button onclick="document.getElementById(\'adminPreviewBanner\').remove();updateLandingForUser(CURRENT_USER);openAdminDashboard()" style="background:rgba(8,18,34,.2);border:1px solid rgba(8,18,34,.3);color:rgba(8,18,34,.9);padding:.25rem .75rem;border-radius:6px;cursor:pointer;font-weight:700;font-size:.75rem">&#8592; Return to Dashboard</button>';
   document.body.appendChild(banner);
 }
 
@@ -7462,65 +7539,6 @@ function previewLandingAsVisitor(){
     </div>
   </div>
 </div>
-
-</body>
-</html><section id="pricing" style="background:rgba(17,43,77,.2);padding:5rem 2rem">
-    <div style="max-width:1100px;margin:0 auto">
-      <div style="text-align:center;margin-bottom:2rem">
-        <div class="section-label">Simple Pricing</div><div class="gold-line"></div>
-        <h2 class="section-title" id="pricingSectionTitle">Start free. <em class="gold">Upgrade when you're ready.</em></h2>
-        <p id="pricingSectionSub" style="color:rgba(191,198,209,.78);font-size:.95rem;margin-top:.75rem;max-width:480px;margin-left:auto;margin-right:auto;font-weight:300;line-height:1.7">Every plan includes a 7-day full-access trial. No charge until day 8. Cancel anytime.</p>
-      </div>
-      <div style="display:flex;justify-content:center;margin-bottom:1.5rem">
-        <div style="display:flex;gap:.5rem">
-          <button class="plan-type-tab active" onclick="setPlanType('individual',this)">Individual</button>
-          <button class="plan-type-tab" onclick="setPlanType('company',this)">Agency</button>
-        </div>
-      </div>
-      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:2.5rem">
-        <div id="billAnnual" onclick="setBillingCard('yearly')" style="cursor:pointer;border-radius:12px;border:2px solid rgba(39,174,96,.55);background:rgba(39,174,96,.07);padding:.9rem 1.5rem;min-width:190px;text-align:center;transition:all .2s ease">
-          <div style="font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(39,174,96,.85);font-weight:700;margin-bottom:.3rem">Annual billing</div>
-          <div style="font-family:Inter,system-ui,sans-serif;font-size:1.1rem;font-weight:700;color:var(--ivory)" id="billAnnualPrice">—</div>
-          <div style="font-size:.7rem;color:rgba(191,198,209,.55);margin-top:.2rem">per month · billed yearly</div>
-          <div style="margin-top:.4rem;display:inline-block;background:rgba(39,174,96,.2);color:rgba(39,174,96,.9);font-size:.6rem;font-weight:700;padding:.18rem .55rem;border-radius:99px;letter-spacing:.06em">2 MONTHS FREE</div>
-        </div>
-        <div id="billMonthly" onclick="setBillingCard('monthly')" style="cursor:pointer;border-radius:12px;border:2px solid rgba(191,198,209,.12);background:rgba(191,198,209,.03);padding:.9rem 1.5rem;min-width:190px;text-align:center;transition:all .2s ease">
-          <div style="font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.5);font-weight:700;margin-bottom:.3rem">Monthly billing</div>
-          <div style="font-family:Inter,system-ui,sans-serif;font-size:1.1rem;font-weight:700;color:var(--ivory)" id="billMonthlyPrice">—</div>
-          <div style="font-size:.7rem;color:rgba(191,198,209,.55);margin-top:.2rem">per month · no commitment</div>
-          <div style="margin-top:.4rem;display:inline-block;border:1px solid rgba(191,198,209,.15);color:rgba(191,198,209,.35);font-size:.6rem;padding:.18rem .55rem;border-radius:99px;letter-spacing:.06em">FLEXIBLE</div>
-        </div>
-      </div>
-      <div class="pricing-grid" id="pricingGrid"></div>
-      <p style="text-align:center;font-size:.72rem;color:rgba(191,198,209,.25);margin-top:2rem">All prices in AED &middot; Cancel anytime &middot; No hidden fees</p>
-    </div>
-  </section>
-
-  
-
-  
-
-  
-
-  <footer>
-    <div class="footer-logo nav-logo-sirius">
-      <svg width="13" height="13" viewBox="0 0 60 60" fill="none" aria-hidden="true">
-        <defs><radialGradient id="starFootGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff"/><stop offset="40%" stop-color="#e0e8f0"/><stop offset="100%" stop-color="#8a959e" stop-opacity="0.6"/></radialGradient></defs>
-        <path d="M30 1 L32.8 27.2 L59 30 L32.8 32.8 L30 59 L27.2 32.8 L1 30 L27.2 27.2 Z" fill="url(#starFootGrad)"/>
-        <path d="M30 18 L31.5 28.5 L42 30 L31.5 31.5 L30 42 L28.5 31.5 L18 30 L28.5 28.5 Z" fill="white" opacity="0.8"/>
-      </svg>
-      <span class="nav-sirius-text" style="font-size:1.1rem">SIRIUS</span>
-      <span style="font-family:var(--font-body);font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;color:#6e7b87;font-weight:300;margin-left:.3rem;align-self:flex-end;padding-bottom:.1rem">Invest with Clarity</span>
-    </div>
-    <div class="footer-copy" id="footerCopy">&#169; 2025 Sirius &nbsp;&middot;&nbsp; Invest with Clarity</div>
-    <div style="display:flex;gap:1rem">
-      <a href="#" style="font-size:.78rem;color:var(--text-muted);text-decoration:none">Privacy</a>
-      <a href="#" style="font-size:.78rem;color:var(--text-muted);text-decoration:none">Terms</a>
-    </div>
-  </footer>
-</div>
-
-<!-- ===== EVALUATION ===== -->
 
 </body>
 </html>
