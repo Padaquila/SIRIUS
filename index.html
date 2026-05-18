@@ -6646,9 +6646,9 @@ function loadAllConfigs(){
       <label>Your name</label>
       <input type="text" id="authName" placeholder="First name">
     </div>
-    <button class="auth-submit-btn" id="authSubmitBtn" onclick="handleAuthSubmit()">Sign in</button>
+    <button type="button" class="auth-submit-btn" id="authSubmitBtn" onclick="handleAuthSubmit()">Sign in</button>
     <div class="auth-divider">or</div>
-    <button class="auth-google-btn" onclick="signInWithGoogle()">
+    <button type="button" class="auth-google-btn" onclick="return signInWithGoogle(event)">
       <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.7 33.7 29.3 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 6 1.1 8.2 3l5.7-5.7C34.4 5.1 29.5 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c11 0 20-8 20-20.5 0-1.2-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3.1 0 6 1.1 8.2 3l5.7-5.7C34.4 5.1 29.5 3 24 3c-7.6 0-14.2 4.4-17.7 11.7z"/><path fill="#4CAF50" d="M24 45c5.2 0 10-1.8 13.7-4.8l-6.3-5.2C29.5 36.4 26.9 37 24 37c-5.2 0-9.6-3.3-11.3-7.9l-6.6 4.8C9.8 40.6 16.4 45 24 45z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.3-2.3 4.2-4.3 5.5l6.3 5.2C41 35.2 44 30 44 24c0-1.2-.1-2.3-.4-3.5z"/></svg>
       Continue with Google
     </button>
@@ -8864,6 +8864,80 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
   document.addEventListener('DOMContentLoaded',function(){lockHeroCTA();patchAllBackButtons();forcePublicLandingText();startPublicWatcher();});
   window.addEventListener('load',function(){[100,600,1500,3500,7000].forEach(function(ms){setTimeout(function(){forcePublicLandingText();startPublicWatcher();lockHeroCTA();patchAllBackButtons();},ms);});});
   setInterval(function(){lockHeroCTA();patchAllBackButtons(); if(activePageId()==='landing' && !logged()) forcePublicLandingText();},1000);
+})();
+</script>
+
+
+
+<!-- SIRIUS STEP 4A HOTFIX 2026-05-18: restore Google sign-in click handler -->
+<script id="sirius-google-signin-hotfix-js">
+(function(){
+  function qs(s,r){return (r||document).querySelector(s)}
+  function setAuthError(msg){var el=qs('#authError'); if(el) el.textContent=msg||'';}
+  function closeModal(){var m=qs('#authModal'); if(m) m.classList.remove('open');}
+  function afterLogin(){
+    try{ closeModal(); }catch(e){}
+    try{ if(typeof applySiriusLandingState==='function') applySiriusLandingState(); }catch(e){}
+    try{ if(typeof syncSiriusNavs==='function') syncSiriusNavs(); }catch(e){}
+    try{ if(typeof patchAllBackButtons==='function') patchAllBackButtons(); }catch(e){}
+  }
+  window.signInWithGoogle=function(ev){
+    if(ev){ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();}
+    if(window.__siriusGoogleSigningIn) return false;
+    window.__siriusGoogleSigningIn=true;
+    setTimeout(function(){window.__siriusGoogleSigningIn=false;},12000);
+    setAuthError('');
+    try{
+      if(!window.firebase || !firebase.auth || !window.auth){
+        setAuthError('Google sign-in is still loading. Please try again in a moment.');
+        window.__siriusGoogleSigningIn=false;
+        return false;
+      }
+      try{auth.useDeviceLanguage&&auth.useDeviceLanguage();}catch(e){}
+      var provider=new firebase.auth.GoogleAuthProvider();
+      provider.addScope('email'); provider.addScope('profile');
+      provider.setCustomParameters({prompt:'select_account'});
+      auth.signInWithPopup(provider).then(function(result){
+        var user=result&&result.user;
+        if(user && window.db && db.collection){
+          return db.collection('users').doc(user.uid).set({
+            email:user.email||'',
+            displayName:user.displayName||'',
+            lastLoginAt:firebase.firestore.FieldValue.serverTimestamp()
+          },{merge:true});
+        }
+      }).then(function(){
+        window.__siriusGoogleSigningIn=false;
+        afterLogin();
+      }).catch(function(e){
+        window.__siriusGoogleSigningIn=false;
+        console.warn('Google sign-in hotfix:', e && e.code, e && e.message);
+        if(e && (e.code==='auth/popup-blocked' || e.code==='auth/cancelled-popup-request')){
+          setAuthError('Please allow the Google sign-in popup, then click Continue with Google again.');
+        }else if(e && e.code==='auth/popup-closed-by-user'){
+          setAuthError('Google sign-in was closed before completion.');
+        }else{
+          setAuthError((e&&e.message) ? e.message : 'Google sign-in failed. Please try again.');
+        }
+      });
+    }catch(err){
+      window.__siriusGoogleSigningIn=false;
+      console.error('Google sign-in click failed:',err);
+      setAuthError('Google sign-in failed to start. Please refresh and try again.');
+    }
+    return false;
+  };
+  function bindGoogleButtons(){
+    var buttons=document.querySelectorAll('.auth-google-btn');
+    buttons.forEach(function(btn){
+      btn.setAttribute('type','button');
+      btn.onclick=function(e){return window.signInWithGoogle(e);};
+    });
+  }
+  document.addEventListener('DOMContentLoaded',bindGoogleButtons);
+  window.addEventListener('load',bindGoogleButtons);
+  setTimeout(bindGoogleButtons,300);
+  setTimeout(bindGoogleButtons,1200);
 })();
 </script>
 
