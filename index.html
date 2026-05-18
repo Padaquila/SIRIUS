@@ -8858,5 +8858,184 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
 })();
 </script>
 
+
+
+<!-- SIRIUS STEP 3B PATCH 2026-05-18: preview purity + eval top spacing + public landing sync only -->
+<style id="sirius-step3b-css">
+  /* Preview as Visitor must show the real public visitor website only. */
+  body.sirius-preview-mode #loggedInUpgradeSection,
+  body.sirius-preview-mode .sirius-show-upgrade,
+  body.sirius-preview-mode #udUpgradePrompt{
+    display:none!important;
+    visibility:hidden!important;
+    pointer-events:none!important;
+  }
+
+  /* Evaluation page/header must start at the top with no phantom gap. */
+  body:not(.sirius-preview-mode) #evaluation.active{
+    padding-top:0!important;
+    margin-top:0!important;
+  }
+  body:not(.sirius-preview-mode) #evaluation.active .eval-header{
+    margin-top:0!important;
+    top:0!important;
+  }
+  body:not(.sirius-preview-mode) #evaluation.active .step-content{
+    padding-top:2rem!important;
+  }
+</style>
+<script id="sirius-step3b-js">
+(function(){
+  /* Do not touch Google sign-in/auth popup logic in this patch. */
+  function qs(s,r){return (r||document).querySelector(s)}
+  function qsa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+  function activePage(){var p=qs('.page.active'); return p && p.id ? p.id : null;}
+  function isDash(id){return id==='userDashboardPage' || id==='adminDashboardPage';}
+
+  function hideNonVisitorInPreview(){
+    if(!document.body.classList.contains('sirius-preview-mode')) return;
+    qsa('#loggedInUpgradeSection, .sirius-show-upgrade, #udUpgradePrompt').forEach(function(el){
+      el.style.setProperty('display','none','important');
+      el.style.setProperty('visibility','hidden','important');
+    });
+    var hero=qs('#heroCtaBtn');
+    if(hero){
+      hero.textContent='Start free — no charge for 7 days';
+      hero.onclick=function(e){ if(e) e.preventDefault(); if(typeof openPlanSelection==='function') openPlanSelection(); return false; };
+    }
+    var navUser=qs('#navUserInfo'); if(navUser) navUser.style.display='none';
+    var sign=qs('#navSignInBtn'); if(sign){ sign.style.display=''; sign.textContent='Sign In'; }
+  }
+
+  /* Wrap preview to force a clean visitor-only page below admin overlay. */
+  var oldPreview=window.previewLandingAsVisitor;
+  if(typeof oldPreview==='function' && !oldPreview.__siriusStep3b){
+    window.previewLandingAsVisitor=function(){
+      var result=oldPreview.apply(this, arguments);
+      [0,50,150,400,900].forEach(function(ms){setTimeout(function(){
+        document.body.classList.add('sirius-preview-mode');
+        qsa('#landing > section, #landing footer').forEach(function(el){el.style.display='';});
+        hideNonVisitorInPreview();
+        if(typeof renderPricing==='function') try{renderPricing();}catch(e){}
+        if(window.__siriusPublicLandingText && typeof applyLandingTexts==='function') try{applyLandingTexts(window.__siriusPublicLandingText);}catch(e){}
+      },ms)});
+      return result;
+    };
+    window.previewLandingAsVisitor.__siriusStep3b=true;
+  }
+
+  /* Keep evaluate page top clean and avoid delayed back clicks. */
+  function normalizeEvaluationLayout(){
+    if(activePage()!=='evaluation') return;
+    document.body.classList.remove('sirius-preview-mode');
+    var ev=qs('#evaluation'); if(ev){ ev.style.paddingTop='0'; ev.style.marginTop='0'; ev.scrollTop=0; }
+    var h=qs('#evaluation .eval-header'); if(h){ h.style.marginTop='0'; h.style.top='0'; }
+    try{window.scrollTo(0,0)}catch(e){}
+  }
+
+  function patchBackButtonsOnce(){
+    qsa('#profilePage button.btn-ghost, #evaluation .eval-header-actions button.btn-ghost, #planSelectionPage button.btn-ghost').forEach(function(btn){
+      if((btn.textContent||'').indexOf('Back')>-1){
+        btn.classList.add('sirius-smart-back');
+        btn.onclick=function(e){
+          if(e){e.preventDefault();e.stopPropagation(); if(e.stopImmediatePropagation)e.stopImmediatePropagation();}
+          var target=window.SIRIUS_DASHBOARD_CONTEXT || window.SIRIUS_RETURN_PAGE || 'landing';
+          if(target==='userDashboardPage'){ if(typeof goDashboard==='function') return goDashboard(); if(typeof showPage==='function') return showPage('userDashboardPage'); }
+          if(target==='adminDashboardPage'){ if(typeof openAdminPanel==='function') return openAdminPanel(); if(typeof showPage==='function') return showPage('adminDashboardPage'); }
+          if(typeof goToLanding==='function') return goToLanding();
+          if(typeof showPage==='function') return showPage('landing');
+          return false;
+        };
+        btn.setAttribute('onclick','return false');
+      }
+    });
+  }
+
+  var oldShow=window.showPage;
+  if(typeof oldShow==='function' && !oldShow.__siriusStep3b){
+    window.showPage=function(id){
+      var before=activePage();
+      if(isDash(before) && id && !isDash(id) && id!=='landing'){
+        window.SIRIUS_DASHBOARD_CONTEXT=before;
+        window.SIRIUS_RETURN_PAGE=before;
+      }
+      var result=oldShow.apply(this, arguments);
+      setTimeout(function(){normalizeEvaluationLayout(); patchBackButtonsOnce(); if(id==='landing') loadPublicLandingForVisitors();},30);
+      setTimeout(function(){normalizeEvaluationLayout(); patchBackButtonsOnce();},180);
+      return result;
+    };
+    window.showPage.__siriusStep3b=true;
+  }
+
+  /* PUBLIC landing text sync: load Firestore /config/landingText on cold visitor entry and keep applying it.
+     This is deliberately separate from admin/user state so logged-out visitors see admin edits too. */
+  function applyPublicText(data){
+    if(!data) return;
+    window.__siriusPublicLandingText=data;
+    try{localStorage.setItem('sirius_public_landing_text_v3b', JSON.stringify(data));}catch(e){}
+    if(typeof applyLandingTexts==='function'){
+      try{applyLandingTexts(data);}catch(e){}
+      [100,300,700,1300,2500].forEach(function(ms){setTimeout(function(){try{applyLandingTexts(data);}catch(e){}},ms)});
+    }
+  }
+  function loadCachedPublicText(){
+    try{var c=localStorage.getItem('sirius_public_landing_text_v3b'); if(c) applyPublicText(JSON.parse(c));}catch(e){}
+  }
+  window.siriusForcePublicLandingTextV3B=function(){
+    loadCachedPublicText();
+    var firestore=null;
+    try{firestore=(window.db && db.collection)?db:(window.firebase&&firebase.firestore?firebase.firestore():null);}catch(e){firestore=null;}
+    if(!firestore || !firestore.collection) return false;
+    try{
+      firestore.collection('config').doc('landingText').get().then(function(doc){
+        if(doc && doc.exists) applyPublicText(doc.data()||{});
+      }).catch(function(e){console.log('public landing text cold load:', e.code||e.message);});
+      if(!window.__siriusLandingPublicSnapshotV3B){
+        window.__siriusLandingPublicSnapshotV3B=true;
+        firestore.collection('config').doc('landingText').onSnapshot(function(doc){
+          if(doc && doc.exists) applyPublicText(doc.data()||{});
+        }, function(e){console.log('public landing text snapshot:', e.code||e.message);});
+      }
+      return true;
+    }catch(e){return false;}
+  };
+  function loadPublicLandingForVisitors(){
+    var tries=0;
+    var t=setInterval(function(){
+      tries++;
+      var ok=window.siriusForcePublicLandingTextV3B();
+      if(ok || tries>40) clearInterval(t);
+    },150);
+  }
+
+  /* If admin save succeeds through the existing editor, immediately refresh public text from Firestore too. */
+  var oldSaveLanding=window.saveLandingTexts;
+  if(typeof oldSaveLanding==='function' && !oldSaveLanding.__siriusStep3b){
+    window.saveLandingTexts=function(){
+      var result=oldSaveLanding.apply(this, arguments);
+      setTimeout(function(){window.siriusForcePublicLandingTextV3B();},500);
+      setTimeout(function(){window.siriusForcePublicLandingTextV3B();},1500);
+      return result;
+    };
+    window.saveLandingTexts.__siriusStep3b=true;
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    loadPublicLandingForVisitors();
+    setTimeout(function(){hideNonVisitorInPreview(); normalizeEvaluationLayout(); patchBackButtonsOnce();},250);
+    setTimeout(function(){hideNonVisitorInPreview(); normalizeEvaluationLayout(); patchBackButtonsOnce();},1200);
+  });
+  window.addEventListener('load',function(){
+    loadPublicLandingForVisitors();
+    setTimeout(function(){hideNonVisitorInPreview(); normalizeEvaluationLayout(); patchBackButtonsOnce();},500);
+  });
+  loadPublicLandingForVisitors();
+  setInterval(function(){
+    if(document.body.classList.contains('sirius-preview-mode')) hideNonVisitorInPreview();
+    if(activePage()==='evaluation') normalizeEvaluationLayout();
+  },800);
+})();
+</script>
+
 </body>
 </html>
