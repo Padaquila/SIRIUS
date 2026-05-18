@@ -8364,5 +8364,159 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
 })();
 </script>
 
+
+
+<!-- SIRIUS STEP 2 PATCH 2026-05-18: CTA/config boot sync + logical back stack -->
+<style id="sirius-step2-fixes-css">
+  /* Prevent fixed nav from hiding page headers on internal pages */
+  #userDashboardPage.active,
+  #adminDashboardPage.active,
+  #profilePage.active,
+  #planSelectionPage.active{padding-top:82px!important;scroll-padding-top:92px!important;}
+  #planSelectionPage > nav,
+  #userDashboardPage > nav,
+  #adminDashboardPage > nav,
+  #profilePage > nav{position:fixed!important;top:0!important;left:0!important;right:0!important;z-index:120!important;}
+  #planSelectionPage .sirius-plan-top-spacer,
+  #userDashboardPage .sirius-plan-top-spacer{height:1px!important;}
+</style>
+<script id="sirius-step2-fixes-js">
+(function(){
+  function qs(s){return document.querySelector(s);} 
+  function qsa(s){return Array.prototype.slice.call(document.querySelectorAll(s));}
+  function logged(){return !!(window.CURRENT_USER || (window.auth && auth.currentUser));}
+  function admin(){return !!window.IS_ADMIN;}
+  function isPreview(){return document.body.classList.contains('sirius-preview-mode');}
+
+  function forceOpenCalculatorCTA(){
+    var cta=qs('#heroCtaBtn');
+    if(!cta) return;
+    if(logged() && !isPreview()){
+      cta.textContent='Open Calculator';
+      cta.innerHTML='Open Calculator';
+      cta.onclick=function(e){ if(e) e.preventDefault(); if(typeof goToEval==='function') goToEval(); };
+    }
+  }
+
+  function forceVisitorTrialCTA(){
+    var cta=qs('#heroCtaBtn');
+    if(!cta) return;
+    if(!logged() || isPreview()){
+      cta.textContent='Start Free — No Charge for 7 Days';
+      cta.innerHTML='Start Free — No Charge for 7 Days';
+      cta.onclick=function(e){ if(e) e.preventDefault(); if(typeof openPlanSelection==='function') openPlanSelection(); else if(typeof showPage==='function'){ showPage('planSelectionPage'); if(typeof renderPlanSelectionGrid==='function') renderPlanSelectionGrid(); } };
+    }
+  }
+
+  function applyCorrectCTA(){
+    if(logged() && !isPreview()) forceOpenCalculatorCTA(); else forceVisitorTrialCTA();
+    var demo=qs('#mainHero .btn-outline[onclick*="openModal"]');
+    if(demo) demo.style.display=(logged() && !isPreview())?'none':'inline-flex';
+    var topDemo=qs('#navAuthArea > .btn-ghost[onclick*="openModal"]');
+    if(topDemo) topDemo.style.display=(logged() && !isPreview())?'none':'inline-flex';
+  }
+
+  /* Public config must load on cold visitor entry, even before auth finishes. */
+  window.siriusForcePublicLandingConfig=function(){
+    if(!window.db || !db.collection) return false;
+    try{
+      db.collection('config').doc('landingText').get().then(function(doc){
+        if(doc && doc.exists && typeof applyLandingTexts==='function'){
+          window._landingTexts=doc.data()||{};
+          applyLandingTexts(window._landingTexts);
+        }
+      });
+      return true;
+    }catch(e){ return false; }
+  };
+  function retryPublicConfig(){
+    var tries=0;
+    var timer=setInterval(function(){
+      tries++;
+      var ok=window.siriusForcePublicLandingConfig();
+      applyCorrectCTA();
+      if(ok || tries>=24) clearInterval(timer);
+    },250);
+  }
+
+  /* Logical return targets */
+  window.SIRIUS_RETURN_PAGE = window.SIRIUS_RETURN_PAGE || 'landing';
+  function rememberCurrentAsReturn(){
+    var active=qs('.page.active');
+    if(active && active.id && active.id!=='planSelectionPage') window.SIRIUS_RETURN_PAGE=active.id;
+    else if(qs('#userDashboardPage.active')) window.SIRIUS_RETURN_PAGE='userDashboardPage';
+    else if(qs('#adminDashboardPage.active')) window.SIRIUS_RETURN_PAGE='adminDashboardPage';
+    else window.SIRIUS_RETURN_PAGE='landing';
+  }
+  window.siriusBack=function(){
+    var target=window.SIRIUS_RETURN_PAGE || 'landing';
+    if(target==='userDashboardPage' && typeof goDashboard==='function') return goDashboard();
+    if(target==='adminDashboardPage' && typeof openAdminPanel==='function' && admin()) return openAdminPanel();
+    if(target==='profilePage' && typeof openProfile==='function') return openProfile();
+    if(target==='evaluation' && typeof goToEval==='function') return goToEval();
+    if(typeof showPage==='function') showPage('landing');
+  };
+
+  var oldOpenSub=window.openSubscriptionPlan;
+  window.openSubscriptionPlan=function(){
+    rememberCurrentAsReturn();
+    if(oldOpenSub) oldOpenSub();
+    else { if(typeof showPage==='function') showPage('planSelectionPage'); if(typeof renderPlanSelectionGrid==='function') renderPlanSelectionGrid(); }
+    setTimeout(function(){patchInternalNavs(); window.scrollTo(0,0);},40);
+  };
+
+  function patchInternalNavs(){
+    applyCorrectCTA();
+    /* User dashboard needs a Back button + dropdown */
+    var udActions=qs('#userDashboardPage > nav > div:last-child');
+    if(udActions && typeof syncSiriusNavs==='function'){
+      syncSiriusNavs();
+      udActions=qs('#userDashboardPage > nav > div:last-child');
+    }
+    if(udActions && !udActions.querySelector('.sirius-dashboard-back')){
+      udActions.insertAdjacentHTML('afterbegin','<button class="btn btn-ghost sirius-dashboard-back" onclick="goToLanding&&goToLanding()" style="font-size:.75rem;margin-right:.55rem">← Back</button>');
+    }
+    /* Plan page back must return to the last logical page, not always home */
+    var planNav=qs('#planSelectionPage > nav');
+    if(planNav){
+      var back=planNav.querySelector('button.btn-ghost');
+      if(back){ back.setAttribute('onclick','siriusBack&&siriusBack()'); back.innerHTML='← Back'; }
+    }
+    /* Upgrade prompt should enter plan page through the logical return function */
+    qsa('#udUpgradePrompt button, #loggedInUpgradeSection button').forEach(function(btn){
+      if(/View Plans|View Upgrade Options|Upgrade/i.test(btn.textContent||'')){
+        btn.onclick=function(e){ if(e) e.preventDefault(); window.SIRIUS_RETURN_PAGE='userDashboardPage'; window.openSubscriptionPlan(); };
+      }
+    });
+  }
+
+  var oldShow=window.showPage;
+  if(oldShow){
+    window.showPage=function(id){
+      oldShow(id);
+      setTimeout(function(){
+        if(id && id!=='planSelectionPage') window.SIRIUS_RETURN_PAGE=id;
+        window.siriusForcePublicLandingConfig();
+        applyCorrectCTA();
+        patchInternalNavs();
+        window.scrollTo(0,0);
+      },50);
+    };
+  }
+
+  var oldGoDashboard=window.goDashboard;
+  if(oldGoDashboard){
+    window.goDashboard=function(){ oldGoDashboard(); window.SIRIUS_RETURN_PAGE='landing'; setTimeout(patchInternalNavs,60); };
+  }
+
+  if(window.auth && auth.onAuthStateChanged){
+    auth.onAuthStateChanged(function(){ setTimeout(function(){window.siriusForcePublicLandingConfig(); applyCorrectCTA(); patchInternalNavs();},160); });
+  }
+  document.addEventListener('DOMContentLoaded',function(){ retryPublicConfig(); setTimeout(patchInternalNavs,300); });
+  retryPublicConfig();
+  setInterval(function(){ if(logged() && !isPreview()) forceOpenCalculatorCTA(); },900);
+})();
+</script>
+
 </body>
 </html>
