@@ -7540,5 +7540,257 @@ function previewLandingAsVisitor(){
   </div>
 </div>
 
+
+
+<!-- SIRIUS STABILITY PATCH 2026-05-18: auth/nav/pricing/preview cleanup -->
+<style id="sirius-stability-patch-css">
+  .admin-fab{bottom:auto!important;right:1rem!important;top:76px!important;z-index:8500!important}
+  .admin-fab-btn{padding:.38rem .75rem!important;font-size:.58rem!important;opacity:.88!important}
+  .admin-fab-btn:hover{opacity:1!important}
+  #adminDashboardPage > .nav .btn-ghost[onclick*="goToEval"],
+  #adminDashboardPage > .nav .btn-ghost[onclick*="previewLandingAsVisitor"]{display:none!important}
+  #adminDashboardPage.active > div[style*="max-width:1100px"]{padding-top:5.25rem!important}
+  #userDashboardPage.active > div[style*="max-width:960px"]{padding-top:5.25rem!important}
+  #profilePage .profile-page{padding-top:5.25rem!important}
+  body.sirius-logged-in:not(.sirius-preview-mode) #visitorProblemSection,
+  body.sirius-logged-in:not(.sirius-preview-mode) #features,
+  body.sirius-logged-in:not(.sirius-preview-mode) #pricing,
+  body.sirius-logged-in:not(.sirius-preview-mode) #demoSection,
+  body.sirius-logged-in:not(.sirius-preview-mode) #landing > footer{display:none!important}
+  body.sirius-logged-in:not(.sirius-preview-mode) #landing .nav-links,
+  body.sirius-logged-in:not(.sirius-preview-mode) #landing .btn-ghost[onclick*="openModal"]{display:none!important}
+  body.sirius-logged-in:not(.sirius-preview-mode) #loggedInUpgradeSection.sirius-show-upgrade{display:block!important}
+  body.sirius-logged-in:not(.sirius-preview-mode) #loggedInUpgradeSection:not(.sirius-show-upgrade){display:none!important}
+  body.sirius-preview-mode #landing{padding-top:44px!important}
+  body.sirius-preview-mode #landing .nav{top:44px!important}
+  #adminPreviewBanner{position:fixed;top:0;left:0;right:0;z-index:100000;background:rgba(191,198,209,.98);color:#0A1628;text-align:center;padding:.5rem 1rem;font-size:.76rem;font-weight:800;letter-spacing:.06em;display:flex;align-items:center;justify-content:center;gap:1rem;box-shadow:0 8px 26px rgba(0,0,0,.35)}
+  #adminPreviewBanner button{background:#0A1628;border:1px solid rgba(10,22,40,.35);color:#F7F6F2;padding:.28rem .8rem;border-radius:7px;cursor:pointer;font-weight:800;font-size:.72rem;font-family:var(--font-body)}
+</style>
+<script id="sirius-stability-patch-js">
+(function(){
+  var googleSignInBusy = false;
+  function qs(sel){ return document.querySelector(sel); }
+  function qsa(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+
+  function ensurePricingSection(){
+    if(document.getElementById('pricing')) return;
+    var demo = document.getElementById('demoSection');
+    if(!demo || !demo.parentNode) return;
+    var sec = document.createElement('section');
+    sec.id = 'pricing';
+    sec.className = 'sirius-visitor-section';
+    sec.innerHTML = ''+
+      '<div style="display:flex;align-items:end;justify-content:space-between;gap:1.5rem;flex-wrap:wrap;margin-bottom:2rem">'+
+        '<div><div class="section-label">Pricing</div><div class="gold-line"></div><h2 class="section-title">Choose the plan that fits your <em class="gold">workflow</em></h2><p class="section-sub">Start with a 7-day trial, then upgrade when you are ready.</p></div>'+
+        '<div style="display:flex;flex-direction:column;gap:.75rem;align-items:flex-end">'+
+          '<div class="billing-tabs"><div class="billing-tab active" id="billAnnual" onclick="setBillingCard(\'yearly\')">Yearly</div><div class="billing-tab" id="billMonthly" onclick="setBillingCard(\'monthly\')">Monthly</div></div>'+
+          '<div style="display:flex;gap:.45rem;flex-wrap:wrap;justify-content:flex-end"><button class="plan-type-tab active" onclick="setPlanType(\'agent\',this)">Agent</button><button class="plan-type-tab" onclick="setPlanType(\'investor\',this)">Investor</button><button class="plan-type-tab" onclick="setPlanType(\'company\',this)">Company</button></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="pricing-grid" id="pricingGrid"></div>';
+    demo.parentNode.insertBefore(sec, demo);
+  }
+
+  function ensureLoggedInUpgradeSection(){
+    if(document.getElementById('loggedInUpgradeSection')) return;
+    var hero = document.getElementById('mainHero');
+    if(!hero || !hero.parentNode) return;
+    var sec = document.createElement('section');
+    sec.id = 'loggedInUpgradeSection';
+    sec.style.display = 'none';
+    sec.innerHTML = '<div style="max-width:900px;margin:0 auto;background:linear-gradient(135deg,rgba(191,198,209,.10),rgba(191,198,209,.035));border:1px solid rgba(191,198,209,.22);border-radius:18px;padding:2rem;display:flex;align-items:center;justify-content:space-between;gap:1.5rem;flex-wrap:wrap">'+
+      '<div><div style="font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:800;margin-bottom:.55rem">Starter Plan</div><h2 style="font-family:var(--font-display);font-size:1.7rem;font-weight:700;margin-bottom:.45rem">Upgrade your plan</h2><p style="font-size:.9rem;color:var(--text-muted);line-height:1.6;max-width:560px">Unlock more calculations, saved reports, PDF downloads, property comparisons and premium investor analytics.</p></div>'+
+      '<button class="btn btn-primary" onclick="showPage(\'planSelectionPage\');renderPlanSelectionGrid&&renderPlanSelectionGrid()">View Upgrade Options</button></div>';
+    hero.parentNode.insertBefore(sec, hero.nextSibling);
+  }
+
+  function markVisitorSections(){
+    var hero = document.getElementById('mainHero');
+    if(hero && hero.nextElementSibling && !hero.nextElementSibling.id){ hero.nextElementSibling.id = 'visitorProblemSection'; }
+    ['visitorProblemSection','features','pricing','demoSection'].forEach(function(id){ var el=document.getElementById(id); if(el) el.classList.add('sirius-visitor-section'); });
+  }
+
+  function getPlanKey(){ return String(window._userPlan || 'free').toLowerCase(); }
+  function shouldShowUpgrade(){ return !!window.CURRENT_USER && !window.IS_ADMIN && ['free','starter','trial'].indexOf(getPlanKey()) !== -1; }
+
+  window.applySiriusLandingState = function(){
+    ensurePricingSection(); ensureLoggedInUpgradeSection(); markVisitorSections();
+    var user = window.CURRENT_USER || (window.auth && auth.currentUser) || null;
+    document.body.classList.toggle('sirius-logged-in', !!user);
+    var navSignIn = document.getElementById('navSignInBtn');
+    var navUserInfo = document.getElementById('navUserInfo');
+    if(user){
+      if(navSignIn) navSignIn.style.display = 'none';
+      if(navUserInfo) navUserInfo.style.display = '';
+      var heroBtn = document.getElementById('heroCtaBtn');
+      if(heroBtn){ heroBtn.textContent = 'Open Calculator'; heroBtn.onclick = function(){ goToEval(); }; }
+      var upgrade = document.getElementById('loggedInUpgradeSection');
+      if(upgrade) upgrade.classList.toggle('sirius-show-upgrade', shouldShowUpgrade());
+    } else {
+      if(navSignIn){ navSignIn.style.display = ''; navSignIn.onclick = function(){ openAuthModal('signin'); }; }
+      if(navUserInfo) navUserInfo.style.display = 'none';
+      var heroBtn2 = document.getElementById('heroCtaBtn');
+      if(heroBtn2){ heroBtn2.textContent = 'Start free — no charge for 7 days'; heroBtn2.onclick = function(){ openPlanSelection(); }; }
+      var upgrade2 = document.getElementById('loggedInUpgradeSection');
+      if(upgrade2) upgrade2.classList.remove('sirius-show-upgrade');
+    }
+    try{ if(typeof renderPricing === 'function') renderPricing(); }catch(e){}
+  };
+
+  function dropdownHTML(){
+    var admin = !!window.IS_ADMIN;
+    return ''+
+      '<button class="nav-dropdown-item" onclick="closeNavDropdown();goDashboard()">Dashboard</button>'+
+      '<button class="nav-dropdown-item" onclick="closeNavDropdown();openProfile()">My Profile</button>'+
+      '<button class="nav-dropdown-item" onclick="closeNavDropdown();showPage(\'planSelectionPage\');renderPlanSelectionGrid&&renderPlanSelectionGrid()">Subscription / Plan</button>'+
+      '<div class="nav-dropdown-divider"></div>'+
+      '<button class="nav-dropdown-item" onclick="closeNavDropdown();goToEval()">Start Net Calculation</button>'+
+      (admin ? '<button class="nav-dropdown-item" onclick="closeNavDropdown();openAdminPanel()">Admin Panel</button><button class="nav-dropdown-item" onclick="closeNavDropdown();previewLandingAsVisitor()">Preview as Visitor</button>' : '')+
+      '<div class="nav-dropdown-divider"></div>'+
+      '<button class="nav-dropdown-item danger" onclick="closeNavDropdown();handleSignOut()">Sign Out</button>';
+  }
+
+  function makeUserDropdown(idSuffix){
+    return '<div data-dropdown-container style="position:relative">'+
+      '<div class="nav-profile-trigger" onclick="toggleNavDropdown(this)"><div class="nav-profile-avatar-sm" id="navAvatar_'+idSuffix+'">?</div><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.45)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>'+
+      '<div class="nav-dropdown" style="right:0">'+dropdownHTML()+'</div></div>';
+  }
+
+  window.syncSiriusNavs = function(){
+    qsa('.nav-dropdown').forEach(function(dd){ dd.innerHTML = dropdownHTML(); });
+    var profileNavRight = qs('#profilePage > nav > div:last-child');
+    if(profileNavRight && !profileNavRight.querySelector('.nav-dropdown')){
+      profileNavRight.innerHTML = '<button class="btn btn-ghost" onclick="goToLanding()" style="font-size:.75rem">← Back</button>' + makeUserDropdown('profile');
+    }
+    var userNavRight = qs('#userDashboardPage > nav > div:last-child');
+    if(userNavRight && !userNavRight.querySelector('.nav-dropdown')){
+      userNavRight.innerHTML = '<span style="font-size:.72rem;color:var(--text-muted)" id="udNavName"></span>' + makeUserDropdown('dash');
+    }
+    qsa('#adminDashboardPage > nav .btn-ghost').forEach(function(btn){
+      var t=(btn.textContent||'').trim().toLowerCase();
+      if(t==='start calculation' || t==='preview site') btn.style.display='none';
+    });
+    try{ if(typeof updateNavAvatar === 'function') updateNavAvatar((window.USER_PROFILE&&USER_PROFILE.name)||(window.CURRENT_USER&&(CURRENT_USER.displayName||CURRENT_USER.email))||''); }catch(e){}
+  };
+
+  var oldOpenAuth = window.openAuthModal;
+  window.openAuthModal = function(mode){
+    try{ if(typeof switchAuthTab === 'function') switchAuthTab(mode || 'signin'); }catch(e){}
+    var modal = document.getElementById('authModal');
+    if(modal) modal.classList.add('open');
+    var err = document.getElementById('authError'); if(err) err.textContent = '';
+    setTimeout(function(){ var email=document.getElementById('authEmail'); if(email) email.focus(); }, 40);
+  };
+
+  window.signInWithGoogle = function(){
+    if(googleSignInBusy) return;
+    googleSignInBusy = true;
+    var errEl = document.getElementById('authError');
+    if(errEl) errEl.textContent = '';
+    try{ auth.useDeviceLanguage && auth.useDeviceLanguage(); }catch(e){}
+    var provider = new firebase.auth.GoogleAuthProvider();
+    provider.addScope('email'); provider.addScope('profile');
+    auth.signInWithPopup(provider).then(function(result){
+      var user = result.user;
+      return db.collection('users').doc(user.uid).set({
+        email:user.email,
+        displayName:user.displayName,
+        plan:'free',
+        subscriptionStatus:'active',
+        createdAt:firebase.firestore.FieldValue.serverTimestamp()
+      },{merge:true});
+    }).then(function(){
+      googleSignInBusy = false;
+      closeAuthModal && closeAuthModal();
+      applySiriusLandingState(); syncSiriusNavs();
+    }).catch(function(e){
+      googleSignInBusy = false;
+      console.warn('Google sign-in:', e.code, e.message);
+      if(e.code === 'auth/popup-blocked' || e.code === 'auth/cancelled-popup-request'){
+        if(errEl) errEl.textContent = 'Please allow the Google sign-in window, then try once more.';
+        return;
+      }
+      if(e.code === 'auth/popup-closed-by-user'){
+        if(errEl) errEl.textContent = 'Google sign-in was closed before completion.';
+        return;
+      }
+      if(errEl) errEl.textContent = (typeof friendlyAuthError === 'function') ? friendlyAuthError(e.code) : 'Google sign-in failed. Please try again.';
+    });
+  };
+
+  var oldResetLanding = window.resetLandingForVisitor;
+  window.resetLandingForVisitor = function(){
+    if(oldResetLanding) try{ oldResetLanding(); }catch(e){}
+    document.body.classList.remove('sirius-logged-in','sirius-preview-mode');
+    var b=document.getElementById('adminPreviewBanner'); if(b) b.remove();
+    ensurePricingSection(); markVisitorSections();
+    var nav=document.querySelector('#landing .nav'); if(nav) nav.style.top='';
+    try{ if(typeof renderPricing === 'function') renderPricing(); }catch(e){}
+  };
+
+  window.updateLandingForUser = function(user){
+    window.CURRENT_USER = user || window.CURRENT_USER || (window.auth && auth.currentUser) || null;
+    document.body.classList.remove('sirius-preview-mode');
+    var b=document.getElementById('adminPreviewBanner'); if(b) b.remove();
+    applySiriusLandingState(); syncSiriusNavs();
+  };
+
+  window.routeAfterAuth = function(user){
+    window.CURRENT_USER = user || window.CURRENT_USER;
+    applySiriusLandingState(); syncSiriusNavs();
+    showPage('landing');
+  };
+
+  var oldShowPage = window.showPage;
+  window.showPage = function(id){
+    if(oldShowPage) oldShowPage(id);
+    setTimeout(function(){
+      applySiriusLandingState(); syncSiriusNavs();
+      window.scrollTo(0,0); document.documentElement.scrollTop=0; document.body.scrollTop=0;
+      var el=document.getElementById(id); if(el) el.scrollTop=0;
+    },0);
+  };
+
+  window.previewLandingAsVisitor = function(){
+    ensurePricingSection(); ensureLoggedInUpgradeSection(); markVisitorSections(); syncSiriusNavs();
+    document.body.classList.add('sirius-preview-mode');
+    showPage('landing');
+    qsa('#landing .sirius-visitor-section, #landing > footer').forEach(function(el){ el.style.display=''; });
+    var navSignIn = document.getElementById('navSignInBtn'); if(navSignIn) navSignIn.style.display='';
+    var navUserInfo = document.getElementById('navUserInfo'); if(navUserInfo) navUserInfo.style.display='';
+    var b=document.getElementById('adminPreviewBanner'); if(b) b.remove();
+    b=document.createElement('div'); b.id='adminPreviewBanner';
+    b.innerHTML = 'VISITOR PREVIEW <button onclick="exitVisitorPreview()">Return to Dashboard</button>';
+    document.body.appendChild(b);
+    try{ if(typeof renderPricing === 'function') renderPricing(); }catch(e){}
+  };
+
+  window.exitVisitorPreview = function(){
+    var b=document.getElementById('adminPreviewBanner'); if(b) b.remove();
+    document.body.classList.remove('sirius-preview-mode');
+    updateLandingForUser(window.CURRENT_USER || (window.auth && auth.currentUser));
+    if(window.IS_ADMIN) openAdminDashboard(); else showPage('landing');
+  };
+
+  var oldSignOut = window.handleSignOut;
+  window.handleSignOut = function(){
+    try{ closeNavDropdown && closeNavDropdown(); }catch(e){}
+    document.body.classList.remove('sirius-logged-in','sirius-preview-mode');
+    var b=document.getElementById('adminPreviewBanner'); if(b) b.remove();
+    return auth.signOut().then(function(){
+      window.CURRENT_USER=null; window.IS_ADMIN=false; window._userPlan='free'; window.USER_PROFILE={};
+      resetLandingForVisitor(); applySiriusLandingState(); syncSiriusNavs(); showPage('landing');
+    }).catch(function(e){ console.error('Sign out failed:', e); alert('Sign out failed. Please refresh and try again.'); });
+  };
+
+  function boot(){
+    ensurePricingSection(); ensureLoggedInUpgradeSection(); markVisitorSections(); applySiriusLandingState(); syncSiriusNavs();
+    var signIn=document.getElementById('navSignInBtn'); if(signIn) signIn.onclick=function(){ openAuthModal('signin'); };
+    try{ if(window.auth && auth.onAuthStateChanged){ auth.onAuthStateChanged(function(user){ window.CURRENT_USER=user; if(user){ updateLandingForUser(user); } else { resetLandingForVisitor(); applySiriusLandingState(); syncSiriusNavs(); } }); } }catch(e){}
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+  window.addEventListener('load', function(){ setTimeout(boot,250); setTimeout(boot,1000); });
+})();
+</script>
 </body>
 </html>
