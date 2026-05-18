@@ -7058,7 +7058,6 @@ function renderPlanSelectionGrid(){
       features:['Everything in Professional','Agency dashboard','Usage analytics per agent','White-label reports','Company branding','Dedicated account manager','7-day free trial'] },
   ];
 
-  /* Override with admin-edited pricing if available */
   if(PRICING_OVERRIDES && PRICING_OVERRIDES.starter){
     ['starter','pro','agency'].forEach(function(k){
       var ov = PRICING_OVERRIDES[k];
@@ -7073,23 +7072,40 @@ function renderPlanSelectionGrid(){
   }
 
   var isAnnual = _psBilling === 'yearly';
-  grid.innerHTML = plans.map(function(p){
-    var price      = isAnnual ? p.monthlyEq : p.price.monthly;
+
+  grid.innerHTML = '';
+  plans.forEach(function(p){
+    var price = isAnnual ? p.monthlyEq : p.price.monthly;
     var billingNote = isAnnual
       ? 'AED '+p.price.yearly+(p.perUser?'/user':'')+'/year · 2 months free'
       : 'Billed monthly';
     var isSelected = _selectedPlan && _selectedPlan.key === p.key;
-    return '<div class="plan-selection-card'+(p.featured?' featured':'')+(isSelected?' selected':'')+'" onclick="selectPlan(''+p.key+'',''+p.name+'','+p.price.monthly+','+p.price.yearly+')">'
-      +(p.featured?'<div style="position:absolute;top:-1px;left:50%;transform:translateX(-50%);font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:rgba(212,175,55,.9);color:rgba(8,18,34,1);padding:.2rem .75rem;border-radius:0 0 6px 6px">Most Popular</div>':'')
-      +'<div style="font-size:1rem;font-weight:700;color:var(--ivory);margin-bottom:.35rem'+(p.featured?';margin-top:.75rem':'')+'">'+p.name+'</div>'
-      +'<div style="font-family:Inter,system-ui,sans-serif;font-size:1.8rem;font-weight:700;color:var(--white);margin-bottom:.2rem">AED '+price+(p.perUser?'<span style="font-size:.9rem;font-weight:400;color:rgba(191,198,209,.5)">/user</span>':'')+' <span style="font-size:.85rem;font-weight:400;color:rgba(191,198,209,.45)">/mo</span></div>'
-      +'<div style="font-size:.72rem;color:rgba(191,198,209,.5);margin-bottom:1rem">'+billingNote+'</div>'
-      +'<ul style="list-style:none;padding:0;margin:0 0 1.25rem">'
-      +p.features.map(function(f){ return '<li style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:rgba(191,198,209,.8);margin-bottom:.4rem"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(39,174,96,.8)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'+f+'</li>'; }).join('')
-      +'</ul>'
-      +'<button style="width:100%;padding:.65rem;border-radius:8px;border:1px solid '+(p.featured?'rgba(212,175,55,.4)':'rgba(191,198,209,.25)')+';background:'+(isSelected?'rgba(191,198,209,.15)':'transparent')+';color:var(--ivory);font-size:.8rem;font-weight:600;cursor:pointer;font-family:var(--font-body)" onclick="event.stopPropagation();selectPlan(''+p.key+'',''+p.name+'','+p.price.monthly+','+p.price.yearly+')">'+(isSelected?'✓ Selected':'Choose '+p.name)+'</button>'
-      +'</div>';
-  }).join('');
+
+    var card = document.createElement('div');
+    card.className = 'plan-selection-card' + (p.featured?' featured':'') + (isSelected?' selected':'');
+    card.style.cssText = 'background:rgba(17,32,58,.6);border:2px solid rgba(191,198,209,.12);border-radius:14px;padding:1.75rem;cursor:pointer;transition:all .2s ease;position:relative';
+    if(p.featured) card.style.borderColor = 'rgba(212,175,55,.35)';
+    if(isSelected) card.style.borderColor = 'rgba(191,198,209,.5)';
+
+    var inner = '';
+    if(p.featured) inner += '<div style="position:absolute;top:-1px;left:50%;transform:translateX(-50%);font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:rgba(212,175,55,.9);color:rgba(8,18,34,1);padding:.2rem .75rem;border-radius:0 0 6px 6px">Most Popular</div>';
+    inner += '<div style="font-size:1rem;font-weight:700;color:var(--ivory);margin-bottom:.35rem'+(p.featured?';margin-top:.75rem':'')+'">'+p.name+'</div>';
+    inner += '<div style="font-family:Inter,system-ui,sans-serif;font-size:1.8rem;font-weight:700;color:var(--white);margin-bottom:.2rem">AED '+price+(p.perUser?'<span style="font-size:.9rem;font-weight:400;color:rgba(191,198,209,.5)">/user</span>':'')+' <span style="font-size:.85rem;font-weight:400;color:rgba(191,198,209,.45)">/mo</span></div>';
+    inner += '<div style="font-size:.72rem;color:rgba(191,198,209,.5);margin-bottom:1rem">'+billingNote+'</div>';
+    inner += '<ul style="list-style:none;padding:0;margin:0 0 1.25rem">';
+    p.features.forEach(function(f){
+      inner += '<li style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:rgba(191,198,209,.8);margin-bottom:.4rem"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(39,174,96,.8)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'+f+'</li>';
+    });
+    inner += '</ul>';
+    inner += '<button style="width:100%;padding:.65rem;border-radius:8px;border:1px solid '+(p.featured?'rgba(212,175,55,.4)':'rgba(191,198,209,.25)')+';background:'+(isSelected?'rgba(191,198,209,.15)':'transparent')+';color:var(--ivory);font-size:.8rem;font-weight:600;cursor:pointer;font-family:var(--font-body)">'+(isSelected?'✓ Selected':'Choose '+p.name)+'</button>';
+    card.innerHTML = inner;
+
+    /* Attach click handler without inline quotes */
+    card.onclick = (function(plan){ return function(){ selectPlan(plan.key, plan.name, plan.price.monthly, plan.price.yearly); }; })(p);
+    card.querySelector('button').onclick = function(e){ e.stopPropagation(); card.onclick(); };
+
+    grid.appendChild(card);
+  });
 }
 
 /* ── Select a plan ── */
