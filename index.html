@@ -2151,8 +2151,14 @@ body.auth-resetting { pointer-events: none; }
     <div class="eval-header-logo nav-logo-sirius" onclick="goToLanding()" style="cursor:pointer" title="Go to home"><svg width="13" height="13" viewBox="0 0 60 60" fill="none" aria-hidden="true"><defs><radialGradient id="starEvalGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff"/><stop offset="40%" stop-color="#e0e8f0"/><stop offset="100%" stop-color="#8a959e" stop-opacity="0.6"/></radialGradient></defs><path d="M30 1 L32.8 27.2 L59 30 L32.8 32.8 L30 59 L27.2 32.8 L1 30 L27.2 27.2 Z" fill="url(#starEvalGrad)"/><path d="M30 18 L31.5 28.5 L42 30 L31.5 31.5 L30 42 L28.5 31.5 L18 30 L28.5 28.5 Z" fill="white" opacity="0.8"/></svg><span class="nav-sirius-text" style="font-size:1.1rem">SIRIUS</span></div>
     <div class="eval-header-actions">
       <div class="plan-chip" id="planChip">Pro Plan</div>
-      <button class="btn btn-ghost btn-sm" onclick="goToLanding()">&#8592; Back</button>
-      <button class="btn btn-outline btn-sm" onclick="openModal()">Request Demo</button>
+      <button class="btn btn-ghost btn-sm" onclick="SR.back()">&#8592; Back</button>
+      <div data-dropdown-container style="position:relative">
+        <div class="sirius-avatar-trigger nav-profile-trigger" onclick="toggleNavDropdown(this)" style="padding:.22rem .38rem">
+          <div class="sirius-avatar-circle nav-profile-avatar-sm" id="evalNavAvatar" style="width:24px;height:24px;font-size:.68rem">?</div>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.45)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="nav-dropdown" style="right:0"></div>
+      </div>
     </div>
   </div>
 
@@ -6855,10 +6861,15 @@ function loadDashboardData(){
       </svg>
       <span style="font-family:'Cormorant Garamond',serif;font-weight:300;letter-spacing:.2em">SIRIUS</span>
     </div>
-    <div style="display:flex;gap:.75rem;align-items:center">
-      <button class="btn btn-ghost" onclick="goToLanding()" style="font-size:.75rem">← Back</button>
-      <button class="btn btn-ghost" onclick="goToEval()" style="font-size:.75rem">Calculator</button>
-      <button class="btn btn-ghost" onclick="handleSignOut()" style="font-size:.75rem">Sign out</button>
+    <div style="display:flex;gap:.75rem;align-items:center" id="profileNavRight">
+      <button class="sirius-back-btn" onclick="SR.back()" style="font-size:.75rem">← Back</button>
+      <div data-dropdown-container style="position:relative">
+        <div class="sirius-avatar-trigger nav-profile-trigger" onclick="toggleNavDropdown(this)">
+          <div class="sirius-avatar-circle nav-profile-avatar-sm" id="profileNavAvatar">?</div>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.45)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="nav-dropdown" style="right:0"></div>
+      </div>
     </div>
   </nav>
 
@@ -6962,40 +6973,13 @@ function loadDashboardData(){
       <span style="font-family:'Cormorant Garamond',serif;font-weight:300;letter-spacing:.2em">SIRIUS</span>
     </div>
     <div style="display:flex;gap:.75rem;align-items:center">
-      <span style="font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700;border:1px solid rgba(212,175,55,.25);padding:.2rem .55rem;border-radius:4px">Admin</span>
-      <button class="btn btn-ghost" onclick="goToEval()" style="font-size:.72rem">Start Calculation</button>
-      <button class="btn btn-ghost" onclick="previewLandingAsVisitor()" style="font-size:.72rem">Preview Site</button>
+      <button class="sirius-back-btn" onclick="SR.back()" style="font-size:.75rem">← Back</button>
       <div data-dropdown-container style="position:relative">
-        <div class="nav-profile-trigger" onclick="toggleNavDropdown(this)">
-          <div class="nav-profile-avatar-sm" style="background:rgba(212,175,55,.15);border-color:rgba(212,175,55,.3);color:var(--gold)" id="adminNavAvatar">A</div>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.45)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        <div class="sirius-avatar-trigger nav-profile-trigger" onclick="toggleNavDropdown(this)">
+          <div class="sirius-avatar-circle nav-profile-avatar-sm" id="adminNavAvatar">A</div>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.45)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
         <div class="nav-dropdown" style="right:0">
-          <button class="nav-dropdown-item" onclick="closeNavDropdown();openAdminDashboard()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-            Dashboard
-          </button>
-          <button class="nav-dropdown-item" onclick="closeNavDropdown();openProfile()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            My Profile
-          </button>
-          <button class="nav-dropdown-item" onclick="closeNavDropdown();goToEval()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Start Calculation
-          </button>
-          <button class="nav-dropdown-item" onclick="closeNavDropdown();openAdminPanel()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
-            Admin Panel
-          </button>
-          <button class="nav-dropdown-item" onclick="closeNavDropdown();previewLandingAsVisitor()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            Preview as Visitor
-          </button>
-          <div class="nav-dropdown-divider"></div>
-          <button class="nav-dropdown-item danger" onclick="closeNavDropdown();handleSignOut()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            Sign Out
-          </button>
         </div>
       </div>
     </div>
@@ -7041,11 +7025,20 @@ function loadDashboardData(){
 <!-- ═══ PLAN SELECTION PAGE ═══ -->
 <div id="planSelectionPage" class="page">
   <nav class="nav">
-    <div class="nav-logo" onclick="goToLanding()" style="cursor:pointer">
-      <svg width="22" height="22" viewBox="0 0 60 60" fill="none"><defs><radialGradient id="psgr" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#8a959e" stop-opacity=".6"/></radialGradient></defs><path d="M30 2L32.5 27.5L58 30L32.5 32.5L30 58L27.5 32.5L2 30L27.5 27.5Z" fill="url(#psgr)"/></svg>
-      <span style="font-family:'Cormorant Garamond',serif;font-weight:300;letter-spacing:.2em">SIRIUS</span>
+    <div class="nav-logo nav-logo-sirius" onclick="SR.goHome()" style="cursor:pointer">
+      <svg width="14" height="14" viewBox="0 0 60 60" fill="none"><defs><radialGradient id="psgr" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#8a959e" stop-opacity=".6"/></radialGradient></defs><path d="M30 2L32.5 27.5L58 30L32.5 32.5L30 58L27.5 32.5L2 30L27.5 27.5Z" fill="url(#psgr)"/></svg>
+      <span class="nav-sirius-text">SIRIUS</span>
     </div>
-    <button class="btn btn-ghost" onclick="goToLanding()" style="font-size:.75rem">← Back</button>
+    <div style="display:flex;gap:.75rem;align-items:center">
+      <button class="sirius-back-btn" onclick="SR.back()" style="font-size:.75rem">← Back</button>
+      <div data-dropdown-container style="position:relative">
+        <div class="sirius-avatar-trigger nav-profile-trigger" onclick="toggleNavDropdown(this)">
+          <div class="sirius-avatar-circle nav-profile-avatar-sm" id="planNavAvatar">?</div>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.45)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="nav-dropdown" style="right:0"></div>
+      </div>
+    </div>
   </nav>
   <div style="max-width:960px;margin:0 auto;padding:3rem 1.5rem">
     <div style="text-align:center;margin-bottom:2.5rem">
@@ -7479,9 +7472,14 @@ function previewLandingAsVisitor(){
       <span style="font-family:'Cormorant Garamond',serif;font-weight:300;letter-spacing:.2em">SIRIUS</span>
     </div>
     <div style="display:flex;align-items:center;gap:.75rem">
-      <span style="font-size:.72rem;color:var(--text-muted)" id="udNavName"></span>
-      <button class="btn btn-ghost" onclick="openProfile()" style="font-size:.72rem">My Profile</button>
-      <button class="btn btn-ghost" onclick="handleSignOut()" style="font-size:.72rem">Sign out</button>
+      <button class="sirius-back-btn" onclick="SR.back()" style="font-size:.75rem">← Back</button>
+      <div data-dropdown-container style="position:relative">
+        <div class="sirius-avatar-trigger nav-profile-trigger" onclick="toggleNavDropdown(this)">
+          <div class="sirius-avatar-circle nav-profile-avatar-sm" id="userDashNavAvatar">?</div>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.45)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="nav-dropdown" style="right:0"></div>
+      </div>
     </div>
   </nav>
   <div style="max-width:960px;margin:0 auto;padding:2.5rem 1.5rem">
@@ -7644,12 +7642,24 @@ function previewLandingAsVisitor(){
   #profilePage > .profile-page,
   #planSelectionPage > .sirius-page-content{padding-top:72px}
   /* ── PRICING VISIBILITY ── */
-  body.sirius-logged-in:not(.sirius-preview-mode):not(.sirius-plan-free) #pricing{display:none!important}
+  /* Admin: never show pricing, never show visitor sections */
+  body.sirius-logged-in:not(.sirius-preview-mode) #pricing{display:none!important}
   body.sirius-logged-in:not(.sirius-preview-mode) #landing .nav-links{display:none!important}
+  body.sirius-logged-in:not(.sirius-preview-mode) #landing > section:not(#mainHero){display:none!important}
   body.sirius-logged-in:not(.sirius-preview-mode) #landing footer{display:none!important}
-  body.sirius-logged-in:not(.sirius-preview-mode) #landing > section:not(#mainHero):not(#pricing){display:none!important}
+  /* Free plan only: show pricing section */
   body.sirius-logged-in.sirius-plan-free:not(.sirius-preview-mode) #pricing{display:block!important}
-  body.sirius-preview-mode #landing > section,body.sirius-preview-mode #landing footer{display:block!important}
+  /* Request Demo button: hidden when logged in */
+  body.sirius-logged-in:not(.sirius-preview-mode) .btn-ghost[onclick*="openModal"]{display:none!important}
+  /* Preview mode: show everything exactly as visitor sees it */
+  body.sirius-preview-mode #landing > section,
+  body.sirius-preview-mode #landing footer{display:block!important}
+  body.sirius-preview-mode #siriusBuyerBtn,
+  body.sirius-preview-mode #siriusSellerBtn{display:none!important}
+  body.sirius-preview-mode .sirius-avatar-trigger,
+  body.sirius-preview-mode #navUserInfo{display:none!important}
+  body.sirius-preview-mode #navSignInBtn{display:inline-flex!important}
+  body.sirius-preview-mode #landing .nav-links{display:flex!important}
   /* ── ADMIN FAB ── */
   .admin-fab{bottom:auto!important;right:1rem!important;top:76px!important;z-index:8500!important}
   /* ── DROPDOWN stays on top ── */
@@ -7737,9 +7747,9 @@ function previewLandingAsVisitor(){
     <div class="sirius-modal-body">
       <div class="sirius-settings-grid">
         <div class="sirius-settings-tabs" id="siriusSettingsTabs">
-          <button class="sirius-settings-tab active" data-tab="plan">My Plan</button>
-          <button class="sirius-settings-tab" data-tab="billing">Billing</button>
-          <button class="sirius-settings-tab sirius-admin-only" data-tab="logs" style="display:none">Activity Logs</button>
+          <button class="sirius-settings-tab active" data-tab="plan" id="siriusTabPlan">My Plan</button>
+          <button class="sirius-settings-tab" data-tab="billing" id="siriusTabBilling">Billing</button>
+          <button class="sirius-settings-tab" data-tab="logs" id="siriusTabLogs" style="display:none">Activity Logs</button>
         </div>
         <div id="siriusSettingsContent" style="min-height:180px"></div>
       </div>
@@ -7968,9 +7978,17 @@ window.SR = {
   },
   exitPreview: function(){
     document.body.classList.remove('sirius-preview-mode');
+    /* Restore logged-in classes */
+    if(isLogged()){
+      document.body.classList.add('sirius-logged-in');
+      if(isFree()) document.body.classList.add('sirius-plan-free');
+    }
     qs('#siriusPreviewBanner').classList.remove('visible');
-    if(typeof showPage==='function') showPage('landing');
+    if(typeof _origShow==='function') _origShow('landing');
+    else if(typeof showPage==='function') showPage('landing');
     _applyLandingState();
+    _patchPageNavs();
+    _syncNavAvatars();
   },
 
   /* Saved work */
@@ -7979,46 +7997,48 @@ window.SR = {
     var m=qs('#siriusSavedWorkModal'),tb=qs('#siriusSavedWorkTitle'),body=qs('#siriusSavedWorkBody');
     if(!m) return;
     tb.textContent=title||_colTitle(col);
-    body.innerHTML='<div style="padding:1.5rem;text-align:center;color:rgba(191,198,209,.5);font-size:.85rem">Loading...</div>';
+    body.innerHTML='<div style="padding:2rem;text-align:center;color:rgba(191,198,209,.4);font-size:.85rem">Loading...</div>';
     m.classList.add('open');
-    var ref=d.collection('users').doc(u.uid).collection(col);
-    ref.orderBy('createdAt','desc').get()
-      .catch(function(){return ref.get();})
+    d.collection('users').doc(u.uid).collection(col).get()
       .then(function(snap){
         var docs=[];
         snap.forEach(function(doc){
           if(!_deleted[col]||!_deleted[col].has(doc.id)) docs.push({id:doc.id,d:doc.data()||{}});
         });
         docs.sort(function(a,b){
-          var am=a.d.createdAt&&a.d.createdAt.toMillis?a.d.createdAt.toMillis():0;
-          var bm=b.d.createdAt&&b.d.createdAt.toMillis?b.d.createdAt.toMillis():0;
-          return bm-am;
+          function ms(v){return v&&v.toMillis?v.toMillis():v&&v.seconds?v.seconds*1000:0;}
+          return ms(b.d.createdAt)-ms(a.d.createdAt);
         });
         if(!docs.length){
-          body.innerHTML='<div class="sirius-empty-state">'+
-            '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'+
-            '<p>No items saved here yet.</p></div>';
+          body.innerHTML='<div style="padding:3.5rem 1.5rem;text-align:center">'+
+            '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto .85rem"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>'+
+            '<div style="color:rgba(191,198,209,.45);font-size:.88rem">Nothing saved here yet.</div></div>';
           return;
         }
         var rows=docs.map(function(x){
-          var name=esc(x.d.reportName||x.d.name||x.d.title||'Untitled');
+          var r=x.d,c=col;
+          var name=esc(r.reportName||r.name||r.title||'Untitled');
           return '<tr data-id="'+escA(x.id)+'">'+
-            '<td><strong>'+name+'</strong><div style="font-size:.68rem;color:rgba(191,198,209,.42);margin-top:.15rem">'+fmtDate(x.d.createdAt)+'</div></td>'+
-            '<td style="white-space:nowrap">'+fmtDate(x.d.updatedAt||x.d.createdAt)+'</td>'+
+            '<td><strong>'+name+'</strong>'+
+              (r.autoSaved?'<span style="font-size:.58rem;color:rgba(191,198,209,.28);margin-left:.35rem">auto-saved</span>':'')+
+              '<div style="font-size:.68rem;color:rgba(191,198,209,.38);margin-top:.15rem">'+fmtDate(r.createdAt)+'</div></td>'+
+            '<td style="white-space:nowrap;color:rgba(191,198,209,.55)">'+fmtDate(r.updatedAt||r.createdAt)+'</td>'+
             '<td><div class="sirius-action-set">'+
-              '<button class="sirius-mini-btn" onclick="SR.openItem(\''+col+'\',\''+escA(x.id)+'\')">Open</button>'+
-              '<button class="sirius-mini-btn" onclick="SR.renameItem(\''+col+'\',\''+escA(x.id)+'\',\''+escA(x.d.reportName||x.d.name||x.d.title||'Untitled')+'\')">Rename</button>'+
-              '<button class="sirius-mini-btn danger" onclick="SR.deleteItem(\''+col+'\',\''+escA(x.id)+'\')">Delete</button>'+
-            '</div></td>'+
-          '</tr>';
+              '<button class="sirius-mini-btn" onclick="SR.openItem(''+escA(c)+'',''+escA(x.id)+'')">Open</button>'+
+              '<button class="sirius-mini-btn" onclick="SR.renameItem(''+escA(c)+'',''+escA(x.id)+'',''+escA(r.reportName||r.name||r.title||'Untitled')+'')">Rename</button>'+
+              '<button class="sirius-mini-btn danger" onclick="SR.deleteItem(''+escA(c)+'',''+escA(x.id)+'')">Delete</button>'+
+            '</div></td></tr>';
         }).join('');
-        body.innerHTML='<table class="sirius-table"><thead><tr><th>Name</th><th>Last updated</th><th>Actions</th></tr></thead><tbody>'+rows+'</tbody></table>';
+        body.innerHTML='<table class="sirius-table"><thead><tr><th>Name</th><th>Saved</th><th>Actions</th></tr></thead><tbody>'+rows+'</tbody></table>';
       })
       .catch(function(e){
-        body.innerHTML='<div style="padding:1.5rem;color:rgba(231,76,60,.8);font-size:.82rem">Could not load: '+esc(e.code||e.message)+'</div>';
+        var msg=e.code==='permission-denied'
+          ?"Permission denied — check Firestore rules."
+          :"Could not load: "+(e.code||e.message);
+        body.innerHTML='<div style="padding:2rem;color:rgba(231,76,60,.75);font-size:.82rem">'+esc(msg)+'</div>';
       });
   },
-  closeSavedWork: function(){var m=qs('#siriusSavedWorkModal');if(m)m.classList.remove('open');},
+    closeSavedWork: function(){var m=qs('#siriusSavedWorkModal');if(m)m.classList.remove('open');},
   openItem: function(col,id){
     var u=getUser(),d=getDB(); if(!u||!d) return;
     d.collection('users').doc(u.uid).collection(col).doc(id).get().then(function(doc){
@@ -8058,10 +8078,12 @@ window.SR = {
   /* Settings */
   openSettings: function(tab){
     var m=qs('#siriusSettingsModal'); if(!m) return;
-    qs('#siriusLogsTab'||'[data-tab="logs"]',m)&&(qs('[data-tab="logs"]',m).style.display=isAdmin()?'':'none');
+    /* Show/hide Activity Logs tab based on admin status */
+    var logsTab=qs('#siriusTabLogs',m)||qs('[data-tab="logs"]',m);
+    if(logsTab) logsTab.style.display=isAdmin()?'':'none';
     m.classList.add('open');
     _activeTab=tab||'plan';
-    _renderSettingsTab(_activeTab);
+    /* Update active tab styling */
     qsa('.sirius-settings-tab',m).forEach(function(b){
       b.classList.toggle('active',b.getAttribute('data-tab')===_activeTab);
       b.onclick=function(){
@@ -8071,6 +8093,7 @@ window.SR = {
         _renderSettingsTab(_activeTab);
       };
     });
+    _renderSettingsTab(_activeTab);
   },
   closeSettings: function(){var m=qs('#siriusSettingsModal');if(m)m.classList.remove('open');}
 };
@@ -8287,135 +8310,7 @@ function _syncNavAvatars(){
 /* ── PATCH INDIVIDUAL PAGE NAV BARS ── */
 function _patchPageNavs(){
   if(!isLogged()) return;
-
-  // Admin dashboard: remove Start Calculation + Preview Site, add Back + dropdown
-  var adminNav=qs('#adminDashboardPage > nav');
-  if(adminNav){
-    // Remove stray buttons
-    qsa('button',adminNav).forEach(function(b){
-      var t=(b.textContent||'').trim();
-      if(t==='Start Calculation'||t==='Preview Site') b.remove();
-    });
-    // Ensure Back button exists
-    if(!qs('.sirius-back-btn',adminNav)){
-      var back=document.createElement('button');
-      back.className='sirius-back-btn btn btn-ghost';
-      back.style.fontSize='.75rem';
-      back.innerHTML='← Back';
-      back.onclick=function(){SR.back();};
-      var right=qs('#adminDashboardPage > nav > div:last-child');
-      if(right) right.insertBefore(back,right.firstChild);
-    }
-    // Ensure dropdown is in admin nav
-    var ddContainer=qs('[data-dropdown-container]',adminNav);
-    if(!ddContainer){
-      var right2=qs('#adminDashboardPage > nav > div:last-child');
-      if(right2){
-        var dc=document.createElement('div');
-        dc.setAttribute('data-dropdown-container','');
-        dc.style.position='relative';
-        dc.innerHTML='<div class="sirius-avatar-trigger nav-profile-trigger" onclick="toggleNavDropdown(this)">'+
-          '<div class="sirius-avatar-circle nav-profile-avatar-sm" id="adminNavAvatar">A</div>'+
-          '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.45)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'+
-        '</div><div class="nav-dropdown" style="right:0"></div>';
-        right2.appendChild(dc);
-      }
-    }
-  }
-
-  // Profile page: remove Calculator + Sign out buttons
-  var profileNav=qs('#profilePage > nav');
-  if(profileNav){
-    qsa('button',profileNav).forEach(function(b){
-      var t=(b.textContent||'').trim();
-      if(t==='Calculator'||t==='Sign out'||t==='Sign Out') b.remove();
-    });
-    // Ensure Back + dropdown
-    var pRight=qs('#profilePage > nav > div:last-child');
-    if(pRight&&!qs('.sirius-back-btn',pRight)){
-      var pb=document.createElement('button');
-      pb.className='sirius-back-btn btn btn-ghost';pb.style.fontSize='.75rem';pb.innerHTML='← Back';
-      pb.onclick=function(){SR.back();};
-      pRight.insertBefore(pb,pRight.firstChild);
-    }
-    if(pRight&&!qs('[data-dropdown-container]',pRight)){
-      var pdc=document.createElement('div');
-      pdc.setAttribute('data-dropdown-container','');pdc.style.position='relative';
-      pdc.innerHTML='<div class="sirius-avatar-trigger nav-profile-trigger" onclick="toggleNavDropdown(this)">'+
-        '<div class="sirius-avatar-circle nav-profile-avatar-sm">?</div>'+
-        '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.45)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'+
-      '</div><div class="nav-dropdown" style="right:0"></div>';
-      pRight.appendChild(pdc);
-    }
-  }
-
-  // User dashboard: remove My Profile + Sign out standalone buttons
-  var userNav=qs('#userDashboardPage > nav');
-  if(userNav){
-    qsa('button',userNav).forEach(function(b){
-      var t=(b.textContent||'').trim();
-      if(t==='My Profile'||t==='Sign out'||t==='Sign Out') b.remove();
-    });
-    var uRight=qs('#userDashboardPage > nav > div:last-child');
-    if(uRight&&!qs('.sirius-back-btn',uRight)){
-      var ub=document.createElement('button');
-      ub.className='sirius-back-btn btn btn-ghost';ub.style.fontSize='.75rem';ub.innerHTML='← Back';
-      ub.onclick=function(){SR.back();};
-      uRight.insertBefore(ub,uRight.firstChild);
-    }
-    if(uRight&&!qs('[data-dropdown-container]',uRight)){
-      var udc=document.createElement('div');
-      udc.setAttribute('data-dropdown-container','');udc.style.position='relative';
-      udc.innerHTML='<div class="sirius-avatar-trigger nav-profile-trigger" onclick="toggleNavDropdown(this)">'+
-        '<div class="sirius-avatar-circle nav-profile-avatar-sm">?</div>'+
-        '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.45)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'+
-      '</div><div class="nav-dropdown" style="right:0"></div>';
-      uRight.appendChild(udc);
-    }
-  }
-
-  // Plan selection: keep Back, add dropdown
-  var planNav=qs('#planSelectionPage > nav');
-  if(planNav){
-    var planRight=qs('#planSelectionPage > nav > div:last-child,#planSelectionPage > nav > button:last-child');
-    // Find the back button and update its onclick
-    qsa('button',planNav).forEach(function(b){
-      if((b.textContent||'').indexOf('Back')>-1) b.onclick=function(){SR.back();};
-    });
-    if(planNav&&!qs('[data-dropdown-container]',planNav)){
-      var pldc=document.createElement('div');
-      pldc.setAttribute('data-dropdown-container','');pldc.style.position='relative';
-      pldc.innerHTML='<div class="sirius-avatar-trigger nav-profile-trigger" onclick="toggleNavDropdown(this)">'+
-        '<div class="sirius-avatar-circle nav-profile-avatar-sm">?</div>'+
-        '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.45)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'+
-      '</div><div class="nav-dropdown" style="right:0"></div>';
-      // Append to nav directly
-      planNav.appendChild(pldc);
-    }
-  }
-
-  // Evaluation page: remove Request Demo button
-  var evalActions=qs('#evaluation .eval-header-actions');
-  if(evalActions){
-    qsa('button',evalActions).forEach(function(b){
-      if((b.textContent||'').indexOf('Request Demo')>-1||(b.onclick&&String(b.onclick).indexOf('openModal')>-1)) b.remove();
-    });
-    // Update Back button to use SR.back()
-    qsa('button',evalActions).forEach(function(b){
-      if((b.textContent||'').indexOf('Back')>-1) b.onclick=function(){SR.back();};
-    });
-    // Add dropdown if missing
-    if(!qs('[data-dropdown-container]',evalActions)){
-      var edc=document.createElement('div');
-      edc.setAttribute('data-dropdown-container','');edc.style.position='relative';
-      edc.innerHTML='<div class="sirius-avatar-trigger nav-profile-trigger" onclick="toggleNavDropdown(this)">'+
-        '<div class="sirius-avatar-circle nav-profile-avatar-sm">?</div>'+
-        '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.45)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'+
-      '</div><div class="nav-dropdown" style="right:0"></div>';
-      evalActions.appendChild(edc);
-    }
-  }
-
+  /* HTML source navs are already clean — we only sync avatars and inject tool navs */
   _syncNavAvatars();
   _injectToolNavs();
 }
@@ -8493,17 +8388,31 @@ function _loadPublicText(){
 /* ── PREVIEW AS VISITOR ── */
 window.previewLandingAsVisitor=function(){
   if(!isAdmin()) return;
+  /* Enter preview — show exactly what a visitor sees */
   document.body.classList.add('sirius-preview-mode');
   document.body.classList.remove('sirius-logged-in','sirius-plan-free');
   qs('#siriusPreviewBanner').classList.add('visible');
-  if(typeof showPage==='function') showPage('landing');
+  /* Navigate to landing without pushing to page stack */
+  if(typeof _origShow==='function') _origShow('landing');
+  else if(typeof showPage==='function') showPage('landing');
+  /* Restore all visitor sections */
   qsa('#landing > section,#landing footer').forEach(function(el){el.style.display='';});
-  var sign=qs('#navSignInBtn');if(sign){sign.style.display='';sign.textContent='Sign In';}
+  /* Visitor nav state */
+  var sign=qs('#navSignInBtn');
+  if(sign){sign.style.display='inline-flex';sign.textContent='Sign In';sign.onclick=function(){if(typeof openAuthModal==='function')openAuthModal();};}
   var userInfo=qs('#navUserInfo');if(userInfo)userInfo.style.display='none';
   var navLinks=qs('#landing .nav-links');if(navLinks)navLinks.style.display='flex';
-  var hero=qs('#heroCtaBtn');if(hero){hero.textContent='Start free — no charge for 7 days';hero.onclick=function(){if(typeof openPlanSelection==='function')openPlanSelection();};}
+  /* Visitor CTA */
+  var hero=qs('#heroCtaBtn');
+  if(hero){
+    hero.textContent='Start free — no charge for 7 days';
+    hero.onclick=function(){if(typeof openPlanSelection==='function')openPlanSelection();};
+  }
+  /* Remove logged-in breakdown buttons */
   qsa('#siriusBuyerBtn,#siriusSellerBtn').forEach(function(el){el.remove();});
-  var reqDemo=qs('#navAuthArea > .btn-ghost[onclick*="openModal"]');if(reqDemo)reqDemo.style.display='';
+  /* Show Request Demo */
+  qsa('.btn-ghost[onclick*="openModal"]').forEach(function(el){el.style.display='';});
+  /* Render pricing */
   if(typeof renderPricing==='function') renderPricing();
   _loadPublicText();
 };
