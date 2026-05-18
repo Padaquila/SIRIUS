@@ -1970,7 +1970,7 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
     <div class="nav-links">
       <a onclick="scrollTo2('#features')">Features</a>
       <a onclick="scrollTo2('#pricing')">Pricing</a>
-      <a onclick="scrollTo2('#demo')">Demo</a>
+      <a onclick="scrollTo2('#demoSection')">Demo</a>
     </div>
     <div style="display:flex;gap:.75rem;align-items:center" id="navAuthArea">
       <button class="btn btn-ghost" onclick="openModal()">Request Demo</button>
@@ -3340,6 +3340,7 @@ function cn(n){return Math.round(n).toLocaleString('en-AE');}
 
 /* PAGES */
 function showPage(id){
+  console.log('[SIRIUS DEBUG] showPage called with id=', id);
   /* CSS handles display via .page.active — just toggle the class */
   document.querySelectorAll('.page').forEach(function(p){
     p.classList.remove('active');
@@ -3359,7 +3360,7 @@ function goToLanding(){showPage('landing');}
 function scrollTo2(sel){var el=document.querySelector(sel);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
 
 /* MODAL */
-function openModal(){document.getElementById('demoModal').classList.add('open');document.getElementById('demoFormWrap').classList.remove('hidden');document.getElementById('demoSuccess').classList.add('hidden');}
+function openModal(){ console.log('[SIRIUS DEBUG] openModal called'); document.getElementById('demoModal').classList.add('open');document.getElementById('demoFormWrap').classList.remove('hidden');document.getElementById('demoSuccess').classList.add('hidden');}
 function closeModal(){document.getElementById('demoModal').classList.remove('open');}
 function submitDemo(){document.getElementById('demoFormWrap').classList.add('hidden');document.getElementById('demoSuccess').classList.remove('hidden');}
 document.getElementById('demoModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
@@ -5641,6 +5642,7 @@ auth.onAuthStateChanged(function(user){
       updateLandingForUser(user);
       updateNavAvatar(user.displayName || user.email || '');
       /* Route AFTER admin status confirmed */
+      console.log('[SIRIUS DEBUG] routing: IS_ADMIN=', IS_ADMIN, 'CURRENT_USER=', CURRENT_USER && CURRENT_USER.email);
       routeAfterAuth(user);
     }).catch(function(){
       IS_ADMIN = false;
@@ -6688,6 +6690,7 @@ function getDisplayPlan(){
 
 /* ── Admin Dashboard ── */
 function openAdminDashboard(){
+  console.log('[SIRIUS DEBUG] openAdminDashboard called, IS_ADMIN=', IS_ADMIN);
   if(!IS_ADMIN){
     /* Fall through to user dashboard silently */
     openUserDashboard();
@@ -7187,6 +7190,7 @@ function createUserAccount(name, email, pass, plan){
 
 /* ── Open user dashboard ── */
 function openUserDashboard(){
+  console.log('[SIRIUS DEBUG] openUserDashboard called, CURRENT_USER=', CURRENT_USER && CURRENT_USER.email);
   if(!CURRENT_USER) return;
   showPage('userDashboardPage');
   loadUserDashboard();
@@ -7257,6 +7261,7 @@ function openComparisons(){
 /* ── Auth state: route signed-in users to dashboard ── */
 /* This is called from the existing onAuthStateChanged */
 function routeAfterAuth(user){
+  console.log('[SIRIUS DEBUG] routeAfterAuth: IS_ADMIN=', IS_ADMIN, 'user=', user && user.email);
   /* Ensure CURRENT_USER is set before routing */
   if(user) CURRENT_USER = user;
   if(IS_ADMIN){
@@ -7271,6 +7276,7 @@ function routeAfterAuth(user){
 
 /* ── Nav Dropdown ── */
 function toggleNavDropdown(el){
+  console.log('[SIRIUS DEBUG] toggleNavDropdown called, el=', el);
   var dd = null;
   if(el){
     var container = el.parentElement;
@@ -7296,8 +7302,15 @@ function toggleNavDropdown(el){
     /* Position dropdown below the trigger element */
     if(el){
       var rect = el.getBoundingClientRect();
-      dd.style.top = (rect.bottom + 6) + 'px';
-      dd.style.right = (window.innerWidth - rect.right) + 'px';
+      console.log('[SIRIUS DEBUG] trigger rect:', rect.top, rect.bottom, rect.right, 'windowW:', window.innerWidth);
+      if(rect.bottom > 0){
+        dd.style.top = (rect.bottom + 6) + 'px';
+        dd.style.right = (window.innerWidth - rect.right) + 'px';
+      } else {
+        /* Fallback: position at top right */
+        dd.style.top = '64px';
+        dd.style.right = '24px';
+      }
       dd.style.left = 'auto';
     }
     dd.style.display = 'block';
