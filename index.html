@@ -8941,5 +8941,86 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
 })();
 </script>
 
+
+
+<!-- SIRIUS STEP 4B HOTFIX 2026-05-18: use Google redirect sign-in instead of popup -->
+<script id="sirius-google-redirect-signin-hotfix-js">
+(function(){
+  function qs(s,r){return (r||document).querySelector(s)}
+  function setAuthError(msg){var el=qs('#authError'); if(el) el.textContent=msg||'';}
+  function closeModal(){var m=qs('#authModal'); if(m) m.classList.remove('open');}
+  function provider(){
+    var p=new firebase.auth.GoogleAuthProvider();
+    try{p.addScope('email'); p.addScope('profile');}catch(e){}
+    try{p.setCustomParameters({prompt:'select_account'});}catch(e){}
+    return p;
+  }
+  function afterRedirectLogin(){
+    try{closeModal();}catch(e){}
+    try{if(typeof applySiriusLandingState==='function') applySiriusLandingState();}catch(e){}
+    try{if(typeof syncSiriusNavs==='function') syncSiriusNavs();}catch(e){}
+    try{if(typeof patchAllBackButtons==='function') patchAllBackButtons();}catch(e){}
+  }
+  function startGoogleRedirect(ev){
+    if(ev){ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();}
+    setAuthError('');
+    try{
+      if(!window.firebase || !firebase.auth || !window.auth){
+        setAuthError('Google sign-in is still loading. Please try again in a moment.');
+        return false;
+      }
+      try{auth.useDeviceLanguage&&auth.useDeviceLanguage();}catch(e){}
+      try{
+        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(function(){
+          return auth.signInWithRedirect(provider());
+        }).catch(function(){
+          return auth.signInWithRedirect(provider());
+        });
+      }catch(inner){
+        auth.signInWithRedirect(provider());
+      }
+    }catch(err){
+      console.error('Google redirect sign-in failed to start:',err);
+      setAuthError((err&&err.message) ? err.message : 'Google sign-in failed to start. Please refresh and try again.');
+    }
+    return false;
+  }
+  window.signInWithGoogle=startGoogleRedirect;
+  window.handlePlanGoogleSignup=function(ev){return startGoogleRedirect(ev);};
+
+  function bindGoogleButtons(){
+    document.querySelectorAll('.auth-google-btn').forEach(function(btn){
+      btn.setAttribute('type','button');
+      btn.onclick=startGoogleRedirect;
+    });
+  }
+  document.addEventListener('DOMContentLoaded',bindGoogleButtons);
+  window.addEventListener('load',bindGoogleButtons);
+  setTimeout(bindGoogleButtons,100);
+  setTimeout(bindGoogleButtons,800);
+  setTimeout(bindGoogleButtons,1600);
+
+  try{
+    if(window.auth && auth.getRedirectResult){
+      auth.getRedirectResult().then(function(result){
+        var user=(result&&result.user)||(auth&&auth.currentUser);
+        if(user && window.db && db.collection){
+          return db.collection('users').doc(user.uid).set({
+            email:user.email||'',
+            displayName:user.displayName||'',
+            lastLoginAt:firebase.firestore.FieldValue.serverTimestamp()
+          },{merge:true});
+        }
+      }).then(function(){
+        if(auth&&auth.currentUser) afterRedirectLogin();
+      }).catch(function(e){
+        console.warn('Google redirect result:',e&&e.code,e&&e.message);
+        if(e && e.code !== 'auth/no-auth-event') setAuthError(e.message||'Google sign-in failed. Please try again.');
+      });
+    }
+  }catch(e){}
+})();
+</script>
+
 </body>
 </html>
