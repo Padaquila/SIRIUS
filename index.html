@@ -1809,6 +1809,8 @@ body.auth-resetting { pointer-events: none; }
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check-compat.js"></script>
+  <script src="https://www.google.com/recaptcha/enterprise.js?render=6LeyH-0sAAAAAFWyUIPSraFz_pAXxb2URsQ7WJx9" async defer></script>
   <script>
     firebase.initializeApp({
       apiKey: "AIzaSyA0fCGsowR9NDD3aKynRUPXb5EoGtPXvz0",
@@ -1818,6 +1820,15 @@ body.auth-resetting { pointer-events: none; }
       messagingSenderId: "498976578013",
       appId: "1:498976578013:web:cf5bd43afe3b7a645dfe34"
     });
+    try {
+      if (firebase.appCheck && !window.__siriusEarlyAppCheckReady) {
+        window.__siriusEarlyAppCheckReady = true;
+        firebase.appCheck().activate(
+          new firebase.appCheck.ReCaptchaEnterpriseProvider('6LeyH-0sAAAAAFWyUIPSraFz_pAXxb2URsQ7WJx9'),
+          true
+        );
+      }
+    } catch(e) { console.warn('Early App Check failed:', e.message); }
     var db   = firebase.firestore();
     var auth = firebase.auth();
   </script>
@@ -8674,6 +8685,185 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
     patchBackButtons();
     if(activePageId()==='landing' && !document.body.classList.contains('sirius-logged-in')) window.siriusLoadPublicLandingTextNow();
   },1500);
+})();
+</script>
+
+
+
+<!-- SIRIUS STEP 4 PATCH 2026-05-18: stable CTA, instant back routing, early public landing sync -->
+<style id="sirius-step4-css">
+  .sirius-back-control{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:.35rem!important}
+</style>
+<script id="sirius-step4-routing-public-sync">
+(function(){
+  function qs(s,r){return (r||document).querySelector(s)}
+  function qsa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+  function logged(){return !!(window.CURRENT_USER || (window.auth && auth.currentUser));}
+  function admin(){return !!window.IS_ADMIN;}
+  function activePageId(){var p=qs('.page.active'); return p&&p.id?p.id:'landing';}
+  function isPreview(){return document.body.classList.contains('sirius-preview-mode');}
+  function routeBackTarget(){return window.SIRIUS_RETURN_PAGE || 'landing';}
+
+  function lockHeroCTA(){
+    var cta=qs('#heroCtaBtn'); if(!cta) return;
+    if(logged() && !isPreview()){
+      if(cta.textContent.trim()!=='Open Calculator') cta.textContent='Open Calculator';
+      cta.onclick=function(e){ if(e)e.preventDefault(); if(typeof goToEval==='function') goToEval(); };
+      qsa('#mainHero .btn-outline, #navAuthArea .btn-ghost').forEach(function(b){
+        if(/request demo/i.test(b.textContent||'')) b.style.display='none';
+      });
+    }else if(!logged() || isPreview()){
+      if(cta.textContent.trim()!=='Start free — no charge for 7 days') cta.textContent='Start free — no charge for 7 days';
+      cta.onclick=function(e){ if(e)e.preventDefault(); if(typeof openPlanSelection==='function') openPlanSelection(); };
+    }
+  }
+
+  function goToTarget(target){
+    target=target||'landing';
+    if(target==='userDashboardPage'){
+      window.SIRIUS_RETURN_PAGE='landing';
+      if(typeof goDashboard==='function') return goDashboard();
+      if(typeof showPage==='function') return showPage('userDashboardPage');
+    }
+    if(target==='adminDashboardPage'){
+      window.SIRIUS_RETURN_PAGE='landing';
+      if(typeof openAdminPanel==='function') return openAdminPanel();
+      if(typeof openAdminDashboard==='function') return openAdminDashboard();
+      if(typeof showPage==='function') return showPage('adminDashboardPage');
+    }
+    if(target==='landing'){
+      window.SIRIUS_RETURN_PAGE='landing';
+      if(typeof goToLanding==='function') return goToLanding();
+      if(typeof showPage==='function') return showPage('landing');
+    }
+    if(typeof showPage==='function') return showPage(target);
+  }
+
+  window.siriusBack=function(e){
+    if(e){e.preventDefault(); e.stopPropagation(); if(e.stopImmediatePropagation) e.stopImmediatePropagation();}
+    goToTarget(routeBackTarget());
+    setTimeout(function(){patchAllBackButtons(); lockHeroCTA();},25);
+    return false;
+  };
+
+  function backButtonHTML(target){
+    return '<button class="btn btn-ghost sirius-back-control" data-sirius-back-target="'+target+'" onclick="return siriusBack(event)" style="font-size:.75rem;margin-right:.55rem">← Back</button>';
+  }
+
+  function ensureActionsBack(navSelector,target){
+    var actions=qs(navSelector); if(!actions) return;
+    var old=actions.querySelector('.sirius-back-control');
+    if(!old) actions.insertAdjacentHTML('afterbegin', backButtonHTML(target));
+    else old.setAttribute('data-sirius-back-target',target);
+  }
+
+  function replaceInternalBack(btn,target){
+    if(!btn) return;
+    btn.classList.add('sirius-back-control');
+    btn.setAttribute('data-sirius-back-target', target);
+    btn.setAttribute('onclick','return siriusBack(event)');
+    btn.onclick=function(e){return window.siriusBack(e)};
+  }
+
+  function patchAllBackButtons(){
+    ensureActionsBack('#adminDashboardPage > nav > div:last-child','landing');
+    ensureActionsBack('#userDashboardPage > nav > div:last-child','landing');
+    qsa('#profilePage button.btn-ghost, #evaluation .eval-header-actions button.btn-ghost, #planSelectionPage button.btn-ghost').forEach(function(btn){
+      if(/back/i.test(btn.textContent||'')) replaceInternalBack(btn, routeBackTarget());
+    });
+    qsa('#profilePage button, #evaluation button, #planSelectionPage button, #adminDashboardPage button, #userDashboardPage button').forEach(function(btn){
+      if((btn.textContent||'').trim().match(/^←?\s*Back/i)) replaceInternalBack(btn, routeBackTarget());
+    });
+  }
+
+  /* Capture clicks once, before older inline handlers can swallow them. */
+  document.addEventListener('click',function(e){
+    var back=e.target && e.target.closest && e.target.closest('.sirius-back-control, button');
+    if(back && /back/i.test(back.textContent||'') && (back.closest('#profilePage')||back.closest('#evaluation')||back.closest('#planSelectionPage')||back.closest('#userDashboardPage')||back.closest('#adminDashboardPage'))){
+      return window.siriusBack(e);
+    }
+    var dash=qs('#userDashboardPage.page.active, #adminDashboardPage.page.active');
+    if(dash){
+      var trigger=e.target.closest('button, .dash-card, a, [onclick]');
+      if(trigger && !/back|sign out/i.test(trigger.textContent||'')){
+        window.SIRIUS_RETURN_PAGE = dash.id;
+      }
+    }
+  }, true);
+
+  /* Wrap navigation functions so dashboard origin is preserved reliably. */
+  ['openProfile','goToEval','openSubscriptionPlan'].forEach(function(name){
+    var fn=window[name];
+    if(typeof fn==='function' && !fn.__siriusStep4){
+      window[name]=function(){
+        var from=activePageId();
+        if(from==='userDashboardPage'||from==='adminDashboardPage') window.SIRIUS_RETURN_PAGE=from;
+        return fn.apply(this,arguments);
+      };
+      window[name].__siriusStep4=true;
+    }
+  });
+
+  var oldShow=window.showPage;
+  if(typeof oldShow==='function' && !oldShow.__siriusStep4){
+    window.showPage=function(id){
+      var from=activePageId();
+      if((from==='userDashboardPage'||from==='adminDashboardPage') && id && id!==from && id!=='landing') window.SIRIUS_RETURN_PAGE=from;
+      var result=oldShow.apply(this,arguments);
+      setTimeout(function(){patchAllBackButtons(); lockHeroCTA(); if(id==='landing') forcePublicLandingText();},30);
+      return result;
+    };
+    window.showPage.__siriusStep4=true;
+  }
+
+  function applyPublicText(data){
+    if(!data) return;
+    try{ window._landingTexts=data; localStorage.setItem('sirius_public_landingText_cache', JSON.stringify(data)); }catch(e){}
+    if(typeof applyLandingTexts==='function'){
+      try{ applyLandingTexts(data); }catch(e){}
+      [80,250,700,1400,2500,4000].forEach(function(ms){setTimeout(function(){try{applyLandingTexts(data)}catch(e){}},ms)});
+    }
+  }
+
+  function forcePublicLandingText(){
+    try{var c=localStorage.getItem('sirius_public_landingText_cache'); if(c) applyPublicText(JSON.parse(c));}catch(e){}
+    if(!window.db || !db.collection) return;
+    try{
+      db.collection('config').doc('landingText').get({source:'server'}).then(function(doc){ if(doc && doc.exists) applyPublicText(doc.data()||{}); })
+      .catch(function(){
+        try{db.collection('config').doc('landingText').get().then(function(doc){ if(doc&&doc.exists) applyPublicText(doc.data()||{}); });}catch(e){}
+      });
+    }catch(e){}
+  }
+  window.siriusForcePublicLandingText=forcePublicLandingText;
+
+  function startPublicWatcher(){
+    if(window.__siriusStep4PublicWatcher || !window.db || !db.collection) return;
+    window.__siriusStep4PublicWatcher=true;
+    try{db.collection('config').doc('landingText').onSnapshot(function(doc){ if(doc&&doc.exists) applyPublicText(doc.data()||{}); });}catch(e){}
+  }
+
+  /* Rebuild save hook so admin save writes the exact public document and refreshes public cache. */
+  var oldSave=window.saveAllLandingTexts;
+  window.saveAllLandingTexts=function(){
+    var texts={};
+    if(window.LANDING_TEXT_KEYS){
+      LANDING_TEXT_KEYS.forEach(function(k){var el=qs('#lt_'+k.id); if(el) texts[k.id]=el.value;});
+    }
+    if(!texts || !Object.keys(texts).length){ if(oldSave) return oldSave(); return; }
+    applyPublicText(texts);
+    var btns=qsa('[onclick="saveAllLandingTexts()"]');
+    btns.forEach(function(b){b.textContent='Saving...';});
+    var save=function(){return db.collection('config').doc('landingText').set(texts,{merge:false});};
+    var p=(window.CURRENT_USER&&CURRENT_USER.getIdToken)?CURRENT_USER.getIdToken(true).then(save):save();
+    p.then(function(){applyPublicText(texts);btns.forEach(function(b){b.textContent='✓ Saved publicly';b.style.color='rgba(39,174,96,.9)';});setTimeout(function(){btns.forEach(function(b){b.textContent='Save all text changes';b.style.color='';});},2200);})
+     .catch(function(e){console.error('public landing save failed',e);btns.forEach(function(b){b.textContent='✗ Failed to save publicly';b.style.color='rgba(231,76,60,.85)';});});
+  };
+
+  if(window.auth && auth.onAuthStateChanged){auth.onAuthStateChanged(function(){setTimeout(function(){lockHeroCTA();patchAllBackButtons();forcePublicLandingText();startPublicWatcher();},250);});}
+  document.addEventListener('DOMContentLoaded',function(){lockHeroCTA();patchAllBackButtons();forcePublicLandingText();startPublicWatcher();});
+  window.addEventListener('load',function(){[100,600,1500,3500,7000].forEach(function(ms){setTimeout(function(){forcePublicLandingText();startPublicWatcher();lockHeroCTA();patchAllBackButtons();},ms);});});
+  setInterval(function(){lockHeroCTA();patchAllBackButtons(); if(activePageId()==='landing' && !logged()) forcePublicLandingText();},1000);
 })();
 </script>
 
