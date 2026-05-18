@@ -9741,5 +9741,221 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
 })();
 </script>
 
+
+
+<!-- SIRIUS STEP 4B PATCH: Read-only saved reports + rename saved items -->
+<style id="sirius-step4b-readonly-rename-css">
+  #siriusSavedReadonlyPage {
+    position: fixed;
+    inset: 0;
+    z-index: 12000;
+    background: var(--deep-navy, #0A1628);
+    color: var(--white, #F7F6F2);
+    display: none;
+    overflow-y: auto;
+  }
+  #siriusSavedReadonlyPage.open { display:block; }
+  .sirius-ro-nav {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .9rem 1.25rem;
+    background: rgba(10,22,40,.96);
+    border-bottom: 1px solid rgba(191,198,209,.14);
+    backdrop-filter: blur(12px);
+  }
+  .sirius-ro-wrap { max-width: 980px; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
+  .sirius-ro-card { background: rgba(17,32,58,.52); border:1px solid rgba(191,198,209,.12); border-radius:14px; padding:1.25rem; margin-bottom:1rem; }
+  .sirius-ro-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(190px,1fr)); gap:.75rem; }
+  .sirius-ro-kpi { background:rgba(255,255,255,.035); border:1px solid rgba(191,198,209,.1); border-radius:12px; padding:1rem; }
+  .sirius-ro-label { font-size:.62rem; letter-spacing:.14em; text-transform:uppercase; color:rgba(191,198,209,.55); margin-bottom:.35rem; }
+  .sirius-ro-value { font-size:1rem; color:var(--ivory,#F7F6F2); font-weight:700; }
+  .sirius-ro-table { width:100%; border-collapse:collapse; margin-top:.5rem; }
+  .sirius-ro-table td { padding:.55rem .4rem; border-bottom:1px solid rgba(191,198,209,.08); font-size:.82rem; vertical-align:top; }
+  .sirius-ro-table td:first-child { color:rgba(191,198,209,.6); width:38%; }
+  .sirius-rename-saved-btn { margin-left:.5rem; padding:.32rem .65rem; border-radius:7px; border:1px solid rgba(191,198,209,.16); background:rgba(255,255,255,.04); color:var(--text-muted,#BFC6D1); font-size:.68rem; cursor:pointer; font-family:var(--font-body); }
+  .sirius-rename-saved-btn:hover { border-color:rgba(191,198,209,.35); color:var(--white,#F7F6F2); }
+</style>
+<script id="sirius-step4b-readonly-rename-script">
+(function(){
+  if(window.__SIRIUS_STEP4B_READONLY_RENAME__) return;
+  window.__SIRIUS_STEP4B_READONLY_RENAME__ = true;
+
+  function uid(){ return window.CURRENT_USER && window.CURRENT_USER.uid; }
+  function dbOk(){ return window.db && uid(); }
+  function fmtAED(v){
+    var n = Number(v || 0);
+    if(!isFinite(n) || !n) return 'AED —';
+    return 'AED ' + Math.round(n).toLocaleString('en-AE');
+  }
+  function fmtDate(v){
+    try{
+      var d = v && v.toDate ? v.toDate() : (v ? new Date(v) : null);
+      if(!d || isNaN(d.getTime())) return '—';
+      return d.toLocaleString('en-AE', { year:'numeric', month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+    }catch(e){ return '—'; }
+  }
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});
+  }
+  function collectionForKind(kind){
+    kind = String(kind || '');
+    if(kind.indexOf('buyer') > -1) return 'savedBuyerBreakdowns';
+    if(kind.indexOf('seller') > -1) return 'savedSellerBreakdowns';
+    return 'savedReports';
+  }
+  function ensureReadonlyPage(){
+    var page = document.getElementById('siriusSavedReadonlyPage');
+    if(page) return page;
+    page = document.createElement('div');
+    page.id = 'siriusSavedReadonlyPage';
+    page.innerHTML = '<div class="sirius-ro-nav">'+
+      '<button class="btn btn-ghost" id="siriusRoCloseBtn" style="font-size:.72rem">← Back to Saved Items</button>'+
+      '<div style="display:flex;align-items:center;gap:.75rem"><span style="font-size:.72rem;color:var(--text-muted)">Read-only saved snapshot</span></div>'+
+      '</div><div class="sirius-ro-wrap" id="siriusRoContent"></div>';
+    document.body.appendChild(page);
+    document.getElementById('siriusRoCloseBtn').onclick = closeReadonlyPage;
+    return page;
+  }
+  function closeReadonlyPage(){
+    var page = document.getElementById('siriusSavedReadonlyPage');
+    if(page) page.classList.remove('open');
+  }
+  window.closeSavedReadonlySnapshot = closeReadonlyPage;
+
+  function showReadonlyEvaluation(data, id, kind){
+    var page = ensureReadonlyPage();
+    var c = document.getElementById('siriusRoContent');
+    var s = data.summary || {};
+    var inputs = data.inputs || {};
+    var title = data.title || s.title || s.scenario || 'Saved Evaluation';
+    var created = data.createdAt || s.calculatedAt;
+    var rows = [];
+    Object.keys(inputs).sort().forEach(function(k){
+      var val = inputs[k];
+      if(val === '' || val == null) return;
+      rows.push('<tr><td>'+esc(k)+'</td><td>'+esc(val)+'</td></tr>');
+    });
+    c.innerHTML = ''+
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">'+
+        '<div><div style="font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--brushed-silver);margin-bottom:.45rem">Evaluation Results</div>'+
+        '<h1 style="font-size:2rem;font-weight:300;font-family:var(--font-display);margin:0;color:var(--ivory)">'+esc(title)+'</h1>'+
+        '<div style="font-size:.82rem;color:var(--text-muted);margin-top:.35rem">Saved on '+esc(fmtDate(created))+'</div></div>'+
+        '<button class="btn btn-outline" id="siriusRoRenameBtn" style="font-size:.72rem">Rename</button>'+
+      '</div>'+
+      '<div class="sirius-ro-card"><div class="sirius-ro-grid">'+
+        '<div class="sirius-ro-kpi"><div class="sirius-ro-label">Property Price</div><div class="sirius-ro-value">'+esc(fmtAED(s.propertyPrice))+'</div></div>'+
+        '<div class="sirius-ro-kpi"><div class="sirius-ro-label">Total Investment</div><div class="sirius-ro-value">'+esc(fmtAED(s.totalInvestment))+'</div></div>'+
+        '<div class="sirius-ro-kpi"><div class="sirius-ro-label">Status</div><div class="sirius-ro-value">'+esc(s.status || '—')+'</div></div>'+
+        '<div class="sirius-ro-kpi"><div class="sirius-ro-label">Financing</div><div class="sirius-ro-value">'+esc(s.financing || '—')+'</div></div>'+
+        '<div class="sirius-ro-kpi"><div class="sirius-ro-label">Purpose</div><div class="sirius-ro-value">'+esc(s.purpose || '—')+'</div></div>'+
+      '</div></div>'+
+      '<div class="sirius-ro-card"><div style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brushed-silver);font-weight:700;margin-bottom:.6rem">Input Snapshot</div>'+
+        '<div style="font-size:.78rem;color:var(--text-muted);margin-bottom:.65rem">This is a read-only archive. To protect plan limits and report history, saved reports cannot be edited or recalculated from here.</div>'+
+        '<table class="sirius-ro-table">'+(rows.length ? rows.join('') : '<tr><td colspan="2">No input snapshot found.</td></tr>')+'</table>'+
+      '</div>';
+    document.getElementById('siriusRoRenameBtn').onclick = function(){ renameSavedItem(kind, id, title); };
+    page.classList.add('open');
+    page.scrollTop = 0;
+  }
+
+  function showReadonlyPlaceholder(data, id, kind){
+    var page = ensureReadonlyPage();
+    var c = document.getElementById('siriusRoContent');
+    var title = data.title || (kind.indexOf('buyer')>-1 ? 'Buyer Payment Breakdown' : 'Seller Payment Breakdown');
+    c.innerHTML = '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">'+
+      '<div><div style="font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--brushed-silver);margin-bottom:.45rem">Saved Breakdown</div><h1 style="font-size:2rem;font-weight:300;font-family:var(--font-display);margin:0;color:var(--ivory)">'+esc(title)+'</h1><div style="font-size:.82rem;color:var(--text-muted);margin-top:.35rem">Saved on '+esc(fmtDate(data.createdAt))+'</div></div>'+
+      '<button class="btn btn-outline" id="siriusRoRenameBtn" style="font-size:.72rem">Rename</button></div>'+
+      '<div class="sirius-ro-card"><div style="font-size:.85rem;color:var(--text-muted)">This saved breakdown will open here as a read-only snapshot once the full breakdown tool is built.</div></div>';
+    document.getElementById('siriusRoRenameBtn').onclick = function(){ renameSavedItem(kind, id, title); };
+    page.classList.add('open');
+    page.scrollTop = 0;
+  }
+
+  function openReadonlySavedItem(kind, id){
+    if(!dbOk() || !id) return;
+    var collection = collectionForKind(kind);
+    window.db.collection('users').doc(uid()).collection(collection).doc(id).get().then(function(doc){
+      if(!doc.exists){ alert('Saved item not found.'); return; }
+      var data = doc.data() || {};
+      if(collection === 'savedReports') showReadonlyEvaluation(data, id, kind);
+      else showReadonlyPlaceholder(data, id, kind);
+    }).catch(function(err){
+      console.warn('Could not open saved read-only item', err);
+      alert('Could not open this saved item.');
+    });
+  }
+
+  function renameSavedItem(kind, id, currentTitle){
+    if(!dbOk() || !id) return;
+    var next = prompt('Rename this saved item:', currentTitle || 'Saved Item');
+    if(next == null) return;
+    next = String(next).trim();
+    if(!next) return alert('Name cannot be empty.');
+    var collection = collectionForKind(kind);
+    window.db.collection('users').doc(uid()).collection(collection).doc(id).set({
+      title: next,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge:true }).then(function(){
+      var page = document.getElementById('siriusSavedReadonlyPage');
+      if(page && page.classList.contains('open')) openReadonlySavedItem(kind, id);
+      if(typeof window.renderSavedFolders === 'function') window.renderSavedFolders();
+      setTimeout(injectRenameButtons, 300);
+    }).catch(function(err){
+      console.warn('Rename failed', err);
+      alert('Could not rename this saved item.');
+    });
+  }
+
+  function injectRenameButtons(){
+    document.querySelectorAll('.sirius-saved-row').forEach(function(row){
+      if(row.querySelector('.sirius-rename-saved-btn')) return;
+      var kind = row.getAttribute('data-kind') || '';
+      var id = row.getAttribute('data-id') || '';
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'sirius-rename-saved-btn';
+      btn.textContent = 'Rename';
+      btn.setAttribute('data-kind', kind);
+      btn.setAttribute('data-id', id);
+      var openBtn = row.querySelector('button');
+      if(openBtn && openBtn.parentNode) openBtn.parentNode.insertBefore(btn, openBtn);
+      else row.appendChild(btn);
+    });
+  }
+
+  document.addEventListener('click', function(e){
+    var renameBtn = e.target && e.target.closest ? e.target.closest('.sirius-rename-saved-btn') : null;
+    if(renameBtn){
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      var row = renameBtn.closest('.sirius-saved-row');
+      var titleEl = row ? row.querySelector('div div') : null;
+      renameSavedItem(renameBtn.getAttribute('data-kind'), renameBtn.getAttribute('data-id'), titleEl ? titleEl.textContent.trim() : 'Saved Item');
+      return false;
+    }
+    var row = e.target && e.target.closest ? e.target.closest('.sirius-saved-row') : null;
+    if(row){
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      openReadonlySavedItem(row.getAttribute('data-kind'), row.getAttribute('data-id'));
+      return false;
+    }
+  }, true);
+
+  var mo = new MutationObserver(function(){ injectRenameButtons(); });
+  function init(){
+    ensureReadonlyPage();
+    injectRenameButtons();
+    try{ mo.observe(document.body, { childList:true, subtree:true }); }catch(e){}
+  }
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(init, 400); setTimeout(injectRenameButtons, 1600); });
+  window.addEventListener('load', function(){ setTimeout(init, 400); setTimeout(injectRenameButtons, 1600); });
+  setInterval(injectRenameButtons, 2500);
+})();
+</script>
+
 </body>
 </html>
