@@ -9203,5 +9203,543 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
 })();
 </script>
 
+
+<!-- SIRIUS PHASE 1: Buyer/Seller Breakdown route shells (no formula changes) -->
+<style id="siriusPhase1BreakdownStyles">
+  .sirius-tool-shell{background:var(--bg);min-height:100vh;padding-top:0;color:var(--white)}
+  .sirius-tool-wrap{max-width:980px;margin:0 auto;padding:2.5rem 1.5rem 4rem}
+  .sirius-tool-kicker{font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.5rem}
+  .sirius-tool-title{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:2rem;color:var(--ivory);margin-bottom:.5rem}
+  .sirius-tool-sub{font-size:.9rem;color:var(--text-muted);line-height:1.7;max-width:680px;margin-bottom:1.5rem}
+  .sirius-tool-placeholder{background:rgba(17,32,58,.52);border:1px solid rgba(191,198,209,.14);border-radius:14px;padding:1.5rem;margin-top:1rem}
+  .sirius-tool-placeholder-title{font-size:.86rem;font-weight:700;color:var(--ivory);margin-bottom:.4rem;letter-spacing:.04em}
+  .sirius-tool-list{margin:1rem 0 0;padding:0;list-style:none;display:grid;gap:.55rem}
+  .sirius-tool-list li{font-size:.82rem;color:rgba(191,198,209,.72);display:flex;gap:.55rem;align-items:flex-start;line-height:1.5}
+  .sirius-tool-list li:before{content:'•';color:var(--brushed-silver);font-weight:700}
+  .sirius-tool-actions{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.25rem}
+  .sirius-phase-action{white-space:nowrap}
+  @media(max-width:700px){.sirius-tool-actions{flex-direction:column}.sirius-tool-actions .btn{width:100%}.sirius-tool-title{font-size:1.65rem}}
+</style>
+
+<div id="buyerBreakdownPage" class="page sirius-tool-shell">
+  <nav class="nav">
+    <div class="nav-logo" style="cursor:pointer" onclick="siriusBackFromBreakdown()">
+      <svg width="22" height="22" viewBox="0 0 60 60" fill="none"><defs><radialGradient id="buyerToolStar" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#8a959e" stop-opacity=".6"/></radialGradient></defs><path d="M30 2L32.5 27.5L58 30L32.5 32.5L30 58L27.5 32.5L2 30L27.5 27.5Z" fill="url(#buyerToolStar)"/></svg>
+      <span style="font-family:'Cormorant Garamond',serif;font-weight:300;letter-spacing:.2em">SIRIUS</span>
+    </div>
+    <div style="display:flex;gap:.75rem;align-items:center">
+      <button class="btn btn-ghost" onclick="siriusBackFromBreakdown()" style="font-size:.75rem">← Back</button>
+      <span class="plan-chip">Buyer Tool</span>
+    </div>
+  </nav>
+  <div class="sirius-tool-wrap">
+    <div class="sirius-tool-kicker">Payment Tool</div>
+    <h1 class="sirius-tool-title">Buyer Payment Breakdown</h1>
+    <p class="sirius-tool-sub">This will become the fast buyer-cost workflow. It will be separate from the full property evaluation and will focus only on buyer payment obligations.</p>
+    <div class="sirius-tool-placeholder">
+      <div class="sirius-tool-placeholder-title">Coming next</div>
+      <ul class="sirius-tool-list">
+        <li>Acquisition fee breakdown</li>
+        <li>DLD, agency fee, admin fees and buyer-side cash needed</li>
+        <li>Off-plan payment schedule when applicable</li>
+        <li>Mortgage-related buyer costs later</li>
+        <li>No ROI dashboard or investment metrics</li>
+      </ul>
+      <div class="sirius-tool-actions">
+        <button class="btn btn-primary" onclick="goToEval()">Use Full Evaluation For Now</button>
+        <button class="btn btn-outline" onclick="siriusBackFromBreakdown()">Back</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="sellerBreakdownPage" class="page sirius-tool-shell">
+  <nav class="nav">
+    <div class="nav-logo" style="cursor:pointer" onclick="siriusBackFromBreakdown()">
+      <svg width="22" height="22" viewBox="0 0 60 60" fill="none"><defs><radialGradient id="sellerToolStar" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#8a959e" stop-opacity=".6"/></radialGradient></defs><path d="M30 2L32.5 27.5L58 30L32.5 32.5L30 58L27.5 32.5L2 30L27.5 27.5Z" fill="url(#sellerToolStar)"/></svg>
+      <span style="font-family:'Cormorant Garamond',serif;font-weight:300;letter-spacing:.2em">SIRIUS</span>
+    </div>
+    <div style="display:flex;gap:.75rem;align-items:center">
+      <button class="btn btn-ghost" onclick="siriusBackFromBreakdown()" style="font-size:.75rem">← Back</button>
+      <span class="plan-chip">Seller Tool</span>
+    </div>
+  </nav>
+  <div class="sirius-tool-wrap">
+    <div class="sirius-tool-kicker">Payment Tool</div>
+    <h1 class="sirius-tool-title">Seller Payment Breakdown</h1>
+    <p class="sirius-tool-sub">This will become the seller net-proceeds workflow. We will build the formulas later because this depends on ready/off-plan status, outstanding developer payments, payment plans, resale costs and net-to-seller logic.</p>
+    <div class="sirius-tool-placeholder">
+      <div class="sirius-tool-placeholder-title">Coming next</div>
+      <ul class="sirius-tool-list">
+        <li>Selling price and resale cost inputs</li>
+        <li>Agency fee, NOC and seller-side transaction costs</li>
+        <li>Outstanding balance to developer where applicable</li>
+        <li>Payment-plan scenarios for off-plan resale</li>
+        <li>Final net to seller / net in pocket</li>
+      </ul>
+      <div class="sirius-tool-actions">
+        <button class="btn btn-primary" onclick="siriusBackFromBreakdown()">Back</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script id="siriusPhase1BreakdownRoutes">
+(function(){
+  if(window.__siriusPhase1BreakdownRoutesInstalled) return;
+  window.__siriusPhase1BreakdownRoutesInstalled = true;
+
+  function currentActivePage(){
+    var active=document.querySelector('.page.active');
+    return active ? active.id : 'landing';
+  }
+
+  function rememberOrigin(){
+    var origin=currentActivePage();
+    if(origin==='buyerBreakdownPage' || origin==='sellerBreakdownPage') origin='landing';
+    window.__siriusBreakdownOrigin = origin || 'landing';
+  }
+
+  window.goToBuyerBreakdown = function(){
+    rememberOrigin();
+    if(typeof showPage==='function') showPage('buyerBreakdownPage');
+    window.scrollTo(0,0);
+  };
+
+  window.goToSellerBreakdown = function(){
+    rememberOrigin();
+    if(typeof showPage==='function') showPage('sellerBreakdownPage');
+    window.scrollTo(0,0);
+  };
+
+  window.siriusBackFromBreakdown = function(){
+    var origin=window.__siriusBreakdownOrigin || 'landing';
+    if(origin==='userDashboardPage' || origin==='adminDashboardPage'){
+      if(typeof goDashboard==='function') goDashboard(); else if(typeof showPage==='function') showPage(origin);
+    } else if(origin==='profilePage'){
+      if(typeof openProfile==='function') openProfile(); else if(typeof showPage==='function') showPage('profilePage');
+    } else if(origin==='planSelectionPage'){
+      if(typeof openSubscriptionPlan==='function') openSubscriptionPlan(); else if(typeof showPage==='function') showPage('planSelectionPage');
+    } else {
+      if(typeof goToLanding==='function') goToLanding(); else if(typeof showPage==='function') showPage('landing');
+    }
+    window.scrollTo(0,0);
+  };
+
+  function isLoggedIn(){ return !!(window.CURRENT_USER || (window.firebase && firebase.auth && firebase.auth().currentUser)); }
+
+  function addAfter(ref, node){
+    if(ref && ref.parentNode && !node.parentNode) ref.parentNode.insertBefore(node, ref.nextSibling);
+  }
+
+  function makeButton(label, onclickName, primary){
+    var b=document.createElement('button');
+    b.type='button';
+    b.className='btn '+(primary?'btn-primary':'btn-outline')+' btn-lg sirius-phase-action';
+    b.textContent=label;
+    b.onclick=function(){ window[onclickName] && window[onclickName](); };
+    return b;
+  }
+
+  function patchHeroActions(){
+    var cta=document.getElementById('heroCtaBtn');
+    if(!cta || !cta.parentNode) return;
+    var wrap=cta.parentNode;
+    if(!isLoggedIn()){
+      var old1=document.getElementById('heroBuyerBreakdownBtn');
+      var old2=document.getElementById('heroSellerBreakdownBtn');
+      if(old1) old1.remove(); if(old2) old2.remove();
+      return;
+    }
+    if(!document.getElementById('heroBuyerBreakdownBtn')){
+      var buyer=makeButton('Buyer Payment Breakdown','goToBuyerBreakdown',false);
+      buyer.id='heroBuyerBreakdownBtn';
+      wrap.appendChild(buyer);
+    }
+    if(!document.getElementById('heroSellerBreakdownBtn')){
+      var seller=makeButton('Seller Payment Breakdown','goToSellerBreakdown',false);
+      seller.id='heroSellerBreakdownBtn';
+      wrap.appendChild(seller);
+    }
+  }
+
+  function makeDashCard(id,title,sub,handler){
+    var card=document.createElement('div');
+    card.className='dash-card';
+    card.id=id;
+    card.onclick=function(){ window[handler] && window[handler](); };
+    card.innerHTML='<div class="dash-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h10"/></svg></div><div class="dash-card-title">'+title+'</div><div class="dash-card-sub">'+sub+'</div>';
+    return card;
+  }
+
+  function patchDashboardCards(){
+    var grid=document.querySelector('#userDashboardPage .dash-grid');
+    if(grid){
+      if(!document.getElementById('dashBuyerBreakdownCard')) grid.appendChild(makeDashCard('dashBuyerBreakdownCard','Buyer Payment Breakdown','Create a buyer-side payment and acquisition-cost breakdown.','goToBuyerBreakdown'));
+      if(!document.getElementById('dashSellerBreakdownCard')) grid.appendChild(makeDashCard('dashSellerBreakdownCard','Seller Payment Breakdown','Prepare a seller-side net proceeds and resale-cost breakdown.','goToSellerBreakdown'));
+    }
+    var adminGrid=document.querySelector('#adminDashboardPage .dash-grid, #adminDashboardPage [class*="dash-grid"]');
+    if(adminGrid){
+      if(!document.getElementById('adminBuyerBreakdownCard')) adminGrid.appendChild(makeDashCard('adminBuyerBreakdownCard','Buyer Payment Breakdown','Open the buyer-side payment breakdown tool shell.','goToBuyerBreakdown'));
+      if(!document.getElementById('adminSellerBreakdownCard')) adminGrid.appendChild(makeDashCard('adminSellerBreakdownCard','Seller Payment Breakdown','Open the seller-side payment breakdown tool shell.','goToSellerBreakdown'));
+    }
+  }
+
+  function patchDropdownMenus(){
+    document.querySelectorAll('.nav-dropdown').forEach(function(menu){
+      if(menu.getAttribute('data-sirius-breakdown-patched')==='1') return;
+      var evalBtn=Array.from(menu.querySelectorAll('button')).find(function(b){return (b.textContent||'').trim()==='Evaluate a Property';});
+      if(!evalBtn) return;
+      var buyer=document.createElement('button');
+      buyer.className='nav-dropdown-item'; buyer.textContent='Buyer Payment Breakdown'; buyer.onclick=function(){closeNavDropdown&&closeNavDropdown();goToBuyerBreakdown();};
+      var seller=document.createElement('button');
+      seller.className='nav-dropdown-item'; seller.textContent='Seller Payment Breakdown'; seller.onclick=function(){closeNavDropdown&&closeNavDropdown();goToSellerBreakdown();};
+      addAfter(evalBtn, seller); addAfter(evalBtn, buyer);
+      menu.setAttribute('data-sirius-breakdown-patched','1');
+    });
+  }
+
+  function applyPhase1(){
+    patchHeroActions();
+    patchDashboardCards();
+    patchDropdownMenus();
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){ applyPhase1(); setTimeout(applyPhase1,600); setTimeout(applyPhase1,1600); });
+  window.addEventListener('load',function(){ applyPhase1(); setTimeout(applyPhase1,800); });
+  setInterval(applyPhase1,2500);
+})();
+</script>
+
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   SIRIUS PHASE 4A — Saved reports infrastructure
+   Scope: existing Evaluate a Property flow only + dashboard folders.
+   Does NOT touch Google sign-in/auth or pricing logic.
+═══════════════════════════════════════════════════════════════ */
+(function(){
+  if(window.__SIRIUS_PHASE4A__) return;
+  window.__SIRIUS_PHASE4A__ = true;
+
+  var SAVE_CFG = {
+    reports: { label:'Saved Reports', collection:'savedReports', limitKey:'savedReports' },
+    buyer:   { label:'Saved Buyer Payment Breakdowns', collection:'savedBuyerBreakdowns', limitKey:'buyerBreakdowns' },
+    seller:  { label:'Saved Seller Payment Breakdowns', collection:'savedSellerBreakdowns', limitKey:'sellerBreakdowns' }
+  };
+  var SAVE_LIMITS = {
+    free:    { savedReports:3,  buyerBreakdowns:3,  sellerBreakdowns:3 },
+    starter: { savedReports:15, buyerBreakdowns:15, sellerBreakdowns:15 },
+    pro:     { savedReports:Infinity, buyerBreakdowns:Infinity, sellerBreakdowns:Infinity },
+    agency:  { savedReports:Infinity, buyerBreakdowns:Infinity, sellerBreakdowns:Infinity },
+    admin:   { savedReports:Infinity, buyerBreakdowns:Infinity, sellerBreakdowns:Infinity }
+  };
+
+  function qs(sel, root){ return (root||document).querySelector(sel); }
+  function qsa(sel, root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); }
+  function safeText(id){ var el=document.getElementById(id); return el ? (el.textContent||el.value||'').trim() : ''; }
+  function safeVal(id){ var el=document.getElementById(id); return el ? (el.value||el.textContent||'').trim() : ''; }
+  function cleanNum(v){ return String(v||'').replace(/[^0-9.-]/g,''); }
+  function fmtDate(d){
+    try{ return new Intl.DateTimeFormat('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(d); }
+    catch(e){ return d.toLocaleString(); }
+  }
+  function uid(){ return window.CURRENT_USER && window.CURRENT_USER.uid; }
+  function dbOk(){ return typeof firebase!=='undefined' && window.db && uid(); }
+  function userIsAdmin(){ return !!(window.IS_ADMIN || (typeof admin==='function' && admin())); }
+  function activePlan(){
+    if(userIsAdmin()) return 'admin';
+    var badge=safeText('udPlanBadge').toLowerCase();
+    if(badge.indexOf('professional')>-1) return 'pro';
+    if(badge.indexOf('starter')>-1) return 'starter';
+    if(badge.indexOf('agency')>-1) return 'agency';
+    return (window.USER_PROFILE && window.USER_PROFILE.plan) || 'free';
+  }
+  function limitsForCurrentUser(){ return SAVE_LIMITS[activePlan()] || SAVE_LIMITS.free; }
+  function limitText(used, limit){
+    if(limit===Infinity) return used+' saved · Unlimited';
+    var left=Math.max(0, limit-used);
+    return used+' / '+limit+' used · '+left+' left';
+  }
+
+  function collectInputs(){
+    var data={};
+    qsa('#evaluation input, #evaluation select, #evaluation textarea').forEach(function(el){
+      if(!el.id) return;
+      if(el.type==='checkbox') data[el.id]=!!el.checked;
+      else data[el.id]=el.value;
+    });
+    return data;
+  }
+  function restoreInputs(inputs){
+    if(!inputs) return;
+    Object.keys(inputs).forEach(function(id){
+      var el=document.getElementById(id); if(!el) return;
+      if(el.type==='checkbox') el.checked=!!inputs[id];
+      else el.value=inputs[id];
+      try{ el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); }catch(e){}
+    });
+  }
+  function summarizeReport(){
+    var propPrice = safeVal('propPrice') || cleanNum(safeText('out-propPrice')) || cleanNum(safeText('br-propPrice'));
+    var size = safeVal('sizeF');
+    var total = cleanNum(safeText('br-total')) || cleanNum(safeText('out-totalCapital')) || cleanNum(safeText('su-mTotalCapital'));
+    var status = (window.S && window.S.status) || '';
+    var financing = (window.S && window.S.financing) || '';
+    var purpose = (window.S && window.S.purpose) || '';
+    var titleParts=[];
+    if(status) titleParts.push(status);
+    if(financing) titleParts.push(financing);
+    if(purpose) titleParts.push(purpose);
+    var title = titleParts.length ? titleParts.join(' · ') : 'Property Evaluation';
+    return {
+      title:title,
+      scenario:title,
+      propertyPrice:propPrice ? Number(propPrice) : null,
+      size:size ? Number(cleanNum(size)) : null,
+      totalInvestment:total ? Number(total) : null,
+      status:status,
+      financing:financing,
+      purpose:purpose,
+      calculatedAt:new Date().toISOString()
+    };
+  }
+  function reportHash(summary, inputs){
+    var basis={
+      scenario:summary.scenario,
+      propertyPrice:summary.propertyPrice,
+      totalInvestment:summary.totalInvestment,
+      status:summary.status,
+      financing:summary.financing,
+      purpose:summary.purpose,
+      inputs:inputs
+    };
+    try{ return btoa(unescape(encodeURIComponent(JSON.stringify(basis)))).slice(0,900); }
+    catch(e){ return String(Date.now()); }
+  }
+
+  function saveEvaluationReport(){
+    if(!dbOk()) return;
+    var summary=summarizeReport();
+    var inputs=collectInputs();
+    var hash=reportHash(summary, inputs);
+    if(window.__SIRIUS_LAST_REPORT_HASH===hash) return;
+    window.__SIRIUS_LAST_REPORT_HASH=hash;
+
+    var payload={
+      type:'evaluation',
+      title:summary.title,
+      scenario:summary.scenario,
+      summary:summary,
+      inputs:inputs,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt:firebase.firestore.FieldValue.serverTimestamp(),
+      source:'evaluateProperty',
+      hash:hash
+    };
+    window.db.collection('users').doc(uid()).collection('savedReports').add(payload).then(function(){
+      incrementUsage('savedReports');
+      renderSavedFoldersSoon();
+      showAutosaveStatus('Evaluation saved to Saved Reports');
+    }).catch(function(err){
+      console.warn('SIRIUS auto-save failed:', err);
+      showAutosaveStatus('Auto-save failed', true);
+    });
+  }
+
+  function incrementUsage(field){
+    if(!dbOk()) return;
+    var ref=window.db.collection('usage').doc(uid());
+    var update={}; update[field+'ThisMonth']=firebase.firestore.FieldValue.increment(1);
+    update[field+'Total']=firebase.firestore.FieldValue.increment(1);
+    update.updatedAt=firebase.firestore.FieldValue.serverTimestamp();
+    ref.set(update,{merge:true}).catch(function(e){ console.warn('Usage update failed', e); });
+  }
+
+  function showAutosaveStatus(msg, bad){
+    var holder=document.getElementById('siriusAutosaveStatus');
+    if(!holder){
+      var actions=document.getElementById('resultDownloadActions');
+      if(actions){
+        holder=document.createElement('div');
+        holder.id='siriusAutosaveStatus';
+        holder.style.cssText='font-size:.72rem;color:var(--text-muted);text-align:right;margin-top:.5rem';
+        actions.appendChild(holder);
+      }
+    }
+    if(holder){
+      holder.textContent=msg;
+      holder.style.color=bad?'rgba(231,76,60,.85)':'rgba(46,204,113,.85)';
+      setTimeout(function(){ if(holder) holder.style.color='var(--text-muted)'; },1800);
+    }
+  }
+
+  function makeSectionHTML(kind, title, subtitle){
+    return ''+
+    '<div class="sirius-saved-section" id="siriusSaved_'+kind+'" style="background:rgba(17,32,58,.5);border:1px solid rgba(191,198,209,.1);border-radius:12px;overflow:hidden;margin-top:1rem">'+
+      '<div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(191,198,209,.08);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">'+
+        '<div><div style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brushed-silver);font-weight:600">'+title+'</div><div style="font-size:.75rem;color:var(--text-muted);margin-top:.25rem">'+subtitle+'</div></div>'+
+        '<div id="siriusSavedUsage_'+kind+'" style="font-size:.72rem;color:var(--text-muted)">Loading...</div>'+
+      '</div>'+
+      '<div id="siriusSavedList_'+kind+'" style="padding:1rem 1.25rem"><div style="font-size:.82rem;color:var(--text-muted)">Loading...</div></div>'+
+    '</div>';
+  }
+
+  function ensureSavedFolders(){
+    var userRoot=document.getElementById('userDashboardPage');
+    if(userRoot && !document.getElementById('siriusSavedFoldersUser')){
+      var container=document.createElement('div');
+      container.id='siriusSavedFoldersUser';
+      container.style.cssText='max-width:1100px;margin:1.25rem auto 0;padding:0 1.5rem 2rem';
+      container.innerHTML=makeSectionHTML('reports','Saved Reports','Full property evaluations generated from Evaluate a Property.')+
+                          makeSectionHTML('buyer','Saved Buyer Payment Breakdowns','Buyer payment breakdowns will appear here once the buyer tool is built.')+
+                          makeSectionHTML('seller','Saved Seller Payment Breakdowns','Seller payment breakdowns will appear here once the seller tool is built.');
+      userRoot.appendChild(container);
+    }
+    var adminRoot=document.getElementById('adminDashboardPage');
+    if(adminRoot && !document.getElementById('siriusSavedFoldersAdmin')){
+      var ac=document.createElement('div');
+      ac.id='siriusSavedFoldersAdmin';
+      ac.style.cssText='max-width:1100px;margin:1.25rem auto 0;padding:0 1.5rem 2rem';
+      ac.innerHTML=makeSectionHTML('admin_reports','Saved Reports','Your admin evaluation reports.')+
+                   makeSectionHTML('admin_buyer','Saved Buyer Payment Breakdowns','Buyer payment breakdowns will appear here once the buyer tool is built.')+
+                   makeSectionHTML('admin_seller','Saved Seller Payment Breakdowns','Seller payment breakdowns will appear here once the seller tool is built.');
+      adminRoot.appendChild(ac);
+    }
+  }
+
+  function getCollectionForKind(kind){
+    if(kind.indexOf('buyer')>-1) return 'savedBuyerBreakdowns';
+    if(kind.indexOf('seller')>-1) return 'savedSellerBreakdowns';
+    return 'savedReports';
+  }
+  function getLimitKeyForKind(kind){
+    if(kind.indexOf('buyer')>-1) return 'buyerBreakdowns';
+    if(kind.indexOf('seller')>-1) return 'sellerBreakdowns';
+    return 'savedReports';
+  }
+  function emptyLabel(kind){
+    if(kind.indexOf('buyer')>-1) return 'No buyer payment breakdowns saved yet.';
+    if(kind.indexOf('seller')>-1) return 'No seller payment breakdowns saved yet.';
+    return 'No saved reports yet. Complete an evaluation and it will save here automatically.';
+  }
+  function renderList(kind, docs){
+    var list=document.getElementById('siriusSavedList_'+kind); if(!list) return;
+    if(!docs.length){ list.innerHTML='<div style="font-size:.82rem;color:var(--text-muted)">'+emptyLabel(kind)+'</div>'; return; }
+    list.innerHTML=docs.map(function(item){
+      var d=item.data||{};
+      var s=d.summary||{};
+      var dt=d.createdAt && d.createdAt.toDate ? d.createdAt.toDate() : (s.calculatedAt ? new Date(s.calculatedAt) : null);
+      var price=s.propertyPrice ? 'AED '+Math.round(s.propertyPrice).toLocaleString('en-AE') : 'AED —';
+      var total=s.totalInvestment ? 'Total: AED '+Math.round(s.totalInvestment).toLocaleString('en-AE') : '';
+      return '<div class="sirius-saved-row" data-kind="'+kind+'" data-id="'+item.id+'" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.85rem 0;border-bottom:1px solid rgba(191,198,209,.07);cursor:pointer">'+
+        '<div><div style="font-size:.9rem;color:var(--ivory);font-weight:700">'+(d.title||s.scenario||'Saved Evaluation')+'</div>'+
+        '<div style="font-size:.75rem;color:var(--text-muted);margin-top:.25rem">'+price+(total?' · '+total:'')+(dt?' · '+fmtDate(dt):'')+'</div></div>'+
+        '<button class="btn btn-ghost" style="font-size:.68rem;padding:.35rem .75rem">Open</button>'+
+      '</div>';
+    }).join('');
+    qsa('.sirius-saved-row', list).forEach(function(row){
+      row.onclick=function(){ openSavedItem(row.getAttribute('data-kind'), row.getAttribute('data-id')); };
+    });
+  }
+
+  function renderSavedFolders(){
+    ensureSavedFolders();
+    if(!dbOk()) return;
+    var kinds=['reports','buyer','seller','admin_reports','admin_buyer','admin_seller'];
+    var limits=limitsForCurrentUser();
+    kinds.forEach(function(kind){
+      var collection=getCollectionForKind(kind);
+      var limitKey=getLimitKeyForKind(kind);
+      var usage=document.getElementById('siriusSavedUsage_'+kind);
+      window.db.collection('users').doc(uid()).collection(collection).orderBy('createdAt','desc').limit(8).get().then(function(snap){
+        var docs=[]; snap.forEach(function(doc){ docs.push({id:doc.id,data:doc.data()||{}}); });
+        if(usage) usage.textContent=limitText(docs.length, limits[limitKey]);
+        renderList(kind, docs);
+      }).catch(function(err){
+        var list=document.getElementById('siriusSavedList_'+kind); if(list) list.innerHTML='<div style="font-size:.82rem;color:rgba(231,76,60,.85)">Could not load saved items.</div>';
+        if(usage) usage.textContent='Unable to load';
+        console.warn('Saved folder load failed', kind, err);
+      });
+    });
+  }
+  function renderSavedFoldersSoon(){ setTimeout(renderSavedFolders,350); setTimeout(renderSavedFolders,1300); }
+
+  function openSavedItem(kind, id){
+    if(!dbOk() || !id) return;
+    var collection=getCollectionForKind(kind);
+    window.db.collection('users').doc(uid()).collection(collection).doc(id).get().then(function(doc){
+      if(!doc.exists) return alert('Saved item not found.');
+      var data=doc.data()||{};
+      if(collection==='savedReports'){
+        if(typeof goToEval==='function') goToEval();
+        setTimeout(function(){
+          restoreInputs(data.inputs||{});
+          if(typeof goStep==='function') goStep(3);
+          setTimeout(function(){ if(typeof calc==='function') calc(); },80);
+        },220);
+      } else {
+        alert('This saved breakdown will open once this tool logic is built.');
+      }
+    }).catch(function(e){ alert('Could not open this saved item.'); console.warn(e); });
+  }
+
+  function patchDashboardLoaders(){
+    if(window.__SIRIUS_PHASE4A_LOADERS_PATCHED__) return;
+    window.__SIRIUS_PHASE4A_LOADERS_PATCHED__=true;
+    var oldUser=window.loadUserDashboard;
+    if(typeof oldUser==='function'){
+      window.loadUserDashboard=function(){
+        var res=oldUser.apply(this,arguments);
+        renderSavedFoldersSoon();
+        return res;
+      };
+    }
+    var oldAdmin=window.loadDashboardData;
+    if(typeof oldAdmin==='function'){
+      window.loadDashboardData=function(){
+        var res=oldAdmin.apply(this,arguments);
+        renderSavedFoldersSoon();
+        return res;
+      };
+    }
+    var oldOpenSaved=window.openSavedReports;
+    window.openSavedReports=function(){
+      renderSavedFoldersSoon();
+      var el=document.getElementById('siriusSaved_reports') || document.getElementById('siriusSaved_admin_reports');
+      if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+      else if(oldOpenSaved) oldOpenSaved.apply(this,arguments);
+    };
+  }
+
+  function patchCalcAutoSave(){
+    if(window.__SIRIUS_PHASE4A_CALC_PATCHED__) return;
+    if(typeof window.calc!=='function') return;
+    window.__SIRIUS_PHASE4A_CALC_PATCHED__=true;
+    var oldCalc=window.calc;
+    window.calc=function(){
+      var res=oldCalc.apply(this,arguments);
+      setTimeout(function(){
+        try{
+          if(document.getElementById('evaluation') && document.getElementById('evaluation').classList.contains('active')) saveEvaluationReport();
+        }catch(e){ console.warn('Auto-save wrapper failed', e); }
+      },650);
+      return res;
+    };
+  }
+
+  function initPhase4A(){
+    patchDashboardLoaders();
+    patchCalcAutoSave();
+    ensureSavedFolders();
+    if(uid()) renderSavedFoldersSoon();
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){ setTimeout(initPhase4A,500); setTimeout(initPhase4A,1800); });
+  window.addEventListener('load',function(){ setTimeout(initPhase4A,500); setTimeout(initPhase4A,1800); });
+  setInterval(function(){ if(uid()){ ensureSavedFolders(); patchCalcAutoSave(); } },3500);
+})();
+</script>
+
 </body>
 </html>
