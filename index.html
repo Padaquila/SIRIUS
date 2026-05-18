@@ -9820,5 +9820,163 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
 })();
 </script>
 
+
+<!-- SIRIUS STEP 4G PATCH 2026-05-18: visibility cleanup + saved work deletion persistence -->
+<style id="sirius-step4g-cleanup-css">
+  /* Public/preview landing must not show breakdown CTAs. */
+  #landing #heroBuyerBreakdownBtn,
+  #landing #heroSellerBreakdownBtn,
+  body.sirius-preview-mode #heroBuyerBreakdownBtn,
+  body.sirius-preview-mode #heroSellerBreakdownBtn,
+  body.preview-mode #heroBuyerBreakdownBtn,
+  body.preview-mode #heroSellerBreakdownBtn{
+    display:none!important;
+  }
+  /* Manual save button is removed because reports auto-save when a result is completed. */
+  #siriusSaveReportBtn{display:none!important;}
+  .sirius-bulk-row{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem;}
+  .sirius-bulk-left{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap;color:rgba(191,198,209,.72);font-size:.82rem;}
+  .sirius-check-cell{width:36px;text-align:center;}
+  .sirius-check-cell input{width:16px;height:16px;accent-color:#BFC6D1;}
+</style>
+<script id="sirius-step4g-cleanup-js">
+(function(){
+  'use strict';
+  function qs(s,r){return (r||document).querySelector(s)}
+  function qsa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+  function text(el){return (el&&el.textContent||'').replace(/\s+/g,' ').trim()}
+  function dbx(){try{return window.db||(window.firebase&&firebase.firestore?firebase.firestore():null)}catch(e){return null}}
+  function user(){try{return window.CURRENT_USER||(window.auth&&auth.currentUser)||(window.firebase&&firebase.auth&&firebase.auth().currentUser)||null}catch(e){return null}}
+  function nowField(){try{return firebase.firestore.FieldValue.serverTimestamp()}catch(e){return new Date().toISOString()}}
+  function fmtDate(v){try{if(!v)return '—'; if(v.toDate)v=v.toDate(); return new Date(v).toLocaleDateString('en-GB')}catch(e){return '—'}}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function escAttr(v){return esc(v).replace(/`/g,'&#96;')}
+  function activePageId(){var p=qs('.page.active');return p&&p.id?p.id:''}
+  function inPreview(){return !!(window.SIRIUS_PREVIEW_MODE || qs('.visitor-preview-banner') || document.body.classList.contains('sirius-preview-mode') || document.body.classList.contains('preview-mode'))}
+
+  /* 1) Hide buyer/seller breakdown CTAs from the first landing page and preview. */
+  function removeLandingBreakdownButtons(){
+    var landing=qs('#landing'); if(!landing) return;
+    qsa('#heroBuyerBreakdownBtn,#heroSellerBreakdownBtn',landing).forEach(function(el){el.remove();});
+    qsa('button,a',landing).forEach(function(el){
+      var t=text(el);
+      if(t==='Buyer Payment Breakdown' || t==='Seller Payment Breakdown') el.remove();
+    });
+    if(inPreview()){
+      qsa('button,a').forEach(function(el){
+        var t=text(el);
+        if(t==='Buyer Payment Breakdown' || t==='Seller Payment Breakdown'){
+          var page=el.closest('.page');
+          if(page && page.id==='landing') el.remove();
+        }
+      });
+    }
+  }
+
+  /* 2) Remove duplicate dashboard cards. Keep only the Saved Work panel with the three correct buttons. */
+  function removeDuplicateDashboardCards(){
+    qsa('#dashBuyerBreakdownCard,#dashSellerBreakdownCard,#adminBuyerBreakdownCard,#adminSellerBreakdownCard').forEach(function(el){el.remove();});
+    qsa('#userDashboardPage .dash-card,#adminDashboardPage .dash-card').forEach(function(card){
+      var title=qs('.dash-card-title',card); var t=text(title);
+      if(t==='Saved Reports' || t==='Buyer Payment Breakdown' || t==='Seller Payment Breakdown') card.remove();
+    });
+  }
+
+  /* 3) Remove all manual Save Report buttons everywhere. Auto-save owns this now. */
+  function removeManualSaveButtons(){
+    qsa('#siriusSaveReportBtn,button').forEach(function(btn){
+      if(btn.id==='siriusSaveReportBtn' || /^Save Report$/i.test(text(btn)) || /^Save Evaluation$/i.test(text(btn))) btn.remove();
+    });
+  }
+
+  /* 4) User settings should not show Activity Logs. Admin only. */
+  function pruneSettingsTabs(){
+    var isAdmin=!!(window.IS_ADMIN || (user()&&user().email==='netflix.officiel.moncef@gmail.com'));
+    qsa('#siriusSettingsModal .sirius-settings-tab').forEach(function(tab){
+      if(!isAdmin && /Activity Logs/i.test(text(tab))) tab.remove();
+    });
+  }
+
+  /* Stop older patch functions from re-adding landing/dash duplicate breakdown buttons. */
+  window.patchHeroActions=function(){removeLandingBreakdownButtons();};
+  window.patchDashboardCards=function(){removeDuplicateDashboardCards();};
+  window.patchSaveButton=function(){removeManualSaveButtons();};
+
+  function collectionTitle(collection){
+    return collection==='savedBuyerBreakdowns'?'Saved Buyer Payment Breakdowns':collection==='savedSellerBreakdowns'?'Saved Seller Payment Breakdowns':'Saved Property Evaluations';
+  }
+  function tombstoneKey(collection){var u=user();return 'sirius_deleted_'+(u&&u.uid||'anon')+'_'+collection;}
+  function deletedSet(collection){try{return new Set(JSON.parse(localStorage.getItem(tombstoneKey(collection))||'[]'))}catch(e){return new Set()}}
+  function markDeleted(collection,ids){try{var s=deletedSet(collection);ids.forEach(function(id){s.add(id)});localStorage.setItem(tombstoneKey(collection),JSON.stringify(Array.from(s).slice(-1000)));}catch(e){}}
+
+  /* 5) Replace saved collection view with checkbox multi-delete and local tombstone filtering to prevent deleted rows reappearing from cached/stale views. */
+  window.openSavedCollection=function(collection,title){
+    var u=user(),d=dbx(); if(!u||!d){alert('Please sign in first.');return;}
+    if(typeof window.ensureCollectionModal==='function'){try{window.ensureCollectionModal()}catch(e){}}
+    if(!qs('#siriusCollectionModal')){
+      var m=document.createElement('div');m.id='siriusCollectionModal';m.className='sirius-modal-shell';
+      m.innerHTML='<div class="sirius-modal-card"><div class="sirius-modal-head"><div><div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(191,198,209,.45);font-weight:900">SIRIUS</div><div class="sirius-modal-title" id="siriusCollectionTitle">Saved Work</div></div><button class="modal-close" onclick="document.getElementById(\'siriusCollectionModal\').classList.remove(\'open\')">&#10005;</button></div><div class="sirius-modal-body" id="siriusCollectionBody"></div></div>';
+      document.body.appendChild(m);
+    }
+    qs('#siriusCollectionTitle').textContent=title||collectionTitle(collection);
+    var body=qs('#siriusCollectionBody'); body.innerHTML='<div class="sirius-saas-card">Loading...</div>'; qs('#siriusCollectionModal').classList.add('open');
+    d.collection('users').doc(u.uid).collection(collection).orderBy('createdAt','desc').get().then(function(snap){
+      var del=deletedSet(collection), rows=[];
+      snap.forEach(function(doc){
+        if(del.has(doc.id)) return;
+        var r=doc.data()||{},name=r.reportName||r.name||r.title||'Untitled';
+        rows.push('<tr data-id="'+escAttr(doc.id)+'"><td class="sirius-check-cell"><input type="checkbox" class="sirius-row-check" value="'+escAttr(doc.id)+'"></td><td><strong>'+esc(name)+'</strong><div style="font-size:.68rem;color:rgba(191,198,209,.42);margin-top:.2rem">Created '+fmtDate(r.createdAt)+'</div></td><td>'+fmtDate(r.updatedAt||r.createdAt)+'</td><td><div class="sirius-report-actions"><button class="sirius-soft-btn" onclick="openSavedSnapshot(\''+collection+'\',\''+doc.id+'\')">Open</button><button class="sirius-soft-btn" onclick="renameSavedItem(\''+collection+'\',\''+doc.id+'\',\''+escAttr(name)+'\')">Rename</button><button class="sirius-soft-btn danger" onclick="deleteSavedItem(\''+collection+'\',\''+doc.id+'\')">Delete</button></div></td></tr>');
+      });
+      if(!rows.length){body.innerHTML='<div class="sirius-saas-card">Nothing saved here yet. Completed results will auto-save here.</div>';return;}
+      body.innerHTML='<div class="sirius-bulk-row"><div class="sirius-bulk-left"><label><input type="checkbox" id="siriusSelectAllSaved"> Select all</label><span id="siriusSelectedCount">0 selected</span></div><button class="sirius-soft-btn danger" onclick="deleteSelectedSavedItems(\''+collection+'\')">Delete selected</button></div><table class="sirius-table"><thead><tr><th class="sirius-check-cell"></th><th>Name</th><th>Updated</th><th>Actions</th></tr></thead><tbody>'+rows.join('')+'</tbody></table>';
+      var all=qs('#siriusSelectAllSaved'), count=qs('#siriusSelectedCount');
+      function sync(){var n=qsa('#siriusCollectionBody .sirius-row-check:checked').length;if(count)count.textContent=n+' selected';}
+      if(all) all.onchange=function(){qsa('#siriusCollectionBody .sirius-row-check').forEach(function(c){c.checked=all.checked});sync();};
+      qsa('#siriusCollectionBody .sirius-row-check').forEach(function(c){c.onchange=sync;});
+    }).catch(function(e){body.innerHTML='<div class="sirius-saas-card">Could not load saved work: '+esc(e.code||e.message)+'</div>';});
+  };
+
+  window.deleteSavedItem=function(collection,id){
+    var u=user(),d=dbx(); if(!u||!d)return;
+    if(!confirm('Delete this saved item? This cannot be undone.'))return;
+    window.__siriusSuppressAutoSaveUntil=Date.now()+8000;
+    markDeleted(collection,[id]);
+    d.collection('users').doc(u.uid).collection(collection).doc(id).delete().then(function(){
+      window.openSavedCollection(collection,collectionTitle(collection));
+      removeDuplicateDashboardCards();
+    }).catch(function(e){alert('Could not delete: '+(e.code||e.message)); window.openSavedCollection(collection,collectionTitle(collection));});
+  };
+
+  window.deleteSelectedSavedItems=function(collection){
+    var u=user(),d=dbx(); if(!u||!d)return;
+    var ids=qsa('#siriusCollectionBody .sirius-row-check:checked').map(function(c){return c.value;}).filter(Boolean);
+    if(!ids.length){alert('Select at least one item to delete.');return;}
+    if(!confirm('Delete '+ids.length+' selected item(s)? This cannot be undone.'))return;
+    window.__siriusSuppressAutoSaveUntil=Date.now()+10000;
+    markDeleted(collection,ids);
+    var batch=d.batch(); ids.forEach(function(id){batch.delete(d.collection('users').doc(u.uid).collection(collection).doc(id));});
+    batch.commit().then(function(){window.openSavedCollection(collection,collectionTitle(collection)); removeDuplicateDashboardCards();}).catch(function(e){alert('Could not delete selected items: '+(e.code||e.message)); window.openSavedCollection(collection,collectionTitle(collection));});
+  };
+
+  /* Safer auto-save wrapper: only auto-save when the corresponding tool page is actually the active page. */
+  var previousAutoSave=window.autoSaveResult;
+  window.autoSaveResult=function(type){
+    if(Date.now()<(window.__siriusSuppressAutoSaveUntil||0)) return;
+    var ap=activePageId();
+    if(type==='evaluation' && ap!=='evaluation') return;
+    if(type==='buyer' && ap!=='buyerBreakdownPage') return;
+    if(type==='seller' && ap!=='sellerBreakdownPage') return;
+    if(typeof previousAutoSave==='function') return previousAutoSave.apply(this,arguments);
+  };
+
+  function cleanup(){removeLandingBreakdownButtons();removeDuplicateDashboardCards();removeManualSaveButtons();pruneSettingsTabs();}
+  document.addEventListener('DOMContentLoaded',function(){cleanup();setTimeout(cleanup,300);setTimeout(cleanup,1200);});
+  window.addEventListener('load',function(){cleanup();setTimeout(cleanup,500);setTimeout(cleanup,1500);});
+  var obs=new MutationObserver(function(){cleanup();});
+  try{obs.observe(document.documentElement,{childList:true,subtree:true});}catch(e){}
+  setInterval(cleanup,1000);
+})();
+</script>
+
 </body>
 </html>
