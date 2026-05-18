@@ -9726,7 +9726,7 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
     setTimeout(function(){
       var table=qs('#dashUserTable');
       if(table && /missing or insufficient permissions|permission/i.test(table.textContent||'')){
-        table.innerHTML='<div style="padding:1.4rem;color:rgba(231,76,60,.86);font-size:.86rem;line-height:1.65">Admin subscriber data is blocked by Firestore rules or by an admin token mismatch.<br><br><strong>Do this:</strong><br>1) Publish the Step 4F Firebase rules file.<br>2) Make sure you are signed in with <strong>netflix.officiel.moncef@gmail.com</strong>.<br>3) Sign out, sign back in, then refresh. Firebase security rules check your signed-in token, not the website UI.</div>';
+        table.innerHTML='<div style="padding:1.4rem;color:rgba(231,76,60,.86);font-size:.86rem;line-height:1.65">Admin subscriber data is blocked by Firestore rules or by an admin token mismatch.<br><br><strong>Do this:</strong><br>1) Publish the Step 4J Firebase rules file.<br>2) Make sure you are signed in with <strong>netflix.officiel.moncef@gmail.com</strong>.<br>3) Sign out, sign back in, then refresh. Firebase security rules check your signed-in token, not the website UI.</div>';
       }
     },900);
   };
@@ -10125,7 +10125,7 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
       if(all) all.onchange=function(){qsa('#siriusCollectionBody .sirius-row-check').forEach(function(c){c.checked=all.checked});sync();};
       qsa('#siriusCollectionBody .sirius-row-check').forEach(function(c){c.onchange=sync;});
     }).catch(function(e){
-      body.innerHTML='<div class="sirius-step4h-permission-note"><strong>Could not load saved work:</strong> '+esc(e.code||e.message)+'<br><br>If this says permission-denied, publish the Step 4H Firestore rules, then sign out and sign back in so Firebase refreshes your auth token.</div>';
+      body.innerHTML='<div class="sirius-step4h-permission-note"><strong>Could not load saved work:</strong> '+esc(e.code||e.message)+'<br><br>If this says permission-denied, publish the Step 4J Firestore rules, then sign out and sign back in so Firebase refreshes your auth token.</div>';
     });
   };
 
@@ -10168,5 +10168,182 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
   .nav-dropdown .sirius-step4h-tool-btn{display:none!important;}
   .sirius-step4h-tool-row{max-width:100%;}
 </style>
+
+
+<!-- SIRIUS STEP 4J PATCH 2026-05-18: stable dropdown + correct initial action placement only -->
+<style id="sirius-step4j-dropdown-action-css">
+  /* Buyer/Seller tools must never appear inside any dropdown. They belong only on the logged-in initial action area. */
+  .nav-dropdown [data-sirius-breakdown-item],
+  .nav-dropdown .sirius-step4h-tool-btn,
+  .nav-dropdown button[data-tool="buyer"],
+  .nav-dropdown button[data-tool="seller"]{display:none!important;}
+
+  /* Keep dropdown stable and clickable. */
+  .nav-dropdown{pointer-events:auto!important;will-change:auto!important;transform:none!important;}
+  .nav-profile-trigger{pointer-events:auto!important;}
+
+  /* Remove old misplaced injected rows/cards. */
+  #siriusStep4HToolRow,
+  .sirius-step4h-tool-row{display:none!important;}
+
+  .sirius-initial-action-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1rem;margin:1rem 0 2rem;}
+  .sirius-initial-action-card{background:rgba(17,32,58,.5);border:1px solid rgba(191,198,209,.12);border-radius:12px;padding:1.1rem;cursor:pointer;transition:border-color .18s ease,background .18s ease,transform .18s ease;color:inherit;text-align:left;min-height:104px;}
+  .sirius-initial-action-card:hover{border-color:rgba(191,198,209,.34);background:rgba(17,32,58,.72);transform:translateY(-1px);}
+  .sirius-initial-action-card .t{font-size:.82rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ivory,#F7F6F2);line-height:1.35;overflow-wrap:anywhere;}
+  .sirius-initial-action-card .s{font-size:.74rem;color:rgba(191,198,209,.58);line-height:1.5;margin-top:.4rem;overflow-wrap:anywhere;}
+
+  .sirius-nav-breakdown-btn{font-size:.72rem!important;white-space:nowrap!important;}
+  @media(max-width:760px){.sirius-nav-breakdown-btn{display:none!important;}}
+</style>
+<script id="sirius-step4j-dropdown-action-script">
+(function(){
+  function qs(s,r){return (r||document).querySelector(s)}
+  function qsa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+  function user(){try{return window.CURRENT_USER||(window.auth&&auth.currentUser)||null}catch(e){return null}}
+  function logged(){return !!user()}
+  function admin(){var u=user();return !!(window.IS_ADMIN || (u&&String(u.email||'').toLowerCase()==='netflix.officiel.moncef@gmail.com'))}
+  function txt(el){return (el&&el.textContent||'').trim().replace(/\s+/g,' ')}
+  function activePage(){var p=qs('.page.active');return p&&p.id?p.id:''}
+  function isPreview(){return !!(window.SIRIUS_PREVIEW_MODE||document.body.classList.contains('sirius-preview-mode')||document.body.classList.contains('preview-mode')||qs('.visitor-preview-banner')||qs('#adminPreviewBanner'))}
+
+  function stableMenuHTML(){
+    var isA=admin();
+    return '<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();goDashboard&&goDashboard()">Dashboard</button>'+ 
+      '<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();openProfile&&openProfile()">My Profile</button>'+
+      '<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();openSubscriptionPlan&&openSubscriptionPlan()">Subscription / Plan</button>'+
+      '<div class="nav-dropdown-divider"></div>'+ 
+      '<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();goToEval&&goToEval()">Evaluate a Property</button>'+
+      (isA?'<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();openAdminPanel&&openAdminPanel()">Admin Panel</button>':'')+
+      '<button class="nav-dropdown-item" data-sirius-settings-item="1" onclick="closeNavDropdown&&closeNavDropdown();openSiriusSettings&&openSiriusSettings(\'subscription\')">Settings</button>'+ 
+      '<div class="nav-dropdown-divider"></div>'+ 
+      '<button class="nav-dropdown-item danger" onclick="closeNavDropdown&&closeNavDropdown();handleSignOut&&handleSignOut()">Sign Out</button>';
+  }
+
+  function sanitizeDropdown(dd){
+    if(!dd) return;
+    if(logged()) dd.innerHTML=stableMenuHTML();
+    qsa('button,a',dd).forEach(function(el){
+      var t=txt(el);
+      if(t==='Buyer Payment Breakdown'||t==='Seller Payment Breakdown'||el.getAttribute('data-sirius-breakdown-item')) el.remove();
+      if(!admin() && /preview as visitor/i.test(t)) el.remove();
+    });
+  }
+
+  /* Replace dropdown open/close with one stable implementation. No timers, no rebuilding while cursor is inside. */
+  window.closeNavDropdown=function(){
+    qsa('.nav-dropdown').forEach(function(d){d.classList.remove('open');d.style.display='';});
+    document.removeEventListener('click', window.__sirius4jOutsideClose, true);
+  };
+  window.__sirius4jOutsideClose=function(e){
+    var open=qs('.nav-dropdown.open');
+    if(!open) return;
+    var container=open.closest('[data-dropdown-container]');
+    if(open.contains(e.target) || (container&&container.contains(e.target))) return;
+    window.closeNavDropdown();
+  };
+  window.toggleNavDropdown=function(el){
+    if(event && event.stopPropagation) event.stopPropagation();
+    var container=el&&el.closest?el.closest('[data-dropdown-container]'):null;
+    var dd=container?qs('.nav-dropdown',container):null;
+    if(!dd){var pg=qs('.page.active')||document.body;dd=qs('.nav-dropdown',pg)}
+    if(!dd) return false;
+    var wasOpen=dd.classList.contains('open');
+    window.closeNavDropdown();
+    if(wasOpen) return false;
+    sanitizeDropdown(dd);
+    if(el&&el.getBoundingClientRect){
+      var r=el.getBoundingClientRect();
+      dd.style.top=(r.bottom+6)+'px';
+      dd.style.right=Math.max(12,(window.innerWidth-r.right))+'px';
+      dd.style.left='auto';
+    }
+    dd.style.display='block';
+    dd.classList.add('open');
+    setTimeout(function(){document.addEventListener('click', window.__sirius4jOutsideClose, true);},0);
+    return false;
+  };
+
+  function removeForbiddenPublicButtons(){
+    var p=activePage();
+    if(!logged() || isPreview() || p==='landing'){
+      qsa('#heroBuyerBreakdownBtn,#heroSellerBreakdownBtn,.sirius-step4h-tool-row,#siriusStep4HToolRow').forEach(function(el){el.remove();});
+      if(p==='landing' || isPreview()){
+        qsa('button,a').forEach(function(el){var t=txt(el); if(t==='Buyer Payment Breakdown'||t==='Seller Payment Breakdown') el.remove();});
+      }
+    }
+    qsa('.nav-dropdown').forEach(sanitizeDropdown);
+  }
+
+  function makeCard(title,sub,fn){
+    var c=document.createElement('div');
+    c.className='sirius-initial-action-card';
+    c.setAttribute('role','button');
+    c.tabIndex=0;
+    c.innerHTML='<div class="t">'+title+'</div><div class="s">'+sub+'</div>';
+    c.onclick=fn;
+    c.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();fn();}};
+    return c;
+  }
+
+  function placeUserInitialButtons(){
+    var page=qs('#userDashboardPage'); if(!page) return;
+    /* Existing first card becomes the evaluate action. */
+    var grid=qs('.dash-grid',page); if(!grid) return;
+    var first=qs('.dash-card',grid);
+    if(first){
+      var ttl=qs('.dash-card-title',first); if(ttl) ttl.textContent='Evaluate a Property';
+      var sub=qs('.dash-card-sub',first); if(sub) sub.textContent='Analyse a property — ready, off-plan, cash or mortgage.';
+      first.onclick=function(){if(window.goToEval) goToEval();};
+    }
+    /* Insert Buyer/Seller as the next two cards, not in the later Saved Work section. */
+    if(!qs('#userBuyerInitialCard',grid)){
+      var buyer=makeCard('Buyer Payment Breakdown','Calculate buyer-side acquisition costs and payment requirements.',function(){if(window.goToBuyerBreakdown) goToBuyerBreakdown();});
+      buyer.id='userBuyerInitialCard'; buyer.className+=' dash-card';
+      var seller=makeCard('Seller Payment Breakdown','Calculate seller-side net proceeds and transfer deductions.',function(){if(window.goToSellerBreakdown) goToSellerBreakdown();});
+      seller.id='userSellerInitialCard'; seller.className+=' dash-card';
+      if(first&&first.nextSibling){grid.insertBefore(seller,first.nextSibling);grid.insertBefore(buyer,seller);} else {grid.appendChild(buyer);grid.appendChild(seller);}
+    }
+    qsa('.sirius-step4h-tool-row,#siriusStep4HToolRow',page).forEach(function(el){el.remove();});
+  }
+
+  function placeAdminInitialButtons(){
+    var page=qs('#adminDashboardPage'); if(!page) return;
+    /* Admin top nav: Evaluate + Buyer + Seller sit together on initial owner page. */
+    var navRight=qs('#adminDashboardPage > nav > div:last-child');
+    if(navRight){
+      var start=qsa('button',navRight).filter(function(b){return /start calculation|evaluate a property/i.test(txt(b));})[0];
+      if(start){start.textContent='Evaluate a Property';start.onclick=function(){if(window.goToEval)goToEval();};}
+      if(start && !qs('#adminNavBuyerBreakdownBtn',navRight)){
+        var b=document.createElement('button');b.id='adminNavBuyerBreakdownBtn';b.className='btn btn-ghost sirius-nav-breakdown-btn';b.textContent='Buyer Payment Breakdown';b.onclick=function(){if(window.goToBuyerBreakdown)goToBuyerBreakdown();};
+        var s=document.createElement('button');s.id='adminNavSellerBreakdownBtn';s.className='btn btn-ghost sirius-nav-breakdown-btn';s.textContent='Seller Payment Breakdown';s.onclick=function(){if(window.goToSellerBreakdown)goToSellerBreakdown();};
+        start.parentNode.insertBefore(b,start.nextSibling); start.parentNode.insertBefore(s,b.nextSibling);
+      }
+    }
+    qsa('.sirius-step4h-tool-row,#siriusStep4HToolRow',page).forEach(function(el){el.remove();});
+  }
+
+  function sync(){
+    removeForbiddenPublicButtons();
+    if(logged()&&!isPreview()){
+      placeUserInitialButtons();
+      placeAdminInitialButtons();
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){sync();setTimeout(sync,250);setTimeout(sync,900);});
+  window.addEventListener('load',function(){sync();setTimeout(sync,400);});
+  if(window.auth&&auth.onAuthStateChanged){try{auth.onAuthStateChanged(function(){setTimeout(sync,250);setTimeout(sync,900);});}catch(e){}}
+  var oldShow=window.showPage;
+  if(typeof oldShow==='function'&&!oldShow.__sirius4j){
+    window.showPage=function(id){var r=oldShow.apply(this,arguments);setTimeout(sync,80);setTimeout(sync,400);return r;};
+    window.showPage.__sirius4j=true;
+  }
+  var oldUser=window.openUserDashboard;
+  if(typeof oldUser==='function'&&!oldUser.__sirius4j){window.openUserDashboard=function(){var r=oldUser.apply(this,arguments);setTimeout(sync,80);setTimeout(sync,400);return r;};window.openUserDashboard.__sirius4j=true;}
+  var oldAdmin=window.openAdminDashboard;
+  if(typeof oldAdmin==='function'&&!oldAdmin.__sirius4j){window.openAdminDashboard=function(){var r=oldAdmin.apply(this,arguments);setTimeout(sync,80);setTimeout(sync,400);return r;};window.openAdminDashboard.__sirius4j=true;}
+})();
+</script>
+
 </body>
 </html>
