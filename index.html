@@ -10029,42 +10029,74 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
     }
   }
 
-  /* Logged-in dashboards should have stable buttons near the dashboard tools, not on public landing. */
+  /* Logged-in dashboards should have stable buttons next to/under the Evaluate a Property action.
+     They must not appear on public landing, preview mode, or in dropdowns. */
   function ensureDashboardBreakdownButtons(){
-    if(!shouldShowLoggedInTools()) return;
+    if(!isLogged() || isPreview()) return;
     ['userDashboardPage','adminDashboardPage'].forEach(function(pid){
       var page=qs('#'+pid); if(!page || !page.classList.contains('active')) return;
-      var anchor=qs('#siriusSavedWorkPanel',page) || qs('.dash-grid',page) || qs('[class*="grid"]',page) || page;
-      if(qs('#siriusStep4HToolRow',page)) return;
-      var row=document.createElement('div'); row.id='siriusStep4HToolRow'; row.className='sirius-step4h-tool-row';
+      var existing=qs('#siriusStep4HToolRow',page);
+      var evalBtn=qsa('button,a',page).filter(function(el){return text(el)==='Evaluate a Property';})[0];
+      var row=existing || document.createElement('div');
+      row.id='siriusStep4HToolRow';
+      row.className='sirius-step4h-tool-row';
       row.innerHTML='<button type="button" class="sirius-step4h-tool-btn" onclick="goToBuyerBreakdown&&goToBuyerBreakdown()">Buyer Payment Breakdown</button><button type="button" class="sirius-step4h-tool-btn" onclick="goToSellerBreakdown&&goToSellerBreakdown()">Seller Payment Breakdown</button>';
-      if(anchor.id==='siriusSavedWorkPanel') anchor.parentNode.insertBefore(row,anchor);
-      else if(anchor.parentNode) anchor.parentNode.insertBefore(row,anchor.nextSibling);
-      else page.appendChild(row);
+      if(evalBtn){
+        var parent=evalBtn.parentElement;
+        if(parent && parent.parentNode){
+          if(row.parentNode!==parent.parentNode || row.previousElementSibling!==parent){
+            parent.parentNode.insertBefore(row,parent.nextSibling);
+          }
+        }else if(evalBtn.parentNode){
+          evalBtn.parentNode.insertBefore(row,evalBtn.nextSibling);
+        }
+      }else{
+        var anchor=qs('#siriusSavedWorkPanel',page) || qs('.dash-grid',page) || qs('[class*="grid"]',page) || page;
+        if(!existing){
+          if(anchor.id==='siriusSavedWorkPanel') anchor.parentNode.insertBefore(row,anchor);
+          else if(anchor.parentNode) anchor.parentNode.insertBefore(row,anchor.nextSibling);
+          else page.appendChild(row);
+        }
+      }
     });
   }
 
   function canonicalDropdownHTML(){
     var admin=isAdmin();
-    var breakdowns=shouldShowLoggedInTools()?'<button class="nav-dropdown-item" data-sirius-breakdown-item="buyer" onclick="closeNavDropdown&&closeNavDropdown();goToBuyerBreakdown&&goToBuyerBreakdown()">Buyer Payment Breakdown</button><button class="nav-dropdown-item" data-sirius-breakdown-item="seller" onclick="closeNavDropdown&&closeNavDropdown();goToSellerBreakdown&&goToSellerBreakdown()">Seller Payment Breakdown</button>':'';
+    /* Surgical Step 4I: Buyer/Seller Payment Breakdown must NEVER live in the dropdown.
+       Those tools belong only on logged-in dashboard action rows. */
     return '<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();goDashboard&&goDashboard()">Dashboard</button>'+ 
       '<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();openProfile&&openProfile()">My Profile</button>'+ 
       '<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();openSubscriptionPlan&&openSubscriptionPlan()">Subscription / Plan</button>'+ 
       '<div class="nav-dropdown-divider"></div>'+ 
-      '<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();goToEval&&goToEval()">Evaluate a Property</button>'+breakdowns+
+      '<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();goToEval&&goToEval()">Evaluate a Property</button>'+
       (admin?'<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();openAdminPanel&&openAdminPanel()">Admin Panel</button><button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();previewLandingAsVisitor&&previewLandingAsVisitor()">Preview as Visitor</button>':'')+
       '<button class="nav-dropdown-item" data-sirius-settings-item="1" onclick="closeNavDropdown&&closeNavDropdown();openSiriusSettings&&openSiriusSettings(\'subscription\')">Settings</button>'+ 
       '<div class="nav-dropdown-divider"></div>'+ 
       '<button class="nav-dropdown-item danger" onclick="closeNavDropdown&&closeNavDropdown();handleSignOut&&handleSignOut()">Sign Out</button>';
   }
 
-  /* Stop dropdown flicker by writing one canonical menu only when logged in. */
+  /* Stop dropdown flicker: do NOT rebuild the menu on a timer while the user hovers/clicks.
+     Only remove forbidden items and add Settings if missing. This preserves cursor stability. */
   function stabilizeDropdowns(){
     if(!isLogged()) return;
-    var html=canonicalDropdownHTML();
     qsa('.nav-dropdown').forEach(function(dd){
-      if(dd.getAttribute('data-step4h-menu')==='1' && dd.innerHTML===html) return;
-      dd.innerHTML=html; dd.setAttribute('data-step4h-menu','1');
+      /* Buyer/Seller tools must never appear in dropdown for admin or user. */
+      qsa('button,a',dd).forEach(function(el){
+        var t=text(el);
+        if(t==='Buyer Payment Breakdown' || t==='Seller Payment Breakdown' || el.getAttribute('data-sirius-breakdown-item')) el.remove();
+        if(!isAdmin() && /preview as visitor/i.test(t)) el.remove();
+      });
+      if(!qs('[data-sirius-settings-item]',dd)){
+        var b=document.createElement('button');
+        b.className='nav-dropdown-item';
+        b.setAttribute('data-sirius-settings-item','1');
+        b.textContent='Settings';
+        b.onclick=function(){ if(window.closeNavDropdown) closeNavDropdown(); if(window.openSiriusSettings) openSiriusSettings('subscription'); };
+        var signout=qsa('button,a',dd).filter(function(x){return /sign out/i.test(text(x));})[0];
+        if(signout && signout.parentNode===dd) dd.insertBefore(b,signout); else dd.appendChild(b);
+      }
+      dd.setAttribute('data-step4i-menu','stable');
     });
   }
 
@@ -10116,11 +10148,25 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
   document.addEventListener('DOMContentLoaded',function(){sync();setTimeout(sync,250);setTimeout(sync,900);setTimeout(sync,1800);});
   window.addEventListener('load',function(){sync();setTimeout(sync,400);setTimeout(sync,1300);});
   if(window.auth&&auth.onAuthStateChanged){try{auth.onAuthStateChanged(function(){setTimeout(sync,250);setTimeout(sync,1200);});}catch(e){}}
-  var obs=new MutationObserver(function(){clearTimeout(window.__sirius4hSyncTimer);window.__sirius4hSyncTimer=setTimeout(sync,80);});
-  try{obs.observe(document.documentElement,{childList:true,subtree:true});}catch(e){}
-  setInterval(sync,850);
+  /* Step 4I: no constant dropdown rewriting. Run on page/auth changes and a light, non-destructive observer. */
+  var obs=new MutationObserver(function(muts){
+    var relevant=false;
+    muts.forEach(function(m){
+      if(relevant) return;
+      if(m.target && (m.target.classList&&m.target.classList.contains('nav-dropdown'))) relevant=true;
+      qsa && Array.prototype.slice.call(m.addedNodes||[]).forEach(function(n){if(n.nodeType===1 && (n.classList&&n.classList.contains('nav-dropdown') || (n.querySelector&&n.querySelector('.nav-dropdown')))) relevant=true;});
+    });
+    if(relevant){clearTimeout(window.__sirius4iSyncTimer);window.__sirius4iSyncTimer=setTimeout(sync,120);}
+  });
+  try{obs.observe(document.body||document.documentElement,{childList:true,subtree:true});}catch(e){}
 })();
 </script>
 
+
+<style id="sirius-step4i-dropdown-surgical-css">
+  .nav-dropdown [data-sirius-breakdown-item]{display:none!important;}
+  .nav-dropdown .sirius-step4h-tool-btn{display:none!important;}
+  .sirius-step4h-tool-row{max-width:100%;}
+</style>
 </body>
 </html>
