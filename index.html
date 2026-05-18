@@ -9030,9 +9030,12 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
     setTimeout(function(){hideNonVisitorInPreview(); normalizeEvaluationLayout(); patchBackButtonsOnce();},500);
   });
   loadPublicLandingForVisitors();
+  /* STEP 3D: Do not continuously normalize evaluation layout.
+     The old interval forced evaluation scrollTop/window.scrollTo(0,0) every 800ms,
+     which made Evaluate a Property jump back to the top while the user scrolled.
+     Keep preview cleanup only; evaluation normalization still happens once on page entry. */
   setInterval(function(){
     if(document.body.classList.contains('sirius-preview-mode')) hideNonVisitorInPreview();
-    if(activePage()==='evaluation') normalizeEvaluationLayout();
   },800);
 })();
 </script>
