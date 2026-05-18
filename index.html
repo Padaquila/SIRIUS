@@ -7792,5 +7792,205 @@ function previewLandingAsVisitor(){
   window.addEventListener('load', function(){ setTimeout(boot,250); setTimeout(boot,1000); });
 })();
 </script>
+
+
+<!-- SIRIUS ROLE/PRICING SEPARATION PATCH 2026-05-18 v2 -->
+<style id="sirius-role-pricing-patch-css">
+  body.sirius-logged-in:not(.sirius-preview-mode) #mainHero .btn-outline[onclick*="openModal"],
+  body.sirius-logged-in:not(.sirius-preview-mode) #navAuthArea > .btn-ghost[onclick*="openModal"]{display:none!important}
+  body.sirius-logged-in:not(.sirius-preview-mode) #landing > section:not(#mainHero):not(#loggedInUpgradeSection){display:none!important}
+  body.sirius-logged-in:not(.sirius-preview-mode) #landing footer{display:none!important}
+  body.sirius-preview-mode #landing > section,
+  body.sirius-preview-mode #landing footer{display:block!important}
+  body.sirius-preview-mode #landing{padding-top:92px!important}
+  body.sirius-preview-mode #landing .nav{top:48px!important}
+  #adminPreviewBanner{min-height:48px!important;justify-content:space-between!important;padding:.45rem 1.2rem!important}
+  #adminPreviewBanner .admin-preview-left{display:flex;align-items:center;gap:.75rem;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase}
+  #adminPreviewBanner .admin-preview-right{display:flex;align-items:center;gap:.75rem;position:relative}
+  #adminPreviewBanner .admin-preview-menu{position:absolute;top:calc(100% + 8px);right:0;min-width:230px;background:#0A1628;color:#F7F6F2;border:1px solid rgba(191,198,209,.28);border-radius:10px;padding:.4rem;box-shadow:0 18px 40px rgba(0,0,0,.45);display:none;text-align:left}
+  #adminPreviewBanner .admin-preview-menu.open{display:block}
+  #adminPreviewBanner .admin-preview-menu button{display:block;width:100%;text-align:left;background:transparent!important;border:0!important;color:#F7F6F2!important;padding:.65rem .75rem!important;border-radius:7px!important;font-size:.76rem!important;letter-spacing:0!important;text-transform:none!important}
+  #adminPreviewBanner .admin-preview-menu button:hover{background:rgba(191,198,209,.12)!important}
+  #adminPreviewBanner .admin-preview-menu .danger{color:#ffb4b4!important}
+  .sirius-admin-plan-card{max-width:640px;margin:8rem auto 0;background:rgba(17,32,58,.72);border:1px solid rgba(191,198,209,.2);border-radius:16px;padding:2rem;text-align:center}
+  .sirius-admin-plan-card h1{font-family:var(--font-display);font-size:2rem;font-weight:400;margin:.5rem 0;color:var(--ivory)}
+  .sirius-admin-plan-card p{color:var(--text-muted);font-size:.9rem;line-height:1.6}
+</style>
+<script id="sirius-role-pricing-patch-js">
+(function(){
+  function qsa(s){return Array.prototype.slice.call(document.querySelectorAll(s));}
+  function qs(s){return document.querySelector(s);}
+  function planGroup(raw){ raw=String(raw||'agent').toLowerCase(); return raw==='company' ? 'company' : 'individual'; }
+  function selectedPlanType(){ return String((window.S&&S.planType)||'agent').toLowerCase(); }
+
+  window.openSubscriptionPlan = function(){
+    if(window.IS_ADMIN){ showAdminFreePlan(); return; }
+    showPage('planSelectionPage'); if(typeof renderPlanSelectionGrid==='function') renderPlanSelectionGrid();
+  };
+
+  window.showAdminFreePlan = function(){
+    var page=document.getElementById('planSelectionPage');
+    if(!page) return;
+    page.innerHTML = '<nav class="nav"><div class="nav-logo" onclick="goToLanding()" style="cursor:pointer"><span style="font-family:\'Cormorant Garamond\',serif;font-weight:300;letter-spacing:.2em">SIRIUS</span></div><div style="display:flex;gap:.75rem;align-items:center"><button class="btn btn-ghost" onclick="goToLanding()" style="font-size:.75rem">← Back</button><div data-dropdown-container style="position:relative"><button class="btn btn-primary" onclick="toggleNavDropdown(this)">Admin Menu</button><div class="nav-dropdown" style="right:0"></div></div></div></nav><div class="sirius-admin-plan-card"><div style="font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--brushed-silver);font-weight:800">Subscription Plan</div><h1>Free Plan</h1><p>Admin account. No payment needed. Full internal access remains available from the admin menu.</p><button class="btn btn-primary" onclick="goToLanding()" style="margin-top:1.5rem">Return to Main Page</button></div>';
+    showPage('planSelectionPage'); if(typeof syncSiriusNavs==='function') syncSiriusNavs();
+  };
+
+  function adminPreviewMenuHTML(){
+    return '<button onclick="exitVisitorPreview()">Return to Main Page</button>'+
+      '<button onclick="exitVisitorPreview();setTimeout(function(){goDashboard&&goDashboard();},50)">Dashboard</button>'+
+      '<button onclick="exitVisitorPreview();setTimeout(function(){openProfile&&openProfile();},50)">My Profile</button>'+
+      '<button onclick="exitVisitorPreview();setTimeout(function(){openAdminPanel&&openAdminPanel();},50)">Admin Panel</button>'+
+      '<button onclick="exitVisitorPreview();setTimeout(function(){goToEval&&goToEval();},50)">Evaluate a Property</button>'+
+      '<button class="danger" onclick="exitVisitorPreview();setTimeout(function(){handleSignOut&&handleSignOut();},50)">Sign Out</button>';
+  }
+
+  window.toggleAdminPreviewMenu = function(){
+    var m=document.getElementById('adminPreviewMenu'); if(m) m.classList.toggle('open');
+  };
+
+  function forceVisitorNavForPreview(){
+    var sign=document.getElementById('navSignInBtn');
+    var user=document.getElementById('navUserInfo');
+    var demo=qs('#navAuthArea > .btn-ghost[onclick*="openModal"]');
+    if(demo) demo.style.display='';
+    if(sign){ sign.style.display=''; sign.textContent='Sign In'; sign.onclick=function(){ openAuthModal('signin'); }; }
+    if(user) user.style.display='none';
+    var hero=document.getElementById('heroCtaBtn');
+    if(hero){ hero.textContent='Start free — no charge for 7 days'; hero.onclick=function(){ openPlanSelection(); }; }
+    var heroDemo=qs('#mainHero .btn-outline[onclick*="openModal"]'); if(heroDemo) heroDemo.style.display='';
+  }
+
+  window.previewLandingAsVisitor = function(){
+    if(typeof ensurePricingSection==='function') ensurePricingSection();
+    document.body.classList.add('sirius-preview-mode');
+    showPage('landing');
+    qsa('#landing > section, #landing footer').forEach(function(el){ el.style.display=''; });
+    forceVisitorNavForPreview();
+    var b=document.getElementById('adminPreviewBanner'); if(b) b.remove();
+    b=document.createElement('div'); b.id='adminPreviewBanner';
+    b.innerHTML='<div class="admin-preview-left">Admin Preview Mode</div><div class="admin-preview-right"><button onclick="toggleAdminPreviewMenu()">Admin Menu</button><div class="admin-preview-menu" id="adminPreviewMenu">'+adminPreviewMenuHTML()+'</div></div>';
+    document.body.appendChild(b);
+    setTimeout(function(){ if(typeof renderPricing==='function') renderPricing(); if(typeof applyLandingTexts==='function') applyLandingTexts(window._landingTexts||{}); },30);
+  };
+
+  window.exitVisitorPreview = function(){
+    var b=document.getElementById('adminPreviewBanner'); if(b) b.remove();
+    document.body.classList.remove('sirius-preview-mode');
+    if(typeof updateLandingForUser==='function') updateLandingForUser(window.CURRENT_USER || (window.auth&&auth.currentUser));
+    showPage('landing');
+  };
+
+  function hardApplyLoggedInVisibility(){
+    var user=window.CURRENT_USER || (window.auth&&auth.currentUser) || null;
+    var preview=document.body.classList.contains('sirius-preview-mode');
+    if(user && !preview){
+      document.body.classList.add('sirius-logged-in');
+      qsa('#landing > section').forEach(function(sec){ if(sec.id!=='mainHero' && sec.id!=='loggedInUpgradeSection') sec.style.display='none'; });
+      var footer=qs('#landing footer'); if(footer) footer.style.display='none';
+      var navLinks=qs('#landing .nav-links'); if(navLinks) navLinks.style.display='none';
+      var navDemo=qs('#navAuthArea > .btn-ghost[onclick*="openModal"]'); if(navDemo) navDemo.style.display='none';
+      var heroDemo=qs('#mainHero .btn-outline[onclick*="openModal"]'); if(heroDemo) heroDemo.style.display='none';
+      var hero=document.getElementById('heroCtaBtn'); if(hero){ hero.textContent='Open Calculator'; hero.onclick=function(){ goToEval(); }; }
+    }else if(!preview){
+      document.body.classList.remove('sirius-logged-in');
+      qsa('#landing > section').forEach(function(sec){ sec.style.display=''; });
+      var footer2=qs('#landing footer'); if(footer2) footer2.style.display='';
+      var navLinks2=qs('#landing .nav-links'); if(navLinks2) navLinks2.style.display='';
+      var navDemo2=qs('#navAuthArea > .btn-ghost[onclick*="openModal"]'); if(navDemo2) navDemo2.style.display='';
+    }
+  }
+
+  var oldApply=window.applySiriusLandingState;
+  window.applySiriusLandingState=function(){ if(oldApply) oldApply(); hardApplyLoggedInVisibility(); };
+
+  window.setPlanType=function(t,el){
+    if(window.S) S.planType=t;
+    qsa('.plan-type-tab').forEach(function(x){x.classList.remove('active');});
+    if(el) el.classList.add('active');
+    if(typeof renderPricing==='function') renderPricing();
+  };
+
+  window.setBillingCard=function(b){
+    if(window.S) S.billing=b;
+    var aE=document.getElementById('billAnnual'),mE=document.getElementById('billMonthly');
+    if(aE){ aE.textContent='Annually'; aE.classList.toggle('active',b==='yearly'); aE.style.borderColor=b==='yearly'?'rgba(39,174,96,.6)':'rgba(191,198,209,.12)'; aE.style.background=b==='yearly'?'rgba(39,174,96,.09)':'rgba(191,198,209,.03)'; }
+    if(mE){ mE.classList.toggle('active',b==='monthly'); mE.style.borderColor=b==='monthly'?'rgba(191,198,209,.45)':'rgba(191,198,209,.12)'; mE.style.background=b==='monthly'?'rgba(191,198,209,.08)':'rgba(191,198,209,.03)'; }
+    if(typeof renderPricing==='function') renderPricing();
+    if(typeof updateBillingCardPrices==='function') updateBillingCardPrices();
+  };
+
+  window.renderPricing=function(){
+    var g=document.getElementById('pricingGrid'); if(!g || !window.PLANS || !window.S) return;
+    var group=planGroup(selectedPlanType());
+    var source=PLANS[group] || PLANS.individual;
+    var plans=Object.values(source||{});
+    var ia=S.billing==='yearly';
+    if(!plans.length){ g.innerHTML=''; return; }
+    g.innerHTML=plans.map(function(p){
+      var pu=p.perUser?'/user':'';
+      var priceBlock=ia
+        ? '<div style="text-align:center;margin:1rem 0"><div style="font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.42);margin-bottom:.3rem">Billed annually</div><div style="font-family:Inter,system-ui,sans-serif;font-size:2.1rem;font-weight:700;color:var(--white);letter-spacing:-.02em">AED '+(p.monthlyEq||Math.round(p.price.yearly/12))+pu+'</div><div style="font-size:.7rem;color:rgba(191,198,209,.52);margin-top:.25rem">AED '+p.price.yearly+pu+'/year · 2 months free</div><div style="font-size:.68rem;color:rgba(191,198,209,.32);margin-top:.1rem">Full price AED '+p.price.monthly+pu+'/mo if monthly</div></div>'
+        : '<div style="text-align:center;margin:1rem 0"><div style="font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.42);margin-bottom:.3rem">Billed monthly</div><div style="font-family:Inter,system-ui,sans-serif;font-size:2.1rem;font-weight:700;color:var(--white);letter-spacing:-.02em">AED '+p.price.monthly+pu+'</div><div style="font-size:.7rem;color:rgba(191,198,209,.52);margin-top:.25rem">Switch to annual — 2 months free</div><div style="font-size:.68rem;color:rgba(191,198,209,.32);margin-top:.1rem">&nbsp;</div></div>';
+      var features=(p.features||[]).map(function(f){return '<li style="display:flex;align-items:flex-start;gap:.55rem;font-size:.83rem;color:'+(f.on?'rgba(191,198,209,.85)':'rgba(191,198,209,.28)')+';margin-bottom:.5rem;line-height:1.45"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="'+(f.on?'#BFC6D1':'rgba(191,198,209,.22)')+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg>'+f.t+'</li>';}).join('');
+      return '<div class="plan-card'+(p.featured?' featured':'')+'" style="display:flex;flex-direction:column">'+(p.featured?'<div class="plan-badge">Most Popular</div>':'')+'<div class="plan-name '+(p.featured?'gold':'')+'">'+p.name+'</div><div style="font-size:.78rem;color:rgba(191,198,209,.75);line-height:1.5;min-height:2.5rem;margin-bottom:.35rem">'+p.tagline+'</div>'+priceBlock+(p.intro?'<div style="font-size:.72rem;color:rgba(212,175,55,.8);font-weight:600;text-align:center;margin-top:.25rem">'+p.intro+'</div>':'')+'<div style="font-size:.7rem;color:rgba(39,174,96,.75);font-weight:600;text-align:center;margin:.4rem 0 0">'+(p.valueAnchor||'')+'</div><div class="plan-divider" style="margin:1rem 0"></div><ul style="list-style:none;padding:0;margin:0;flex:1">'+features+'</ul><button class="btn '+(p.featured?'btn-primary':'btn-outline')+'" style="width:100%;margin-top:1.5rem" onclick="openPlanSelection()">Start free — 7 days on us</button></div>';
+    }).join('');
+  };
+
+  window.updateBillingCardPrices=function(){
+    var group=planGroup(selectedPlanType()); var plans=Object.values((PLANS&&PLANS[group])||{}); if(!plans.length) return;
+    var ref=group==='company'?plans[0]:(plans[1]||plans[0]);
+    var aE=document.getElementById('billAnnualPrice'),mE=document.getElementById('billMonthlyPrice');
+    if(aE)aE.textContent='AED '+(ref.monthlyEq||Math.round(ref.price.yearly/12))+(ref.perUser?'/user':'');
+    if(mE)mE.textContent='AED '+ref.price.monthly+(ref.perUser?'/user':'');
+  };
+
+  var oldEnsure=window.ensurePricingSection;
+  window.ensurePricingSection=function(){
+    if(oldEnsure) oldEnsure();
+    var p=document.getElementById('pricing');
+    if(p){
+      var title=p.querySelector('.section-title'); if(title && !title.id) title.id='pricingSectionTitle';
+      var sub=p.querySelector('.section-sub'); if(sub && !sub.id) sub.id='pricingSectionSub';
+      var annual=document.getElementById('billAnnual'); if(annual) annual.textContent='Annually';
+      qsa('.plan-type-tab').forEach(function(btn){
+        var t=(btn.textContent||'').trim().toLowerCase();
+        if(t==='agent') btn.onclick=function(){setPlanType('agent',btn)};
+        if(t==='investor') btn.onclick=function(){setPlanType('investor',btn)};
+        if(t==='company') btn.onclick=function(){setPlanType('company',btn)};
+      });
+    }
+  };
+
+  var oldDropdown=window.syncSiriusNavs;
+  window.syncSiriusNavs=function(){
+    if(oldDropdown) oldDropdown();
+    qsa('.nav-dropdown').forEach(function(dd){
+      dd.innerHTML = '<button class="nav-dropdown-item" onclick="closeNavDropdown();goDashboard()">Dashboard</button>'+
+        '<button class="nav-dropdown-item" onclick="closeNavDropdown();openProfile()">My Profile</button>'+
+        '<button class="nav-dropdown-item" onclick="closeNavDropdown();openSubscriptionPlan()">Subscription / Plan</button>'+
+        '<div class="nav-dropdown-divider"></div>'+
+        '<button class="nav-dropdown-item" onclick="closeNavDropdown();goToEval()">Evaluate a Property</button>'+
+        (window.IS_ADMIN?'<button class="nav-dropdown-item" onclick="closeNavDropdown();openAdminPanel()">Admin Panel</button><button class="nav-dropdown-item" onclick="closeNavDropdown();previewLandingAsVisitor()">Preview as Visitor</button>':'<button class="nav-dropdown-item" onclick="closeNavDropdown();goDashboard()">Properties Evaluated</button><button class="nav-dropdown-item" onclick="closeNavDropdown();goDashboard()">Saved Reports</button>')+
+        '<div class="nav-dropdown-divider"></div><button class="nav-dropdown-item danger" onclick="closeNavDropdown();handleSignOut()">Sign Out</button>';
+    });
+  };
+
+  function reloadPublicConfigs(){
+    try{ db.collection('config').doc('landingText').get().then(function(doc){ if(doc.exists && typeof applyLandingTexts==='function'){ window._landingTexts=doc.data(); applyLandingTexts(doc.data()); } }); }catch(e){}
+    try{ db.collection('config').doc('pricing').get().then(function(doc){ if(doc.exists){ window.PRICING_OVERRIDES=doc.data()||{}; if(typeof applyPricingOverrides==='function') applyPricingOverrides(); } }); }catch(e){}
+  }
+
+  function boot2(){
+    if(typeof ensurePricingSection==='function') ensurePricingSection();
+    qsa('#billAnnual').forEach(function(x){x.textContent='Annually';});
+    if(typeof setBillingCard==='function') setBillingCard((window.S&&S.billing)||'monthly');
+    reloadPublicConfigs();
+    if(typeof syncSiriusNavs==='function') syncSiriusNavs();
+    if(typeof applySiriusLandingState==='function') applySiriusLandingState();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot2); else boot2();
+  window.addEventListener('load',function(){setTimeout(boot2,250);setTimeout(boot2,1200);});
+})();
+</script>
 </body>
 </html>
