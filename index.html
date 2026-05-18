@@ -9094,57 +9094,88 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
     if(btn) return window.siriusReturnFromInternal(e);
   },true);
 
-  /* Public landing source-of-truth:
-     Admin saves to BOTH:
-       /config/publicLanding { texts: {...}, updatedAt, updatedBy }
-       /config/landingText {...}  (legacy fallback)
-     Public visitor pages read publicLanding first, then legacy landingText.
-     This fixes the split between admin/preview/local state and the real logged-out visitor page. */
+  /* SIRIUS STEP 3G CLEAN FIX — ONE landing text source of truth.
+     Canonical Firestore document:
+       /config/landingText
+
+     Rules of this patch:
+     - Admin save writes ONLY /config/landingText as the plain text object.
+     - Public cold-load reads ONLY /config/landingText.
+     - No publicLanding / landingPage / local fallback source can override it.
+     - LocalStorage is only a temporary cache after a successful Firestore read/save. */
   function firestore(){
     try{ if(window.db && db.collection) return db; }catch(e){}
     try{ if(window.firebase && firebase.firestore) return firebase.firestore(); }catch(e){}
     return null;
   }
+
   function normalizePublicDoc(data){
     if(!data) return null;
+    /* Defensive only: if an older wrapped payload exists, unwrap it. */
     if(data.texts && typeof data.texts==='object') return data.texts;
     return data;
   }
+
   function applyPublicLandingTexts(texts){
     texts=normalizePublicDoc(texts);
     if(!texts) return;
     window.__siriusPublicLandingTexts=texts;
+    window.__siriusPublicLandingText=texts;
+    try{window._landingTexts=texts;}catch(e){}
+    try{localStorage.setItem('sirius_public_landingText_cache',JSON.stringify(texts));}catch(e){}
     try{localStorage.setItem('sirius_public_landing_text_source_v3c',JSON.stringify(texts));}catch(e){}
+    try{localStorage.setItem('sirius_public_landing_text_v3b',JSON.stringify(texts));}catch(e){}
     if(typeof window.applyLandingTexts==='function'){
       try{window.applyLandingTexts(texts);}catch(e){}
-      [80,250,600,1200,2200].forEach(function(ms){setTimeout(function(){try{window.applyLandingTexts(texts);}catch(e){}},ms);});
+      [50,150,350,700,1200,2000,3200].forEach(function(ms){
+        setTimeout(function(){try{window.applyLandingTexts(texts);}catch(e){}},ms);
+      });
     }
   }
+
   function loadCachedPublic(){
-    try{var raw=localStorage.getItem('sirius_public_landing_text_source_v3c'); if(raw) applyPublicLandingTexts(JSON.parse(raw));}catch(e){}
+    var keys=['sirius_public_landingText_cache','sirius_public_landing_text_source_v3c','sirius_public_landing_text_v3b'];
+    for(var i=0;i<keys.length;i++){
+      try{var raw=localStorage.getItem(keys[i]); if(raw){applyPublicLandingTexts(JSON.parse(raw)); return true;}}catch(e){}
+    }
+    return false;
   }
+
   window.siriusLoadPublicLandingTexts=function(){
     loadCachedPublic();
     var f=firestore();
     if(!f) return false;
     try{
-      f.collection('config').doc('publicLanding').get().then(function(doc){
-        if(doc && doc.exists){ applyPublicLandingTexts(doc.data()); }
-        else {
-          f.collection('config').doc('landingText').get().then(function(oldDoc){
-            if(oldDoc && oldDoc.exists) applyPublicLandingTexts(oldDoc.data());
-          }).catch(function(e){console.log('legacy landing load:',e.code||e.message);});
+      f.collection('config').doc('landingText').get().then(function(doc){
+        if(doc && doc.exists){
+          applyPublicLandingTexts(doc.data()||{});
         }
-      }).catch(function(e){console.log('public landing load:',e.code||e.message);});
-      if(!window.__siriusPublicLandingSnapshotV3C){
-        window.__siriusPublicLandingSnapshotV3C=true;
-        f.collection('config').doc('publicLanding').onSnapshot(function(doc){
-          if(doc && doc.exists) applyPublicLandingTexts(doc.data());
-        },function(e){console.log('public landing snapshot:',e.code||e.message);});
+        try{document.body.classList.remove('sirius-public-config-loading');}catch(e){}
+      }).catch(function(e){
+        console.log('landingText public load:',e.code||e.message);
+        try{document.body.classList.remove('sirius-public-config-loading');}catch(x){}
+      });
+      if(!window.__siriusLandingTextCanonicalSnapshot){
+        window.__siriusLandingTextCanonicalSnapshot=true;
+        f.collection('config').doc('landingText').onSnapshot(function(doc){
+          if(doc && doc.exists){applyPublicLandingTexts(doc.data()||{});}
+          try{document.body.classList.remove('sirius-public-config-loading');}catch(e){}
+        },function(e){
+          console.log('landingText canonical snapshot:',e.code||e.message);
+          try{document.body.classList.remove('sirius-public-config-loading');}catch(x){}
+        });
       }
       return true;
-    }catch(e){return false;}
+    }catch(e){
+      try{document.body.classList.remove('sirius-public-config-loading');}catch(x){}
+      return false;
+    }
   };
+
+  /* Override older patch names so every old retry loop now calls the same canonical loader. */
+  window.siriusLoadPublicLandingTextNow=window.siriusLoadPublicLandingTexts;
+  window.siriusForcePublicLandingConfig=window.siriusLoadPublicLandingTexts;
+  window.siriusForcePublicLandingTextV3B=window.siriusLoadPublicLandingTexts;
 
   function collectLandingEditorTexts(){
     var texts={};
@@ -9159,7 +9190,6 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
     return texts;
   }
 
-  var oldSaveAll=window.saveAllLandingTexts;
   window.saveAllLandingTexts=function(){
     if(!window.CURRENT_USER){alert('You must be signed in to save.');return;}
     if(!window.IS_ADMIN){alert('Admin access required.');return;}
@@ -9169,17 +9199,14 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
     applyPublicLandingTexts(texts);
     var btns=qsa('[onclick="saveAllLandingTexts()"], .adm-pill.primary');
     btns.forEach(function(b){ if((b.textContent||'').toLowerCase().indexOf('save')>-1){ b.textContent='Saving...'; b.style.color=''; }});
-    var payload={texts:texts,updatedAt:new Date().toISOString(),updatedBy:(CURRENT_USER.email||CURRENT_USER.uid||'admin')};
-    var writePublic=f.collection('config').doc('publicLanding').set(payload,{merge:true});
-    var writeLegacy=f.collection('config').doc('landingText').set(texts,{merge:false});
-    Promise.all([writePublic,writeLegacy]).then(function(){
+    f.collection('config').doc('landingText').set(texts,{merge:false}).then(function(){
       btns.forEach(function(b){ if((b.textContent||'').indexOf('Saving')>-1){ b.textContent='✓ Saved publicly'; b.style.color='rgba(39,174,96,.9)'; }});
       window.siriusLoadPublicLandingTexts();
       setTimeout(function(){btns.forEach(function(b){ if((b.textContent||'').indexOf('Saved')>-1){ b.textContent='Save all text changes'; b.style.color=''; }});},2500);
     }).catch(function(e){
-      console.error('public landing save failed:',e.code,e.message);
+      console.error('landingText save failed:',e.code,e.message);
       var msg=(e.code==='permission-denied')
-        ? '✗ Permission denied. Update Firebase rules with the admin email rule I provided.'
+        ? '✗ Permission denied. Check Firebase admin write rules for /config/{document}.'
         : '✗ Failed: '+(e.code||e.message);
       btns.forEach(function(b){ if((b.textContent||'').indexOf('Saving')>-1){ b.textContent=msg; b.style.color='rgba(231,76,60,.9)'; }});
       alert(msg);
@@ -9412,213 +9439,12 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
 </script>
 
 
-
-<!-- SIRIUS STEP 3G PATCH 2026-05-18: single public landing text source of truth (/config/landingPage). No HTML preview file. -->
-<script id="sirius-step3g-landingpage-single-source">
+<script id="sirius-step3g-final-landingText-safeguard">
 (function(){
-  var LANDING_DOC_ID = 'landingPage';
-  var CACHE_KEY = 'sirius_config_landingPage_cache_v3g';
-  var snapshotStarted = false;
-
-  function qs(s,r){ return (r||document).querySelector(s); }
-  function qsa(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); }
-  function firestore(){
-    try{ if(window.db && window.db.collection) return window.db; }catch(e){}
-    try{ if(window.firebase && firebase.firestore) return firebase.firestore(); }catch(e){}
-    return null;
-  }
-  function normalizeLandingPayload(data){
-    if(!data) return null;
-    if(data.texts && typeof data.texts === 'object') return data.texts;
-    return data;
-  }
-  function getDefaultLandingTexts(){
-    var texts = {};
-    try{
-      if(window.LANDING_TEXT_KEYS && Array.isArray(window.LANDING_TEXT_KEYS)){
-        window.LANDING_TEXT_KEYS.forEach(function(k){ texts[k.id] = k.default || ''; });
-      }
-    }catch(e){}
-    return texts;
-  }
-  function collectLandingEditorTexts(){
-    var texts = {};
-    try{
-      if(window.LANDING_TEXT_KEYS && Array.isArray(window.LANDING_TEXT_KEYS)){
-        window.LANDING_TEXT_KEYS.forEach(function(k){
-          var el = qs('#lt_' + k.id);
-          texts[k.id] = el ? el.value : (window._landingTexts && window._landingTexts[k.id]) || k.default || '';
-        });
-      } else {
-        qsa('[id^="lt_"]').forEach(function(el){ texts[el.id.replace(/^lt_/,'')] = el.value; });
-      }
-    }catch(e){}
-    return texts;
-  }
-  function saveCache(texts){
-    try{ localStorage.setItem(CACHE_KEY, JSON.stringify(texts || {})); }catch(e){}
-  }
-  function readCache(){
-    try{
-      var raw = localStorage.getItem(CACHE_KEY);
-      if(raw) return JSON.parse(raw);
-    }catch(e){}
-    return null;
-  }
-  function clearPublicLoadingSoon(){
-    setTimeout(function(){ document.body.classList.remove('sirius-public-config-loading'); }, 120);
-  }
-  function applyLandingPageTexts(data){
-    var texts = normalizeLandingPayload(data) || getDefaultLandingTexts();
-    window._landingTexts = texts;
-    window.__siriusLandingPageTextsV3G = texts;
-    saveCache(texts);
-    if(typeof window.applyLandingTexts === 'function'){
-      try{ window.applyLandingTexts(texts); }catch(e){}
-      [50,150,350,800,1500,2600].forEach(function(ms){
-        setTimeout(function(){ try{ window.applyLandingTexts(texts); }catch(e){} }, ms);
-      });
-    }
-    clearPublicLoadingSoon();
-  }
-  function maybeMigrateLegacy(f){
-    if(!f) return;
-    /* One-time safety net: if /config/landingPage does not exist yet, read old locations once and copy them into landingPage.
-       After that, admin save and public cold-load both use /config/landingPage only. */
-    var legacyDocs = ['publicLanding','landingText'];
-    var tryIndex = 0;
-    function tryNext(){
-      if(tryIndex >= legacyDocs.length){ clearPublicLoadingSoon(); return; }
-      var id = legacyDocs[tryIndex++];
-      f.collection('config').doc(id).get().then(function(doc){
-        if(doc && doc.exists){
-          var texts = normalizeLandingPayload(doc.data()) || {};
-          applyLandingPageTexts(texts);
-          f.collection('config').doc(LANDING_DOC_ID).set({
-            texts: texts,
-            updatedAt: new Date().toISOString(),
-            source: 'legacy-migration-' + id
-          }, {merge:true}).catch(function(){ /* logged-out visitors cannot write; admin save will create it */ });
-        } else {
-          tryNext();
-        }
-      }).catch(function(){ tryNext(); });
-    }
-    tryNext();
-  }
-  function loadLandingPageOnce(){
-    var cached = readCache();
-    if(cached) applyLandingPageTexts(cached);
-    var f = firestore();
-    if(!f){ clearPublicLoadingSoon(); return false; }
-    try{
-      f.collection('config').doc(LANDING_DOC_ID).get().then(function(doc){
-        if(doc && doc.exists){
-          applyLandingPageTexts(doc.data());
-        } else {
-          maybeMigrateLegacy(f);
-        }
-      }).catch(function(e){
-        console.log('landingPage public get:', e.code || e.message);
-        clearPublicLoadingSoon();
-      });
-      return true;
-    }catch(e){ clearPublicLoadingSoon(); return false; }
-  }
-  function startLandingPageSnapshot(){
-    var f = firestore();
-    if(!f || snapshotStarted) return !!f;
-    snapshotStarted = true;
-    try{
-      f.collection('config').doc(LANDING_DOC_ID).onSnapshot(function(doc){
-        if(doc && doc.exists) applyLandingPageTexts(doc.data());
-        clearPublicLoadingSoon();
-      }, function(e){
-        console.log('landingPage public listener:', e.code || e.message);
-        clearPublicLoadingSoon();
-      });
-      return true;
-    }catch(e){ clearPublicLoadingSoon(); return false; }
-  }
-  function bootLandingPageSync(){
-    if(!document.body.classList.contains('sirius-logged-in')){
-      document.body.classList.add('sirius-public-config-loading');
-      setTimeout(clearPublicLoadingSoon, 3500);
-    }
-    var tries = 0;
-    var timer = setInterval(function(){
-      tries++;
-      var ok1 = loadLandingPageOnce();
-      var ok2 = startLandingPageSnapshot();
-      if((ok1 && ok2) || tries >= 50) clearInterval(timer);
-    }, 160);
-  }
-
-  window.siriusLoadLandingPageTextV3G = function(){
-    var ok1 = loadLandingPageOnce();
-    var ok2 = startLandingPageSnapshot();
-    return !!(ok1 && ok2);
-  };
-  window.siriusLoadPublicLandingTexts = window.siriusLoadLandingPageTextV3G;
-  window.siriusLoadPublicLandingTextNow = window.siriusLoadLandingPageTextV3G;
-  window.siriusForcePublicLandingTextV3B = window.siriusLoadLandingPageTextV3G;
-
-  window.saveLandingTexts = function(texts, onDone){
-    var f = firestore();
-    if(!f){ if(onDone) onDone(false, 'Firebase is not ready.'); return; }
-    var cleanTexts = normalizeLandingPayload(texts) || {};
-    applyLandingPageTexts(cleanTexts);
-    f.collection('config').doc(LANDING_DOC_ID).set({
-      texts: cleanTexts,
-      updatedAt: new Date().toISOString(),
-      updatedBy: (window.CURRENT_USER && (CURRENT_USER.email || CURRENT_USER.uid)) || 'admin'
-    }, {merge:true}).then(function(){
-      if(onDone) onDone(true);
-    }).catch(function(e){
-      if(onDone) onDone(false, e.message || e.code || String(e));
-    });
-  };
-
-  window.saveAllLandingTexts = function(){
-    if(!window.CURRENT_USER){ alert('You must be signed in to save.'); return; }
-    if(!window.IS_ADMIN){ alert('Admin access required.'); return; }
-    var f = firestore();
-    if(!f){ alert('Firebase is not ready yet. Try again in a moment.'); return; }
-    var texts = collectLandingEditorTexts();
-    applyLandingPageTexts(texts);
-    var buttons = qsa('[onclick="saveAllLandingTexts()"]');
-    buttons.forEach(function(b){ b.textContent = 'Saving...'; b.style.color = ''; });
-    var write = function(){
-      return f.collection('config').doc(LANDING_DOC_ID).set({
-        texts: texts,
-        updatedAt: new Date().toISOString(),
-        updatedBy: (CURRENT_USER.email || CURRENT_USER.uid || 'admin')
-      }, {merge:true});
-    };
-    var tokenPromise = (CURRENT_USER && CURRENT_USER.getIdToken) ? CURRENT_USER.getIdToken(true).catch(function(){}) : Promise.resolve();
-    tokenPromise.then(write).then(function(){
-      buttons.forEach(function(b){ b.textContent = '✓ Saved to public landing page'; b.style.color = 'rgba(39,174,96,.9)'; });
-      window.siriusLoadLandingPageTextV3G();
-      setTimeout(function(){ buttons.forEach(function(b){ b.textContent = 'Save all text changes'; b.style.color = ''; }); }, 2500);
-    }).catch(function(e){
-      console.error('landingPage save failed:', e.code, e.message);
-      var msg = (e.code === 'permission-denied')
-        ? '✗ Permission denied — confirm Firebase rules allow admin write to /config/{document}'
-        : '✗ Failed: ' + (e.code || e.message || 'unknown error');
-      buttons.forEach(function(b){ b.textContent = msg; b.style.color = 'rgba(231,76,60,.9)'; });
-      alert(msg);
-    });
-  };
-
-  document.addEventListener('DOMContentLoaded', bootLandingPageSync);
-  window.addEventListener('load', function(){ bootLandingPageSync(); setTimeout(window.siriusLoadLandingPageTextV3G, 700); });
-  bootLandingPageSync();
-  setInterval(function(){
-    var active = qs('.page.active');
-    if(!active || active.id === 'landing') window.siriusLoadLandingPageTextV3G();
-  }, 3000);
+  function run(){try{ if(window.siriusLoadPublicLandingTexts) window.siriusLoadPublicLandingTexts(); }catch(e){}}
+  document.addEventListener('DOMContentLoaded',function(){run();setTimeout(run,500);setTimeout(run,1500);setTimeout(run,3000);});
+  window.addEventListener('load',function(){run();setTimeout(run,700);setTimeout(run,2200);});
 })();
 </script>
-
 </body>
 </html>
