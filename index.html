@@ -9518,10 +9518,40 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
     catch(e){ return String(Date.now()); }
   }
 
+  function captureResultsSnapshotHTML(){
+    try{
+      var src=document.getElementById('step-3');
+      if(!src) return '';
+      var clone=src.cloneNode(true);
+      clone.removeAttribute('id');
+      clone.classList.add('sirius-saved-results-snapshot');
+      var actions=clone.querySelector('#resultDownloadActions');
+      if(actions) actions.remove();
+      var autosave=clone.querySelector('#siriusAutosaveStatus');
+      if(autosave) autosave.remove();
+      Array.prototype.slice.call(clone.querySelectorAll('button')).forEach(function(btn){ btn.remove(); });
+      Array.prototype.slice.call(clone.querySelectorAll('input, textarea, select')).forEach(function(el){
+        var span=document.createElement('span');
+        span.className='sirius-snapshot-value';
+        if(el.type==='checkbox') span.textContent=el.checked ? '✓' : '—';
+        else span.textContent=(el.value || el.textContent || '—');
+        el.parentNode.replaceChild(span, el);
+      });
+      Array.prototype.slice.call(clone.querySelectorAll('[onclick],[onchange],[oninput]')).forEach(function(el){
+        el.removeAttribute('onclick'); el.removeAttribute('onchange'); el.removeAttribute('oninput');
+      });
+      return clone.innerHTML;
+    }catch(e){
+      console.warn('Snapshot capture failed', e);
+      return '';
+    }
+  }
+
   function saveEvaluationReport(){
     if(!dbOk()) return;
     var summary=summarizeReport();
     var inputs=collectInputs();
+    var resultsHTML=captureResultsSnapshotHTML();
     var hash=reportHash(summary, inputs);
     if(window.__SIRIUS_LAST_REPORT_HASH===hash) return;
     window.__SIRIUS_LAST_REPORT_HASH=hash;
@@ -9532,6 +9562,7 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
       scenario:summary.scenario,
       summary:summary,
       inputs:inputs,
+      resultsHTML:resultsHTML,
       createdAt:firebase.firestore.FieldValue.serverTimestamp(),
       updatedAt:firebase.firestore.FieldValue.serverTimestamp(),
       source:'evaluateProperty',
@@ -9633,9 +9664,9 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
       var price=s.propertyPrice ? 'AED '+Math.round(s.propertyPrice).toLocaleString('en-AE') : 'AED —';
       var total=s.totalInvestment ? 'Total: AED '+Math.round(s.totalInvestment).toLocaleString('en-AE') : '';
       return '<div class="sirius-saved-row" data-kind="'+kind+'" data-id="'+item.id+'" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.85rem 0;border-bottom:1px solid rgba(191,198,209,.07);cursor:pointer">'+
-        '<div><div style="font-size:.9rem;color:var(--ivory);font-weight:700">'+(d.title||s.scenario||'Saved Evaluation')+'</div>'+
+        '<div><div class="sirius-saved-title" style="font-size:.9rem;color:var(--ivory);font-weight:700">'+(d.title||s.scenario||'Saved Evaluation')+'</div>'+
         '<div style="font-size:.75rem;color:var(--text-muted);margin-top:.25rem">'+price+(total?' · '+total:'')+(dt?' · '+fmtDate(dt):'')+'</div></div>'+
-        '<button class="btn btn-ghost" style="font-size:.68rem;padding:.35rem .75rem">Open</button>'+
+        '<div style="display:flex;align-items:center;gap:.45rem;flex-shrink:0"><button type="button" class="sirius-rename-saved-btn" data-kind="'+kind+'" data-id="'+item.id+'">Rename</button><button type="button" class="sirius-delete-saved-btn" data-kind="'+kind+'" data-id="'+item.id+'">Delete</button><button class="btn btn-ghost" style="font-size:.68rem;padding:.35rem .75rem">Open</button></div>'+
       '</div>';
     }).join('');
     qsa('.sirius-saved-row', list).forEach(function(row){
@@ -9663,6 +9694,7 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
       });
     });
   }
+  window.renderSavedFolders = renderSavedFolders;
   function renderSavedFoldersSoon(){ setTimeout(renderSavedFolders,350); setTimeout(renderSavedFolders,1300); }
 
   function openSavedItem(kind, id){
@@ -9779,6 +9811,11 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
   .sirius-ro-table td:first-child { color:rgba(191,198,209,.6); width:38%; }
   .sirius-rename-saved-btn { margin-left:.5rem; padding:.32rem .65rem; border-radius:7px; border:1px solid rgba(191,198,209,.16); background:rgba(255,255,255,.04); color:var(--text-muted,#BFC6D1); font-size:.68rem; cursor:pointer; font-family:var(--font-body); }
   .sirius-rename-saved-btn:hover { border-color:rgba(191,198,209,.35); color:var(--white,#F7F6F2); }
+  .sirius-delete-saved-btn { padding:.32rem .65rem; border-radius:7px; border:1px solid rgba(231,76,60,.28); background:rgba(231,76,60,.07); color:rgba(255,170,160,.9); font-size:.68rem; cursor:pointer; font-family:var(--font-body); }
+  .sirius-delete-saved-btn:hover { border-color:rgba(231,76,60,.55); color:#fff; background:rgba(231,76,60,.16); }
+  .sirius-saved-results-snapshot { pointer-events:none; }
+  .sirius-saved-results-snapshot .fee-edit-wrap { justify-content:flex-end; }
+  .sirius-snapshot-value { color:var(--white,#F7F6F2); font-weight:700; }
 </style>
 <script id="sirius-step4b-readonly-rename-script">
 (function(){
@@ -9801,6 +9838,9 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
   }
   function esc(s){
     return String(s == null ? '' : s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});
+  }
+  function cssEsc(s){
+    try{ return CSS && CSS.escape ? CSS.escape(String(s)) : String(s).replace(/\"/g,''); }catch(e){ return String(s).replace(/\"/g,''); }
   }
   function collectionForKind(kind){
     kind = String(kind || '');
@@ -9831,34 +9871,41 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
     var page = ensureReadonlyPage();
     var c = document.getElementById('siriusRoContent');
     var s = data.summary || {};
-    var inputs = data.inputs || {};
     var title = data.title || s.title || s.scenario || 'Saved Evaluation';
     var created = data.createdAt || s.calculatedAt;
-    var rows = [];
-    Object.keys(inputs).sort().forEach(function(k){
-      var val = inputs[k];
-      if(val === '' || val == null) return;
-      rows.push('<tr><td>'+esc(k)+'</td><td>'+esc(val)+'</td></tr>');
-    });
-    c.innerHTML = ''+
+    var snapshot = data.resultsHTML || '';
+    var header = ''+
       '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">'+
-        '<div><div style="font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--brushed-silver);margin-bottom:.45rem">Evaluation Results</div>'+
-        '<h1 style="font-size:2rem;font-weight:300;font-family:var(--font-display);margin:0;color:var(--ivory)">'+esc(title)+'</h1>'+
-        '<div style="font-size:.82rem;color:var(--text-muted);margin-top:.35rem">Saved on '+esc(fmtDate(created))+'</div></div>'+
-        '<button class="btn btn-outline" id="siriusRoRenameBtn" style="font-size:.72rem">Rename</button>'+
-      '</div>'+
-      '<div class="sirius-ro-card"><div class="sirius-ro-grid">'+
-        '<div class="sirius-ro-kpi"><div class="sirius-ro-label">Property Price</div><div class="sirius-ro-value">'+esc(fmtAED(s.propertyPrice))+'</div></div>'+
-        '<div class="sirius-ro-kpi"><div class="sirius-ro-label">Total Investment</div><div class="sirius-ro-value">'+esc(fmtAED(s.totalInvestment))+'</div></div>'+
-        '<div class="sirius-ro-kpi"><div class="sirius-ro-label">Status</div><div class="sirius-ro-value">'+esc(s.status || '—')+'</div></div>'+
-        '<div class="sirius-ro-kpi"><div class="sirius-ro-label">Financing</div><div class="sirius-ro-value">'+esc(s.financing || '—')+'</div></div>'+
-        '<div class="sirius-ro-kpi"><div class="sirius-ro-label">Purpose</div><div class="sirius-ro-value">'+esc(s.purpose || '—')+'</div></div>'+
-      '</div></div>'+
-      '<div class="sirius-ro-card"><div style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brushed-silver);font-weight:700;margin-bottom:.6rem">Input Snapshot</div>'+
-        '<div style="font-size:.78rem;color:var(--text-muted);margin-bottom:.65rem">This is a read-only archive. To protect plan limits and report history, saved reports cannot be edited or recalculated from here.</div>'+
-        '<table class="sirius-ro-table">'+(rows.length ? rows.join('') : '<tr><td colspan="2">No input snapshot found.</td></tr>')+'</table>'+
+        '<div><div style="font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--brushed-silver);margin-bottom:.45rem">Saved Evaluation</div>'+ 
+        '<h1 id="siriusRoTitle" style="font-size:2rem;font-weight:300;font-family:var(--font-display);margin:0;color:var(--ivory)">'+esc(title)+'</h1>'+ 
+        '<div style="font-size:.82rem;color:var(--text-muted);margin-top:.35rem">Saved on '+esc(fmtDate(created))+' · Read-only snapshot</div></div>'+ 
+        '<div style="display:flex;gap:.5rem;flex-wrap:wrap"><button class="btn btn-outline" id="siriusRoRenameBtn" style="font-size:.72rem">Rename</button><button class="btn btn-ghost" id="siriusRoDeleteBtn" style="font-size:.72rem;border-color:rgba(231,76,60,.35);color:rgba(255,170,160,.95)">Delete</button></div>'+ 
       '</div>';
+    if(snapshot){
+      c.innerHTML = header + '<div class="sirius-ro-card" style="padding:1.25rem">'+snapshot+'</div>';
+    } else {
+      var inputs = data.inputs || {};
+      var rows = [];
+      Object.keys(inputs).sort().forEach(function(k){
+        var val = inputs[k];
+        if(val === '' || val == null) return;
+        rows.push('<tr><td>'+esc(k)+'</td><td>'+esc(val)+'</td></tr>');
+      });
+      c.innerHTML = header +
+        '<div class="sirius-ro-card"><div class="sirius-ro-grid">'+
+          '<div class="sirius-ro-kpi"><div class="sirius-ro-label">Property Price</div><div class="sirius-ro-value">'+esc(fmtAED(s.propertyPrice))+'</div></div>'+ 
+          '<div class="sirius-ro-kpi"><div class="sirius-ro-label">Total Investment</div><div class="sirius-ro-value">'+esc(fmtAED(s.totalInvestment))+'</div></div>'+ 
+          '<div class="sirius-ro-kpi"><div class="sirius-ro-label">Status</div><div class="sirius-ro-value">'+esc(s.status || '—')+'</div></div>'+ 
+          '<div class="sirius-ro-kpi"><div class="sirius-ro-label">Financing</div><div class="sirius-ro-value">'+esc(s.financing || '—')+'</div></div>'+ 
+          '<div class="sirius-ro-kpi"><div class="sirius-ro-label">Purpose</div><div class="sirius-ro-value">'+esc(s.purpose || '—')+'</div></div>'+ 
+        '</div></div>'+ 
+        '<div class="sirius-ro-card"><div style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brushed-silver);font-weight:700;margin-bottom:.6rem">Input Snapshot</div>'+ 
+          '<div style="font-size:.78rem;color:var(--text-muted);margin-bottom:.65rem">Older saved item. New saved reports will preserve the full results page visually.</div>'+ 
+          '<table class="sirius-ro-table">'+(rows.length ? rows.join('') : '<tr><td colspan="2">No input snapshot found.</td></tr>')+'</table>'+ 
+        '</div>';
+    }
     document.getElementById('siriusRoRenameBtn').onclick = function(){ renameSavedItem(kind, id, title); };
+    document.getElementById('siriusRoDeleteBtn').onclick = function(){ deleteSavedItem(kind, id); };
     page.classList.add('open');
     page.scrollTop = 0;
   }
@@ -9901,6 +9948,8 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
       title: next,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge:true }).then(function(){
+      document.querySelectorAll('.sirius-saved-row[data-id="'+cssEsc(id)+'"] .sirius-saved-title').forEach(function(el){ el.textContent = next; });
+      var titleEl = document.getElementById('siriusRoTitle'); if(titleEl) titleEl.textContent = next;
       var page = document.getElementById('siriusSavedReadonlyPage');
       if(page && page.classList.contains('open')) openReadonlySavedItem(kind, id);
       if(typeof window.renderSavedFolders === 'function') window.renderSavedFolders();
@@ -9911,29 +9960,61 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
     });
   }
 
+  function deleteSavedItem(kind, id){
+    if(!dbOk() || !id) return;
+    var ok = confirm('Delete this saved item? This removes it from your saved list, but it will not refund plan usage limits.');
+    if(!ok) return;
+    var collection = collectionForKind(kind);
+    window.db.collection('users').doc(uid()).collection(collection).doc(id).delete().then(function(){
+      var page = document.getElementById('siriusSavedReadonlyPage');
+      if(page) page.classList.remove('open');
+      var row = document.querySelector('.sirius-saved-row[data-id="'+cssEsc(id)+'"]');
+      if(row) row.remove();
+      if(typeof window.renderSavedFolders === 'function') window.renderSavedFolders();
+    }).catch(function(err){
+      console.warn('Delete failed', err);
+      alert('Could not delete this saved item.');
+    });
+  }
+
   function injectRenameButtons(){
     document.querySelectorAll('.sirius-saved-row').forEach(function(row){
-      if(row.querySelector('.sirius-rename-saved-btn')) return;
       var kind = row.getAttribute('data-kind') || '';
       var id = row.getAttribute('data-id') || '';
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'sirius-rename-saved-btn';
-      btn.textContent = 'Rename';
-      btn.setAttribute('data-kind', kind);
-      btn.setAttribute('data-id', id);
-      var openBtn = row.querySelector('button');
-      if(openBtn && openBtn.parentNode) openBtn.parentNode.insertBefore(btn, openBtn);
-      else row.appendChild(btn);
+      var openBtn = row.querySelector('button.btn');
+      if(!row.querySelector('.sirius-rename-saved-btn')){
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'sirius-rename-saved-btn';
+        btn.textContent = 'Rename';
+        btn.setAttribute('data-kind', kind);
+        btn.setAttribute('data-id', id);
+        if(openBtn && openBtn.parentNode) openBtn.parentNode.insertBefore(btn, openBtn); else row.appendChild(btn);
+      }
+      if(!row.querySelector('.sirius-delete-saved-btn')){
+        var del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'sirius-delete-saved-btn';
+        del.textContent = 'Delete';
+        del.setAttribute('data-kind', kind);
+        del.setAttribute('data-id', id);
+        if(openBtn && openBtn.parentNode) openBtn.parentNode.insertBefore(del, openBtn); else row.appendChild(del);
+      }
     });
   }
 
   document.addEventListener('click', function(e){
+    var deleteBtn = e.target && e.target.closest ? e.target.closest('.sirius-delete-saved-btn') : null;
+    if(deleteBtn){
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      deleteSavedItem(deleteBtn.getAttribute('data-kind'), deleteBtn.getAttribute('data-id'));
+      return false;
+    }
     var renameBtn = e.target && e.target.closest ? e.target.closest('.sirius-rename-saved-btn') : null;
     if(renameBtn){
       e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
       var row = renameBtn.closest('.sirius-saved-row');
-      var titleEl = row ? row.querySelector('div div') : null;
+      var titleEl = row ? row.querySelector('.sirius-saved-title') : null;
       renameSavedItem(renameBtn.getAttribute('data-kind'), renameBtn.getAttribute('data-id'), titleEl ? titleEl.textContent.trim() : 'Saved Item');
       return false;
     }
