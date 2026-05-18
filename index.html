@@ -9430,6 +9430,14 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
   .sirius-table{width:100%;border-collapse:collapse}.sirius-table th{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(191,198,209,.45);padding:.7rem;text-align:left;border-bottom:1px solid rgba(191,198,209,.1)}.sirius-table td{padding:.75rem .7rem;border-bottom:1px solid rgba(191,198,209,.07);font-size:.78rem;color:rgba(247,246,242,.86);vertical-align:top}.sirius-table tr:hover td{background:rgba(191,198,209,.035)}
   .sirius-report-actions{display:flex;gap:.45rem;flex-wrap:wrap}.sirius-soft-btn{border:1px solid rgba(191,198,209,.18);background:rgba(255,255,255,.035);color:#F7F6F2;border-radius:8px;padding:.38rem .65rem;font-size:.72rem;cursor:pointer}.sirius-soft-btn.danger{border-color:rgba(231,76,60,.28);color:#e74c3c}.sirius-soft-btn:hover{background:rgba(191,198,209,.08)}
   #siriusSavedReportPage.active{display:block!important;background:var(--bg,#0A1628);min-height:100vh}.sirius-report-wrap{max-width:920px;margin:0 auto;padding:6.2rem 1.5rem 2rem}.sirius-report-title-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap}
+
+  /* Step 4D stability: prevent text overflow in settings/cards/dropdowns */
+  .sirius-saas-card,.sirius-mini-kpi,.sirius-mini-value,.sirius-settings-tab,.sirius-table td{overflow-wrap:anywhere;word-break:normal;max-width:100%}
+  .sirius-settings-tabs{min-width:0}.sirius-settings-grid>*{min-width:0}
+  .nav-dropdown [data-sirius-settings-item]{white-space:nowrap}
+  .sirius-saved-work-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.9rem;margin:1rem 0 1.5rem}
+  .sirius-saved-work-card{background:rgba(255,255,255,.035);border:1px solid rgba(191,198,209,.1);border-radius:14px;padding:1rem;cursor:pointer;transition:.18s ease}
+  .sirius-saved-work-card:hover{border-color:rgba(191,198,209,.28);background:rgba(191,198,209,.06)}
   @media(max-width:760px){.sirius-settings-grid{grid-template-columns:1fr}.sirius-kpi-row{grid-template-columns:1fr 1fr}}
 </style>
 <script id="sirius-step4-saas-patch-js">
@@ -9480,36 +9488,52 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
   };
 
   function ensureSettingsModal(){
-    if(qs('#siriusSettingsModal')) return;
+    var old=qs('#siriusSettingsModal');
+    if(old) old.remove();
     var m=document.createElement('div'); m.id='siriusSettingsModal'; m.className='sirius-modal-shell';
-    m.innerHTML='<div class="sirius-modal-card"><div class="sirius-modal-head"><div><div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(191,198,209,.45);font-weight:900">SIRIUS</div><div class="sirius-modal-title">Settings</div></div><button class="modal-close" onclick="closeSiriusSettings()">&#10005;</button></div><div class="sirius-modal-body"><div class="sirius-settings-grid"><div class="sirius-settings-tabs"><button class="sirius-settings-tab active" data-tab="account">Account</button><button class="sirius-settings-tab" data-tab="subscription">Subscription</button><button class="sirius-settings-tab" data-tab="billing">Billing</button><button class="sirius-settings-tab" data-tab="payment">Payment Method</button><button class="sirius-settings-tab" data-tab="usage">Saved Reports Usage</button><button class="sirius-settings-tab" data-tab="admin">Admin</button></div><div id="siriusSettingsContent"></div></div></div></div>';
-    document.body.appendChild(m); m.addEventListener('click',function(e){if(e.target===m) closeSiriusSettings();});
+    var activityTab = admin()?'<button class="sirius-settings-tab" data-tab="activity">Activity Logs</button>':'';
+    m.innerHTML='<div class="sirius-modal-card"><div class="sirius-modal-head"><div><div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(191,198,209,.45);font-weight:900">SIRIUS</div><div class="sirius-modal-title">Settings</div></div><button class="modal-close" onclick="closeSiriusSettings()">&#10005;</button></div><div class="sirius-modal-body"><div class="sirius-settings-grid"><div class="sirius-settings-tabs"><button class="sirius-settings-tab active" data-tab="subscription">Subscription</button><button class="sirius-settings-tab" data-tab="billing">Billing</button>'+activityTab+'</div><div id="siriusSettingsContent"></div></div></div></div>';
+    document.body.appendChild(m);
+    m.addEventListener('click',function(e){if(e.target===m) closeSiriusSettings();});
     qsa('.sirius-settings-tab',m).forEach(function(b){b.onclick=function(){qsa('.sirius-settings-tab',m).forEach(function(x){x.classList.remove('active')});b.classList.add('active');renderSettingsTab(b.getAttribute('data-tab'));};});
   }
-  window.openSiriusSettings=function(tab){ensureSettingsModal(); qs('#siriusSettingsModal').classList.add('open'); renderSettingsTab(tab||'account'); try{siriusLogActivity('settings_viewed',{tab:tab||'account'});}catch(e){}};
+  window.openSiriusSettings=function(tab){ensureSettingsModal(); var m=qs('#siriusSettingsModal'); if(m)m.classList.add('open'); renderSettingsTab(tab||'subscription'); try{siriusLogActivity('settings_viewed',{tab:tab||'subscription'});}catch(e){}};
   window.closeSiriusSettings=function(){var m=qs('#siriusSettingsModal'); if(m)m.classList.remove('open');};
   function renderSettingsTab(tab){
-    var c=qs('#siriusSettingsContent'),u=user(),d=dbx(); if(!c) return; c.innerHTML='<div class="sirius-saas-card">Loading settings...</div>';
-    if(!u||!d){c.innerHTML='<div class="sirius-saas-card">Please sign in to view settings.</div>';return;}
-    d.collection('users').doc(u.uid).get().then(function(doc){var data=doc.exists?doc.data():{};var sub=defaultSubscription(data); var html='';
-      if(tab==='account') html='<div class="sirius-saas-card"><div class="sirius-mini-label">Account</div><div class="sirius-kpi-row"><div class="sirius-mini-kpi"><div class="sirius-mini-label">Name</div><div class="sirius-mini-value">'+(data.displayName||u.displayName||'—')+'</div></div><div class="sirius-mini-kpi"><div class="sirius-mini-label">Email</div><div class="sirius-mini-value">'+(u.email||data.email||'—')+'</div></div><div class="sirius-mini-kpi"><div class="sirius-mini-label">Role</div><div class="sirius-mini-value">'+(admin()?'Admin':'User')+'</div></div></div></div>';
+    tab=tab||'subscription';
+    var c=qs('#siriusSettingsContent'),u=user(),d=dbx(); if(!c) return;
+    if(!u){c.innerHTML='<div class="sirius-saas-card">Please sign in to view settings.</div>';return;}
+    function paint(data){
+      data=data||{}; var sub=defaultSubscription(data); var html='';
       if(tab==='subscription') html=subscriptionHTML(sub);
-      if(tab==='billing') html='<div class="sirius-saas-card"><div class="sirius-mini-label">Billing</div><div class="sirius-kpi-row"><div class="sirius-mini-kpi"><div class="sirius-mini-label">Billing Email</div><div class="sirius-mini-value">'+(sub.billingEmail||'—')+'</div></div><div class="sirius-mini-kpi"><div class="sirius-mini-label">Last Payment</div><div class="sirius-mini-value">'+fmtDate(sub.lastPaymentDate)+'</div></div><div class="sirius-mini-kpi"><div class="sirius-mini-label">Next Billing / Expiry</div><div class="sirius-mini-value">'+fmtDate(sub.nextBillingDate)+'</div></div></div><p style="margin-top:1rem;color:rgba(191,198,209,.5);font-size:.75rem">Paddle integration placeholder: this will show live invoice/payment dates once Paddle webhooks write to Firestore.</p></div>';
-      if(tab==='payment') html='<div class="sirius-saas-card"><div class="sirius-mini-label">Payment Method</div><div class="sirius-kpi-row"><div class="sirius-mini-kpi"><div class="sirius-mini-label">Card Saved</div><div class="sirius-mini-value">'+(sub.paymentMethodSaved?'Yes':'No / not connected')+'</div></div><div class="sirius-mini-kpi"><div class="sirius-mini-label">Masked Card</div><div class="sirius-mini-value">'+(sub.maskedCard||'Not connected yet')+'</div></div></div><p style="margin-top:1rem;color:rgba(191,198,209,.5);font-size:.75rem">No real card data is displayed unless it is supplied by Paddle/Firebase.</p></div>';
-      if(tab==='usage') html=subscriptionHTML(sub)+'<div style="height:1rem"></div><button class="btn btn-outline" onclick="openSavedReports()">Open Saved Reports</button>';
-      if(tab==='admin') html=admin()?'<div class="sirius-saas-card"><div class="sirius-mini-label">Admin Settings</div><div class="sirius-kpi-row"><div class="sirius-mini-kpi"><div class="sirius-mini-label">Access</div><div class="sirius-mini-value">Admin account</div></div><div class="sirius-mini-kpi"><div class="sirius-mini-label">Tools</div><div class="sirius-mini-value">User management / activity logs ready</div></div></div><div style="display:flex;gap:.65rem;margin-top:1rem;flex-wrap:wrap"><button class="btn btn-outline" onclick="openSiriusActivityLogs()">Activity Logs</button><button class="btn btn-outline" onclick="openAdminDashboard&&openAdminDashboard()">Admin Dashboard</button></div></div>':'<div class="sirius-saas-card">Admin settings are only visible to admin users.</div>';
+      else if(tab==='billing') html='<div class="sirius-saas-card"><div class="sirius-mini-label">Billing</div><div class="sirius-kpi-row"><div class="sirius-mini-kpi"><div class="sirius-mini-label">Billing Email</div><div class="sirius-mini-value">'+escapeHTML(sub.billingEmail||u.email||'—')+'</div></div><div class="sirius-mini-kpi"><div class="sirius-mini-label">Last Payment</div><div class="sirius-mini-value">'+fmtDate(sub.lastPaymentDate)+'</div></div><div class="sirius-mini-kpi"><div class="sirius-mini-label">Next Billing / Expiry</div><div class="sirius-mini-value">'+fmtDate(sub.nextBillingDate)+'</div></div><div class="sirius-mini-kpi"><div class="sirius-mini-label">Payment Method</div><div class="sirius-mini-value">Managed by Paddle</div></div></div><p style="margin-top:1rem;color:rgba(191,198,209,.55);font-size:.75rem;line-height:1.55">Payment method/card management should be handled by Paddle/customer portal once Paddle is connected. SIRIUS should not store raw card data. This area is ready for Paddle billing dates, invoice links and customer portal buttons.</p></div>';
+      else if(tab==='activity') html=admin()?'<div class="sirius-saas-card"><div class="sirius-mini-label">Activity Logs</div><div class="sirius-mini-value" style="margin-bottom:.75rem">Admin troubleshooting view</div><p style="color:rgba(191,198,209,.58);font-size:.75rem;line-height:1.55;margin-bottom:1rem">Logs are loaded only when you click below, so Settings does not break if Firestore permissions are not ready.</p><button class="btn btn-outline" onclick="openSiriusActivityLogs()">Open Activity Logs</button></div>':'<div class="sirius-saas-card">Activity logs are admin-only.</div>';
+      else html=subscriptionHTML(sub);
       c.innerHTML=html;
-    }).catch(function(e){c.innerHTML='<div class="sirius-saas-card">Could not load settings: '+(e.code||e.message)+'</div>';});
+    }
+    c.innerHTML='<div class="sirius-saas-card">Loading settings...</div>';
+    if(!d){ paint({billingEmail:u.email||''}); return; }
+    d.collection('users').doc(u.uid).get().then(function(doc){paint(doc&&doc.exists?doc.data():{billingEmail:u.email||''});}).catch(function(e){
+      console.warn('settings user data fallback:', e.code||e.message);
+      paint({billingEmail:u.email||'',planName:'Starter',subscriptionStatus:'trial',monthlySaveLimit:5,monthlySavesUsed:0,saveUsageMonth:monthKey()});
+    });
   }
 
   function patchDropdownSettings(){
-    qsa('.nav-dropdown').forEach(function(menu){ if(qs('[data-sirius-settings-item]',menu)) return; var btn=document.createElement('button'); btn.className='nav-dropdown-item'; btn.setAttribute('data-sirius-settings-item','1'); btn.textContent='Settings'; btn.onclick=function(){ if(window.closeNavDropdown) closeNavDropdown(); openSiriusSettings('account');}; var div=menu.querySelector('.nav-dropdown-divider'); if(div) menu.insertBefore(btn,div); else menu.appendChild(btn); });
+    qsa('.nav-dropdown').forEach(function(menu){
+      /* De-duplicate all previous injected Settings items first. This stops flicker/duplicates from old patches. */
+      var existing=qsa('[data-sirius-settings-item]',menu);
+      existing.slice(1).forEach(function(x){x.remove();});
+      var btn=existing[0];
+      if(!btn){ btn=document.createElement('button'); btn.className='nav-dropdown-item'; btn.setAttribute('data-sirius-settings-item','1'); }
+      btn.textContent='Settings';
+      btn.onclick=function(e){ if(e){e.preventDefault();e.stopPropagation();} if(window.closeNavDropdown) closeNavDropdown(); openSiriusSettings('subscription'); return false; };
+      var div=menu.querySelector('.nav-dropdown-divider');
+      if(div && btn.parentNode!==menu) menu.insertBefore(btn,div);
+      else if(!btn.parentNode) menu.appendChild(btn);
+    });
   }
 
-  function ensureSavedReportPage(){
-    if(qs('#siriusSavedReportPage')) return;
-    var p=document.createElement('div'); p.id='siriusSavedReportPage'; p.className='page'; p.innerHTML='<nav class="nav"><div class="nav-logo" onclick="goDashboard&&goDashboard()" style="cursor:pointer"><span style="font-family:\'Cormorant Garamond\',serif;font-weight:300;letter-spacing:.2em">SIRIUS</span></div><div style="display:flex;gap:.75rem;align-items:center"><button class="btn btn-ghost" onclick="openSavedReports()" style="font-size:.72rem">← Saved Reports</button><button class="btn btn-primary" onclick="goDashboard&&goDashboard()" style="font-size:.72rem">Dashboard</button></div></nav><div class="sirius-report-wrap"><div class="sirius-report-title-row"><div><div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(191,198,209,.45);font-weight:900">Saved Evaluation</div><h1 id="siriusSavedReportTitle" style="font-family:var(--font-display);font-weight:700;color:#F7F6F2">Report</h1></div></div><div id="siriusSavedReportContent"></div></div>'; document.body.appendChild(p);
-  }
   function collectEvaluationData(){
     var inputs={}; qsa('#evaluation input,#evaluation select,#evaluation textarea').forEach(function(el){ if(el.id) inputs[el.id]=(el.type==='checkbox'?el.checked:el.value); });
     var results=qs('#step-3'); return {schemaVersion:'step4-html-snapshot-v1',state:window.S?JSON.parse(JSON.stringify(window.S)):null,inputs:inputs,resultsHTML:results?results.innerHTML:'',createdFromTitle:document.title,createdAtClient:new Date().toISOString()};
@@ -9521,10 +9545,30 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
     var u=user(),d=dbx(); if(!u||!d){alert('Please sign in first.');return;} if(qs('#step-3')&&window.S){try{calc&&calc();}catch(e){}}
     saveUsageTransaction(u,d).then(function(usage){ var name=prompt('Report name','SIRIUS Evaluation '+new Date().toLocaleDateString('en-GB')); if(name===null) return null; var data=collectEvaluationData(); var payload={userId:u.uid,reportName:name||'Untitled Report',createdAt:nowField(),updatedAt:nowField(),fullEvaluationData:data,renderedVersion:data.schemaVersion}; return d.collection('users').doc(u.uid).collection('savedReports').add(payload).then(function(){siriusLogActivity('report_saved',{reportName:payload.reportName,usage:usage}); alert('Report saved. '+(usage.limit-usage.used)+' saves remaining this month.'); refreshSubscriptionUI();}); }).catch(function(e){ if(String(e.message)==='MONTHLY_LIMIT_REACHED'){alert('You reached your monthly saved evaluation limit. Starter allows 5 saved evaluations per month. Upgrade your plan to save more.'); siriusLogActivity('save_blocked_limit',{month:monthKey()});} else {alert('Could not save report: '+(e.code||e.message)); siriusLogActivity('report_save_error',{},e);} });
   };
+
+  function patchDashboardSavedWork(){
+    var page=qs('#userDashboardPage > div[style*="max-width:960px"]'); if(!page||qs('#siriusSavedWorkSection',page)) return;
+    var sec=document.createElement('div'); sec.id='siriusSavedWorkSection'; sec.innerHTML='<div class="sirius-saas-card"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap"><div><div class="sirius-mini-label">Saved Work</div><div class="sirius-mini-value">Reports & Payment Breakdowns</div></div></div><div class="sirius-saved-work-grid"><div class="sirius-saved-work-card" onclick="openSavedReports&&openSavedReports()"><div class="sirius-mini-label">Saved Evaluations</div><div class="sirius-mini-value">Open, rename, delete</div></div><div class="sirius-saved-work-card" onclick="openSavedWorkCollection&&openSavedWorkCollection(\'savedBuyerBreakdowns\',\'Saved Buyer Breakdowns\')"><div class="sirius-mini-label">Buyer Payment Breakdowns</div><div class="sirius-mini-value">Open, rename, delete</div></div><div class="sirius-saved-work-card" onclick="openSavedWorkCollection&&openSavedWorkCollection(\'savedSellerBreakdowns\',\'Saved Seller Breakdowns\')"><div class="sirius-mini-label">Seller Payment Breakdowns</div><div class="sirius-mini-value">Open, rename, delete</div></div></div></div>';
+    var holder=qs('#siriusSubscriptionHolder',page); if(holder&&holder.nextSibling) page.insertBefore(sec,holder.nextSibling); else page.appendChild(sec);
+  }
+  window.openSavedWorkCollection=function(collection,title){
+    var u=user(),d=dbx(); if(!u||!d){alert('Please sign in first.');return;} ensureReportsModal(); var body=qs('#siriusReportsBody'); qs('#siriusReportsModal .sirius-modal-title').textContent=title||'Saved Work'; body.innerHTML='<div class="sirius-saas-card">Loading...</div>'; qs('#siriusReportsModal').classList.add('open');
+    d.collection('users').doc(u.uid).collection(collection).orderBy('createdAt','desc').get().then(function(snap){
+      if(snap.empty){body.innerHTML='<div class="sirius-saas-card">No saved items yet.</div>';return;}
+      var rows=[]; snap.forEach(function(doc){var r=doc.data(); var name=r.reportName||r.name||r.title||'Untitled'; rows.push('<tr><td><strong>'+escapeHTML(name)+'</strong><div style="font-size:.68rem;color:rgba(191,198,209,.42);margin-top:.2rem">Created '+fmtDate(r.createdAt)+'</div></td><td>'+fmtDate(r.updatedAt||r.createdAt)+'</td><td><div class="sirius-report-actions"><button class="sirius-soft-btn" onclick="openSavedWorkItem(\''+collection+'\',\''+doc.id+'\')">Open</button><button class="sirius-soft-btn" onclick="renameSavedWorkItem(\''+collection+'\',\''+doc.id+'\',\''+escapeAttr(name)+'\')">Rename</button><button class="sirius-soft-btn danger" onclick="deleteSavedWorkItem(\''+collection+'\',\''+doc.id+'\')">Delete</button></div></td></tr>');});
+      body.innerHTML='<table class="sirius-table"><thead><tr><th>Name</th><th>Updated</th><th>Actions</th></tr></thead><tbody>'+rows.join('')+'</tbody></table>';
+    }).catch(function(e){body.innerHTML='<div class="sirius-saas-card">Could not load this section. It may need Firebase rules for '+escapeHTML(collection)+'.</div>'; console.warn('saved work load:',collection,e.code||e.message);});
+  };
+  window.openSavedWorkItem=function(collection,id){
+    var u=user(),d=dbx(); if(!u||!d)return; d.collection('users').doc(u.uid).collection(collection).doc(id).get().then(function(doc){ if(!doc.exists){alert('Item not found.');return;} var r=doc.data(); var data=r.fullEvaluationData||r.fullBreakdownData||r.data||{}; ensureSavedReportPage(); qs('#siriusSavedReportTitle').textContent=r.reportName||r.name||r.title||'Saved Item'; qs('#siriusSavedReportContent').innerHTML=data.resultsHTML||data.html||r.resultsHTML||'<div class="sirius-saas-card">This saved item does not yet have a full result-page snapshot.</div>'; if(qs('#siriusReportsModal')) qs('#siriusReportsModal').classList.remove('open'); if(window.showPage) showPage('siriusSavedReportPage'); else qs('#siriusSavedReportPage').classList.add('active'); });
+  };
+  window.renameSavedWorkItem=function(collection,id,current){var u=user(),d=dbx(); if(!u||!d)return; var n=prompt('Rename item',current||'Untitled'); if(!n)return; d.collection('users').doc(u.uid).collection(collection).doc(id).set({reportName:n,name:n,updatedAt:nowField()},{merge:true}).then(function(){openSavedWorkCollection(collection,collection==='savedBuyerBreakdowns'?'Saved Buyer Breakdowns':'Saved Seller Breakdowns');});};
+  window.deleteSavedWorkItem=function(collection,id){var u=user(),d=dbx(); if(!u||!d)return; if(!confirm('Delete this saved item? This cannot be undone.'))return; d.collection('users').doc(u.uid).collection(collection).doc(id).delete().then(function(){openSavedWorkCollection(collection,collection==='savedBuyerBreakdowns'?'Saved Buyer Breakdowns':'Saved Seller Breakdowns');});};
+
   function patchSaveButton(){var a=qs('#resultDownloadActions div'); if(!a||qs('#siriusSaveReportBtn')) return; var b=document.createElement('button'); b.id='siriusSaveReportBtn'; b.className='btn btn-primary'; b.style.cssText='font-size:.72rem;padding:.45rem .9rem'; b.textContent='Save Report'; b.onclick=saveCurrentEvaluationReport; a.insertBefore(b,a.firstChild);}
 
   window.openSavedReports=function(){
-    var u=user(),d=dbx(); if(!u||!d){alert('Please sign in first.');return;} ensureReportsModal(); var body=qs('#siriusReportsBody'); body.innerHTML='<div class="sirius-saas-card">Loading saved reports...</div>'; qs('#siriusReportsModal').classList.add('open');
+    var u=user(),d=dbx(); if(!u||!d){alert('Please sign in first.');return;} ensureReportsModal(); var body=qs('#siriusReportsBody'); var mt=qs('#siriusReportsModal .sirius-modal-title'); if(mt) mt.textContent='Saved Reports'; body.innerHTML='<div class="sirius-saas-card">Loading saved reports...</div>'; qs('#siriusReportsModal').classList.add('open');
     d.collection('users').doc(u.uid).collection('savedReports').orderBy('createdAt','desc').get().then(function(snap){ if(snap.empty){body.innerHTML='<div class="sirius-saas-card">No saved reports yet. Save an evaluation from the Results screen.</div>';return;} var rows=[]; snap.forEach(function(doc){var r=doc.data(); rows.push('<tr><td><strong>'+escapeHTML(r.reportName||'Untitled Report')+'</strong><div style="font-size:.68rem;color:rgba(191,198,209,.42);margin-top:.2rem">Created '+fmtDate(r.createdAt)+'</div></td><td>'+fmtDate(r.updatedAt||r.createdAt)+'</td><td><div class="sirius-report-actions"><button class="sirius-soft-btn" onclick="openSavedReportById(\''+doc.id+'\')">Open</button><button class="sirius-soft-btn" onclick="renameSavedReport(\''+doc.id+'\',\''+escapeAttr(r.reportName||'Untitled Report')+'\')">Rename</button><button class="sirius-soft-btn danger" onclick="deleteSavedReport(\''+doc.id+'\')">Delete</button></div></td></tr>');}); body.innerHTML='<table class="sirius-table"><thead><tr><th>Report</th><th>Updated</th><th>Actions</th></tr></thead><tbody>'+rows.join('')+'</tbody></table>'; siriusLogActivity('saved_reports_viewed',{}); }).catch(function(e){body.innerHTML='<div class="sirius-saas-card">Could not load saved reports: '+(e.code||e.message)+'</div>';});
   };
   function ensureReportsModal(){ if(qs('#siriusReportsModal')) return; var m=document.createElement('div'); m.id='siriusReportsModal'; m.className='sirius-modal-shell'; m.innerHTML='<div class="sirius-modal-card"><div class="sirius-modal-head"><div><div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(191,198,209,.45);font-weight:900">SIRIUS</div><div class="sirius-modal-title">Saved Reports</div></div><button class="modal-close" onclick="document.getElementById(\'siriusReportsModal\').classList.remove(\'open\')">&#10005;</button></div><div class="sirius-modal-body" id="siriusReportsBody"></div></div>'; document.body.appendChild(m); }
@@ -9534,295 +9578,27 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
   function escapeHTML(s){return String(s||'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})} function escapeAttr(s){return escapeHTML(s).replace(/'/g,'&#39;').replace(/"/g,'&quot;')}
 
   window.openSiriusActivityLogs=function(){
-    if(!admin()){alert('Admin access required.');return;} ensureActivityModal(); var body=qs('#siriusActivityBody'); body.innerHTML='<div class="sirius-saas-card">Loading activity logs...</div>'; qs('#siriusActivityModal').classList.add('open'); var d=dbx(); if(!d)return;
-    var q; try{q=d.collectionGroup('activityLogs').orderBy('timestamp','desc').limit(80);}catch(e){q=null;} (q?q.get():d.collection('activityLogs').orderBy('timestamp','desc').limit(80).get()).then(function(snap){ if(snap.empty){body.innerHTML='<div class="sirius-saas-card">No activity logs yet.</div>';return;} var rows=[]; snap.forEach(function(doc){var x=doc.data(); rows.push('<tr><td>'+fmtDate(x.timestamp)+'</td><td>'+escapeHTML(x.userEmail||x.userId||'—')+'</td><td><strong>'+escapeHTML(x.actionType||'—')+'</strong></td><td><pre style="white-space:pre-wrap;margin:0;color:rgba(191,198,209,.65);font-size:.7rem">'+escapeHTML(JSON.stringify(x.details||{},null,2))+'</pre>'+(x.errorMessage?'<div style="color:#e74c3c">'+escapeHTML(x.errorMessage)+'</div>':'')+'</td></tr>');}); body.innerHTML='<table class="sirius-table"><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Details</th></tr></thead><tbody>'+rows.join('')+'</tbody></table>';}).catch(function(e){body.innerHTML='<div class="sirius-saas-card">Could not load logs: '+(e.code||e.message)+'</div>';});
+    if(!admin()){alert('Admin access required.');return;}
+    ensureActivityModal(); var body=qs('#siriusActivityBody'); body.innerHTML='<div class="sirius-saas-card">Loading activity logs...</div>'; qs('#siriusActivityModal').classList.add('open'); var d=dbx(); if(!d){body.innerHTML='<div class="sirius-saas-card">Firestore is not ready yet.</div>';return;}
+    /* Stability-first: do not use collectionGroup unless rules/indexes are definitely ready. Root /activityLogs is optional and permission-tolerant. */
+    d.collection('activityLogs').orderBy('timestamp','desc').limit(80).get().then(function(snap){
+      if(snap.empty){body.innerHTML='<div class="sirius-saas-card">No activity logs yet. Once logging permissions/webhooks are ready, user actions will appear here.</div>';return;}
+      var rows=[]; snap.forEach(function(doc){var x=doc.data(); rows.push('<tr><td>'+fmtDate(x.timestamp)+'</td><td>'+escapeHTML(x.userEmail||x.userId||'—')+'</td><td><strong>'+escapeHTML(x.actionType||'—')+'</strong></td><td><pre style="white-space:pre-wrap;margin:0;color:rgba(191,198,209,.65);font-size:.7rem">'+escapeHTML(JSON.stringify(x.details||{},null,2))+'</pre>'+(x.errorMessage?'<div style="color:#e74c3c">'+escapeHTML(x.errorMessage)+'</div>':'')+'</td></tr>');});
+      body.innerHTML='<table class="sirius-table"><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Details</th></tr></thead><tbody>'+rows.join('')+'</tbody></table>';
+    }).catch(function(e){
+      console.warn('activity logs unavailable:', e.code||e.message);
+      body.innerHTML='<div class="sirius-saas-card"><div class="sirius-mini-label">Activity Logs</div><div class="sirius-mini-value">Logs are not available with the current Firebase permissions.</div><p style="margin-top:.75rem;color:rgba(191,198,209,.55);font-size:.75rem;line-height:1.55">The website will continue working. Activity logs can be enabled later with the complete rules block. This does not affect login, dashboard, reports or the calculator.</p></div>';
+    });
   };
+  
   function ensureActivityModal(){ if(qs('#siriusActivityModal')) return; var m=document.createElement('div'); m.id='siriusActivityModal'; m.className='sirius-modal-shell'; m.innerHTML='<div class="sirius-modal-card"><div class="sirius-modal-head"><div><div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(191,198,209,.45);font-weight:900">Admin</div><div class="sirius-modal-title">Activity Logs</div></div><button class="modal-close" onclick="document.getElementById(\'siriusActivityModal\').classList.remove(\'open\')">&#10005;</button></div><div class="sirius-modal-body" id="siriusActivityBody"></div></div>'; document.body.appendChild(m); }
   function patchAdminActivityEntry(){ var page=qs('#adminDashboardPage'); if(!page||qs('#siriusAdminActivityShortcut')) return; var grid=qs('.dash-grid',page)||qs('[class*="dash-grid"]',page); if(grid){var c=document.createElement('div');c.className='dash-card';c.id='siriusAdminActivityShortcut';c.onclick=openSiriusActivityLogs;c.innerHTML='<div class="dash-card-icon">☷</div><div class="dash-card-title">Activity Logs</div><div class="dash-card-sub">View user logins, saves, blocked saves, settings views and report actions.</div>';grid.appendChild(c);} }
 
   function wrapAuthLogs(){ if(window.__siriusStep4AuthWrapped)return; window.__siriusStep4AuthWrapped=true; var oldOut=window.handleSignOut; if(typeof oldOut==='function'){window.handleSignOut=function(){try{siriusLogActivity('user_logout',{});}catch(e){} return oldOut.apply(this,arguments);};} try{ if(window.auth&&auth.onAuthStateChanged){auth.onAuthStateChanged(function(u){if(u){setTimeout(function(){siriusLogActivity('user_login',{}); safeUserUpdate({email:u.email||'',billingEmail:u.email||'',saveUsageMonth:monthKey()});},700);}});}}catch(e){} }
   var oldCalc=window.calc; if(typeof oldCalc==='function'&&!oldCalc.__siriusStep4){window.calc=function(){var r=oldCalc.apply(this,arguments); try{siriusLogActivity('evaluation_calculated',{scenario:window.S&&(S.status+' / '+S.financing+' / '+S.purpose)});}catch(e){} patchSaveButton(); return r;}; window.calc.__siriusStep4=true;}
   var oldDash=window.openUserDashboard; if(typeof oldDash==='function'&&!oldDash.__siriusStep4){window.openUserDashboard=function(){var r=oldDash.apply(this,arguments); setTimeout(function(){patchDashboardSubscription(); refreshSubscriptionUI(); patchDropdownSettings();},250); return r;}; window.openUserDashboard.__siriusStep4=true;}
-  function applyAll(){ document.title='SIRIUS — DXB'; patchDashboardSubscription(); patchDropdownSettings(); patchSaveButton(); patchAdminActivityEntry(); wrapAuthLogs(); }
-  document.addEventListener('DOMContentLoaded',function(){applyAll(); setTimeout(applyAll,600); setTimeout(applyAll,1600);}); window.addEventListener('load',function(){applyAll(); setTimeout(applyAll,800);}); setInterval(applyAll,2500);
-})();
-</script>
-
-<script>
-/* SIRIUS STEP 4C PATCH 2026-05-18: safer settings cleanup + saved work dashboard */
-(function(){
-  if(window.__siriusStep4CLoaded) return;
-  window.__siriusStep4CLoaded = true;
-
-  function qs(s,r){ return (r||document).querySelector(s); }
-  function qsa(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); }
-  function signedUser(){ try{return window.CURRENT_USER || (window.auth && auth.currentUser) || null;}catch(e){return null;} }
-  function dbx(){ try{return window.db || (window.firebase && firebase.firestore ? firebase.firestore() : null);}catch(e){return null;} }
-  function isAdmin(){ try{return !!window.IS_ADMIN || (signedUser() && signedUser().email === 'netflix.officiel.moncef@gmail.com');}catch(e){return false;} }
-  function closeMenu(){ try{ if(window.closeNavDropdown) closeNavDropdown(); }catch(e){} }
-  function monthKey(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
-  function esc(v){ return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
-  function fmt(v){
-    if(!v) return '—';
-    try{ if(v && typeof v.toDate==='function') v=v.toDate(); var d=(v instanceof Date)?v:new Date(v); if(!isNaN(d.getTime())) return d.toLocaleDateString('en-GB'); }catch(e){}
-    return String(v);
-  }
-  function daysUntil(v){
-    try{ if(v && typeof v.toDate==='function') v=v.toDate(); var d=(v instanceof Date)?v:new Date(v); if(isNaN(d.getTime())) return '—'; return Math.max(0,Math.ceil((d.getTime()-Date.now())/86400000)); }catch(e){ return '—'; }
-  }
-  function defaultSub(data,u){
-    data=data||{}; u=u||signedUser()||{};
-    var plan=data.planName || data.plan || 'Starter';
-    var limit=Number(data.monthlySaveLimit || (String(plan).toLowerCase().indexOf('starter')>-1 ? 5 : 999));
-    var used=(data.saveUsageMonth===monthKey()) ? Number(data.monthlySavesUsed||0) : 0;
-    return {
-      planName: plan,
-      subscriptionStatus: data.subscriptionStatus || data.status || 'Trial / Placeholder',
-      lastPaymentDate: data.lastPaymentDate || data.paymentDate || null,
-      nextBillingDate: data.nextBillingDate || data.expiryDate || null,
-      remainingDays: daysUntil(data.nextBillingDate || data.expiryDate),
-      billingEmail: data.billingEmail || u.email || '—',
-      paymentMethodSaved: !!data.paymentMethodSaved,
-      maskedCard: data.maskedCard || '',
-      monthlySaveLimit: limit,
-      monthlySavesUsed: used,
-      remainingSaves: Math.max(0,limit-used)
-    };
-  }
-  function saasCard(title,body){ return '<div class="sirius-4c-card"><div class="sirius-4c-card-title">'+esc(title)+'</div>'+body+'</div>'; }
-  function metric(label,value,small){ return '<div class="sirius-4c-metric"><div class="sirius-4c-label">'+esc(label)+'</div><div class="sirius-4c-value">'+esc(value)+'</div>'+(small?'<div class="sirius-4c-small">'+esc(small)+'</div>':'')+'</div>'; }
-  function subscriptionMarkup(sub){
-    return saasCard('Subscription', '<div class="sirius-4c-grid">'+
-      metric('Current Plan',sub.planName)+
-      metric('Status',sub.subscriptionStatus)+
-      metric('Last Payment',fmt(sub.lastPaymentDate))+
-      metric('Next Billing / Expiry',fmt(sub.nextBillingDate), sub.remainingDays==='—'?'Paddle billing cycle not connected yet':sub.remainingDays+' days remaining')+
-      metric('Saved Evaluation Limit',sub.monthlySaveLimit+' / month')+
-      metric('Used This Month',sub.monthlySavesUsed+' used',sub.remainingSaves+' remaining')+
-    '</div><div class="sirius-4c-note">Temporary save limits use the calendar month until Paddle billing-cycle dates are connected.</div>');
-  }
-  function billingMarkup(sub){
-    return saasCard('Billing', '<div class="sirius-4c-grid">'+
-      metric('Billing Email',sub.billingEmail)+
-      metric('Last Payment',fmt(sub.lastPaymentDate))+
-      metric('Next Billing / Expiry',fmt(sub.nextBillingDate))+
-      metric('Payment Method', sub.paymentMethodSaved ? (sub.maskedCard || 'Saved in Paddle') : 'Managed by Paddle / not connected yet')+
-    '</div><div class="sirius-4c-note">Card details should be managed through Paddle’s customer portal or Paddle update-payment flow. SIRIUS should store only safe metadata from Paddle webhooks, never raw card data.</div>');
-  }
-
-  function ensureStyle(){
-    if(qs('#siriusStep4CStyle')) return;
-    var st=document.createElement('style'); st.id='siriusStep4CStyle';
-    st.textContent = [
-      '.sirius-4c-modal{position:fixed;inset:0;z-index:99999;background:rgba(8,18,34,.86);display:none;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(8px)}',
-      '.sirius-4c-modal.open{display:flex}',
-      '.sirius-4c-box{width:min(980px,96vw);max-height:92vh;overflow:hidden;border:1px solid rgba(191,198,209,.18);border-radius:16px;background:#0A1628;box-shadow:0 24px 80px rgba(0,0,0,.45);display:flex;flex-direction:column}',
-      '.sirius-4c-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.1rem 1.25rem;border-bottom:1px solid rgba(191,198,209,.12)}',
-      '.sirius-4c-title{font-family:var(--font-display);font-size:1.35rem;color:var(--white);letter-spacing:.04em}',
-      '.sirius-4c-body{padding:1rem;overflow:auto}',
-      '.sirius-4c-layout{display:grid;grid-template-columns:190px 1fr;gap:1rem}',
-      '.sirius-4c-tabs{display:flex;flex-direction:column;gap:.45rem}',
-      '.sirius-4c-tab{width:100%;text-align:left;padding:.72rem .8rem;border-radius:10px;border:1px solid rgba(191,198,209,.12);background:rgba(255,255,255,.035);color:rgba(247,246,242,.75);cursor:pointer;font-family:var(--font-body);font-size:.82rem;line-height:1.25;white-space:normal;overflow-wrap:anywhere}',
-      '.sirius-4c-tab.active{border-color:rgba(191,198,209,.45);background:rgba(191,198,209,.1);color:#F7F6F2}',
-      '.sirius-4c-card{border:1px solid rgba(191,198,209,.13);background:rgba(17,32,58,.48);border-radius:14px;padding:1rem;margin-bottom:1rem;overflow:hidden}',
-      '.sirius-4c-card-title{font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.62);font-weight:800;margin-bottom:.85rem;overflow-wrap:anywhere}',
-      '.sirius-4c-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem}',
-      '.sirius-4c-metric{border:1px solid rgba(191,198,209,.1);background:rgba(255,255,255,.035);border-radius:12px;padding:.85rem;min-width:0}',
-      '.sirius-4c-label{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(191,198,209,.45);font-weight:800;margin-bottom:.35rem;overflow-wrap:anywhere}',
-      '.sirius-4c-value{font-size:.95rem;color:#F7F6F2;font-weight:700;overflow-wrap:anywhere;word-break:break-word;line-height:1.3}',
-      '.sirius-4c-small,.sirius-4c-note{font-size:.74rem;color:rgba(191,198,209,.5);line-height:1.55;margin-top:.55rem;overflow-wrap:anywhere}',
-      '.sirius-4c-table{width:100%;border-collapse:collapse;table-layout:fixed}',
-      '.sirius-4c-table th,.sirius-4c-table td{padding:.65rem;border-bottom:1px solid rgba(191,198,209,.08);text-align:left;vertical-align:top;font-size:.78rem;overflow-wrap:anywhere;word-break:break-word}',
-      '.sirius-4c-actions{display:flex;gap:.4rem;flex-wrap:wrap}',
-      '.sirius-4c-soft{border:1px solid rgba(191,198,209,.18);background:rgba(255,255,255,.04);color:#F7F6F2;border-radius:8px;padding:.42rem .62rem;font-size:.72rem;cursor:pointer}',
-      '.sirius-4c-soft.danger{border-color:rgba(231,76,60,.35);color:#ffb0a8}',
-      '.sirius-saved-work{margin-top:1.5rem;border:1px solid rgba(191,198,209,.1);background:rgba(17,32,58,.38);border-radius:14px;padding:1.1rem}',
-      '.sirius-saved-work h2{font-family:var(--font-display);font-weight:500;color:#F7F6F2;margin:0 0 .35rem;font-size:1.35rem}',
-      '.sirius-saved-work p{color:rgba(191,198,209,.55);font-size:.8rem;margin:0 0 .9rem;line-height:1.5}',
-      '.sirius-4c-report-page{padding-top:82px;min-height:100vh;background:#0A1628;color:#F7F6F2}',
-      '.sirius-4c-report-wrap{max-width:920px;margin:0 auto;padding:1.5rem}',
-      '.sirius-4c-readonly #resultDownloadActions,.sirius-4c-readonly .step-nav-footer,.sirius-4c-readonly .stepper-nav,.sirius-4c-readonly button[onclick*="next"],.sirius-4c-readonly button[onclick*="prev"]{display:none!important}',
-      '@media(max-width:760px){.sirius-4c-layout{grid-template-columns:1fr}.sirius-4c-tabs{flex-direction:row;overflow:auto}.sirius-4c-tab{min-width:140px}.sirius-4c-box{max-height:94vh}}'
-    ].join('\n');
-    document.head.appendChild(st);
-  }
-
-  function ensureSettings(){
-    ensureStyle();
-    var m=qs('#sirius4CSettings');
-    if(m) return m;
-    m=document.createElement('div'); m.id='sirius4CSettings'; m.className='sirius-4c-modal';
-    m.innerHTML='<div class="sirius-4c-box"><div class="sirius-4c-head"><div><div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(191,198,209,.45);font-weight:900">SIRIUS</div><div class="sirius-4c-title">Settings</div></div><button class="modal-close" type="button" data-close4c="1">&#10005;</button></div><div class="sirius-4c-body"><div class="sirius-4c-layout"><div class="sirius-4c-tabs" id="sirius4CSettingsTabs"></div><div id="sirius4CSettingsContent"></div></div></div></div>';
-    document.body.appendChild(m);
-    m.addEventListener('click',function(e){ if(e.target===m || e.target.getAttribute('data-close4c')==='1') m.classList.remove('open'); });
-    return m;
-  }
-  function renderSettings(tab){
-    ensureStyle();
-    var m=ensureSettings(), tabs=qs('#sirius4CSettingsTabs'), c=qs('#sirius4CSettingsContent');
-    var list=[['subscription','Subscription'],['billing','Billing']];
-    if(isAdmin()) list.push(['activity','Activity Logs']);
-    tab = tab || 'subscription';
-    if(!list.some(function(x){return x[0]===tab;})) tab='subscription';
-    tabs.innerHTML=list.map(function(x){return '<button type="button" class="sirius-4c-tab '+(x[0]===tab?'active':'')+'" data-tab="'+x[0]+'">'+x[1]+'</button>';}).join('');
-    qsa('.sirius-4c-tab',tabs).forEach(function(b){ b.onclick=function(){renderSettings(b.getAttribute('data-tab'));}; });
-    var u=signedUser(), d=dbx();
-    if(!u || !d){ c.innerHTML=saasCard('Settings','<div class="sirius-4c-note">Please sign in to view settings.</div>'); return; }
-    c.innerHTML=saasCard('Loading','<div class="sirius-4c-note">Loading settings...</div>');
-    if(tab==='activity') { renderActivityLog(c); return; }
-    d.collection('users').doc(u.uid).get().then(function(doc){
-      var data=doc.exists?doc.data():{}; var sub=defaultSub(data,u);
-      c.innerHTML = tab==='billing' ? billingMarkup(sub) : subscriptionMarkup(sub);
-    }).catch(function(e){ c.innerHTML=saasCard('Error','<div class="sirius-4c-note">Could not load settings: '+esc(e.code||e.message)+'</div>'); });
-  }
-  window.openSiriusSettings=function(tab){ var m=ensureSettings(); m.classList.add('open'); renderSettings(tab||'subscription'); try{ if(window.siriusLogActivity) siriusLogActivity('settings_viewed',{tab:tab||'subscription'}); }catch(e){} };
-  window.closeSiriusSettings=function(){ var m=qs('#sirius4CSettings'); if(m) m.classList.remove('open'); };
-
-  function patchDropdownSettings(){
-    qsa('.nav-dropdown').forEach(function(menu){
-      qsa('button',menu).forEach(function(b){ var t=(b.textContent||'').trim(); if(t==='Account' || t==='Payment Method' || t==='Saved Reports Usage' || t==='Admin Dashboard') b.remove(); });
-      var existing=qsa('button',menu).filter(function(b){return (b.textContent||'').trim()==='Settings';});
-      existing.slice(1).forEach(function(b){b.remove();});
-      var btn=existing[0];
-      if(!btn){ btn=document.createElement('button'); btn.className='nav-dropdown-item'; btn.textContent='Settings'; var div=menu.querySelector('.nav-dropdown-divider'); if(div) menu.insertBefore(btn,div); else menu.appendChild(btn); }
-      btn.onclick=function(e){ if(e){e.preventDefault();e.stopPropagation();} closeMenu(); window.openSiriusSettings('subscription'); return false; };
-    });
-  }
-
-  function makeDropItem(text,fn){ var b=document.createElement('button'); b.type='button'; b.className='nav-dropdown-item'; b.textContent=text; b.onclick=function(e){ if(e){e.preventDefault();e.stopPropagation();} closeMenu(); if(window[fn]) window[fn](); return false; }; return b; }
-  function stabilizeBreakdownDropdowns(){
-    qsa('.nav-dropdown').forEach(function(menu){
-      var buttons=qsa('button',menu);
-      buttons.forEach(function(b){ var t=(b.textContent||'').trim(); if((t==='Buyer Payment Breakdown' || t==='Seller Payment Breakdown') && b.getAttribute('data-4c-breakdown')!=='1') b.remove(); });
-      var buyer=qsa('button',menu).find(function(b){return (b.textContent||'').trim()==='Buyer Payment Breakdown';});
-      var seller=qsa('button',menu).find(function(b){return (b.textContent||'').trim()==='Seller Payment Breakdown';});
-      var evalBtn=qsa('button',menu).find(function(b){return /Evaluate a Property/i.test((b.textContent||''));});
-      if(!buyer){ buyer=makeDropItem('Buyer Payment Breakdown','goToBuyerBreakdown'); buyer.setAttribute('data-4c-breakdown','1'); }
-      if(!seller){ seller=makeDropItem('Seller Payment Breakdown','goToSellerBreakdown'); seller.setAttribute('data-4c-breakdown','1'); }
-      if(evalBtn && evalBtn.parentNode===menu){ if(buyer.parentNode!==menu) evalBtn.parentNode.insertBefore(buyer, evalBtn.nextSibling); if(seller.parentNode!==menu) evalBtn.parentNode.insertBefore(seller, buyer.nextSibling); }
-      else { if(buyer.parentNode!==menu) menu.appendChild(buyer); if(seller.parentNode!==menu) menu.appendChild(seller); }
-    });
-  }
-
-  var workTypes={
-    savedReports:{label:'Saved Evaluations',collection:'savedReports',empty:'No saved evaluations yet.'},
-    savedBuyerBreakdowns:{label:'Saved Buyer Breakdowns',collection:'savedBuyerBreakdowns',empty:'No saved buyer breakdowns yet.'},
-    savedSellerBreakdowns:{label:'Saved Seller Breakdowns',collection:'savedSellerBreakdowns',empty:'No saved seller breakdowns yet.'}
-  };
-  function ensureSavedWorkModal(){
-    ensureStyle();
-    var m=qs('#sirius4CSavedWorkModal'); if(m) return m;
-    m=document.createElement('div'); m.id='sirius4CSavedWorkModal'; m.className='sirius-4c-modal';
-    m.innerHTML='<div class="sirius-4c-box"><div class="sirius-4c-head"><div><div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(191,198,209,.45);font-weight:900">SIRIUS</div><div class="sirius-4c-title" id="sirius4CSavedWorkTitle">Saved Work</div></div><button class="modal-close" type="button" data-close4c="1">&#10005;</button></div><div class="sirius-4c-body"><div class="sirius-4c-tabs" id="sirius4CSavedTabs" style="flex-direction:row;overflow:auto;margin-bottom:1rem"></div><div id="sirius4CSavedBody"></div></div></div>';
-    document.body.appendChild(m);
-    m.addEventListener('click',function(e){ if(e.target===m || e.target.getAttribute('data-close4c')==='1') m.classList.remove('open'); });
-    return m;
-  }
-  function renderSavedTabs(active){ var tabs=qs('#sirius4CSavedTabs'); if(!tabs) return; tabs.innerHTML=Object.keys(workTypes).map(function(k){ return '<button type="button" class="sirius-4c-tab '+(k===active?'active':'')+'" data-kind="'+k+'">'+workTypes[k].label+'</button>'; }).join(''); qsa('button',tabs).forEach(function(b){ b.onclick=function(){ openSavedWork(b.getAttribute('data-kind')); }; }); }
-  function openSavedWork(kind){
-    kind=kind||'savedReports'; var cfg=workTypes[kind]||workTypes.savedReports; var u=signedUser(), d=dbx();
-    if(!u||!d){ alert('Please sign in first.'); return; }
-    var m=ensureSavedWorkModal(); m.classList.add('open'); renderSavedTabs(kind); qs('#sirius4CSavedWorkTitle').textContent=cfg.label; var body=qs('#sirius4CSavedBody'); body.innerHTML=saasCard('Loading','<div class="sirius-4c-note">Loading '+esc(cfg.label.toLowerCase())+'...</div>');
-    d.collection('users').doc(u.uid).collection(cfg.collection).orderBy('createdAt','desc').get().then(function(snap){
-      if(snap.empty){ body.innerHTML=saasCard(cfg.label,'<div class="sirius-4c-note">'+esc(cfg.empty)+'</div>'); return; }
-      var rows=[]; snap.forEach(function(doc){ var r=doc.data()||{}; var name=r.reportName||r.breakdownName||r.name||r.title||'Untitled'; rows.push('<tr><td><strong>'+esc(name)+'</strong><div class="sirius-4c-small">Created '+esc(fmt(r.createdAt))+'</div></td><td>'+esc(fmt(r.updatedAt||r.createdAt))+'</td><td><div class="sirius-4c-actions"><button class="sirius-4c-soft" onclick="sirius4COpenItem(\''+kind+'\',\''+doc.id+'\')">Open</button><button class="sirius-4c-soft" onclick="sirius4CRenameItem(\''+kind+'\',\''+doc.id+'\',\''+esc(name)+'\')">Rename</button><button class="sirius-4c-soft danger" onclick="sirius4CDeleteItem(\''+kind+'\',\''+doc.id+'\')">Delete</button></div></td></tr>'); });
-      body.innerHTML='<table class="sirius-4c-table"><thead><tr><th>Name</th><th>Updated</th><th>Actions</th></tr></thead><tbody>'+rows.join('')+'</tbody></table>';
-    }).catch(function(e){ body.innerHTML=saasCard('Error','<div class="sirius-4c-note">Could not load saved work: '+esc(e.code||e.message)+'</div>'); });
-  }
-  window.openSavedWork=openSavedWork;
-  window.openSavedReports=function(){ openSavedWork('savedReports'); };
-  window.openSavedBuyerBreakdowns=function(){ openSavedWork('savedBuyerBreakdowns'); };
-  window.openSavedSellerBreakdowns=function(){ openSavedWork('savedSellerBreakdowns'); };
-
-  function getSnapshot(data){
-    data=data||{}; var f=data.fullEvaluationData||data.fullBreakdownData||data.snapshotData||data;
-    return f.resultsHTML || f.renderedHTML || f.snapshotHTML || data.resultsHTML || data.renderedHTML || data.snapshotHTML || '';
-  }
-  function ensureReportPage(){
-    ensureStyle();
-    var p=qs('#sirius4CReadOnlyReport'); if(p) return p;
-    p=document.createElement('div'); p.id='sirius4CReadOnlyReport'; p.className='page sirius-4c-report-page';
-    p.innerHTML='<nav class="nav"><div class="nav-logo" style="cursor:pointer" onclick="goDashboard&&goDashboard()"><span style="font-family:\'Cormorant Garamond\',serif;font-weight:300;letter-spacing:.2em">SIRIUS</span></div><div style="display:flex;gap:.75rem;align-items:center"><button class="btn btn-ghost" type="button" onclick="openSavedWork(window.__sirius4CLastKind||\'savedReports\')" style="font-size:.72rem">Saved Work</button><button class="btn btn-primary" type="button" onclick="goDashboard&&goDashboard()" style="font-size:.72rem">Dashboard</button></div></nav><div class="sirius-4c-report-wrap"><div style="margin-bottom:1rem"><div style="font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(191,198,209,.45);font-weight:900">Read-only saved result</div><h1 id="sirius4CReportTitle" style="font-family:var(--font-display);font-weight:600;margin:.25rem 0 0">Saved Report</h1></div><div id="sirius4CReportContent" class="sirius-4c-readonly"></div></div>';
-    document.body.appendChild(p); return p;
-  }
-  window.sirius4COpenItem=function(kind,id){
-    var cfg=workTypes[kind]||workTypes.savedReports, u=signedUser(), d=dbx(); if(!u||!d) return;
-    d.collection('users').doc(u.uid).collection(cfg.collection).doc(id).get().then(function(doc){
-      if(!doc.exists){ alert('Saved item not found.'); return; }
-      var r=doc.data()||{}, html=getSnapshot(r), name=r.reportName||r.breakdownName||r.name||r.title||cfg.label;
-      ensureReportPage(); window.__sirius4CLastKind=kind; qs('#sirius4CReportTitle').textContent=name;
-      qs('#sirius4CReportContent').innerHTML=html || saasCard('No saved layout snapshot','<div class="sirius-4c-note">This saved item exists, but it does not contain a full final-page snapshot yet. New saves should store the complete result-page HTML.</div>');
-      var modal=qs('#sirius4CSavedWorkModal'); if(modal) modal.classList.remove('open');
-      if(window.showPage) window.showPage('sirius4CReadOnlyReport'); else { qsa('.page').forEach(function(x){x.classList.remove('active');}); qs('#sirius4CReadOnlyReport').classList.add('active'); }
-      try{ if(window.siriusLogActivity) siriusLogActivity('saved_item_opened',{kind:kind,id:id,name:name}); }catch(e){}
-    }).catch(function(e){ alert('Could not open saved item: '+(e.code||e.message)); });
-  };
-  window.sirius4CRenameItem=function(kind,id,current){
-    var cfg=workTypes[kind]||workTypes.savedReports, u=signedUser(), d=dbx(); if(!u||!d) return;
-    var n=prompt('Rename', current||'Untitled'); if(!n) return;
-    var payload={updatedAt:(window.firebase&&firebase.firestore&&firebase.firestore.FieldValue)?firebase.firestore.FieldValue.serverTimestamp():new Date().toISOString()};
-    if(kind==='savedReports') payload.reportName=n; else payload.breakdownName=n;
-    d.collection('users').doc(u.uid).collection(cfg.collection).doc(id).set(payload,{merge:true}).then(function(){ try{ if(window.siriusLogActivity) siriusLogActivity('saved_item_renamed',{kind:kind,id:id,name:n}); }catch(e){} openSavedWork(kind); refreshSavedWorkDashboard(); }).catch(function(e){ alert('Could not rename: '+(e.code||e.message)); });
-  };
-  window.sirius4CDeleteItem=function(kind,id){
-    var cfg=workTypes[kind]||workTypes.savedReports, u=signedUser(), d=dbx(); if(!u||!d) return; if(!confirm('Delete this saved item? This cannot be undone.')) return;
-    d.collection('users').doc(u.uid).collection(cfg.collection).doc(id).delete().then(function(){ try{ if(window.siriusLogActivity) siriusLogActivity('saved_item_deleted',{kind:kind,id:id}); }catch(e){} openSavedWork(kind); refreshSavedWorkDashboard(); if(window.refreshSubscriptionUI) refreshSubscriptionUI(); }).catch(function(e){ alert('Could not delete: '+(e.code||e.message)); });
-  };
-
-  function ensureSavedWorkDashboard(){
-    ensureStyle(); var page=qs('#userDashboardPage > div[style*="max-width"]') || qs('#userDashboardPage'); if(!page) return;
-    var box=qs('#siriusSavedWorkDashboard'); if(box) return box;
-    box=document.createElement('div'); box.id='siriusSavedWorkDashboard'; box.className='sirius-saved-work';
-    box.innerHTML='<h2>Saved Work</h2><p>Your saved evaluations, buyer payment breakdowns, and seller payment breakdowns. Rename, delete, or open each item as a read-only final result page.</p><div class="sirius-4c-grid" id="siriusSavedWorkDashboardGrid"></div>';
-    var grid=qs('#userDashboardPage .dash-grid'); if(grid && grid.parentNode) grid.parentNode.insertBefore(box,grid.nextSibling); else page.appendChild(box);
-    return box;
-  }
-  function refreshSavedWorkDashboard(){
-    var u=signedUser(), d=dbx(), box=ensureSavedWorkDashboard(); if(!u||!d||!box) return;
-    var grid=qs('#siriusSavedWorkDashboardGrid'); if(!grid) return; grid.innerHTML='';
-    Object.keys(workTypes).forEach(function(kind){
-      var cfg=workTypes[kind]; var card=document.createElement('div'); card.className='sirius-4c-metric'; card.innerHTML='<div class="sirius-4c-label">'+esc(cfg.label)+'</div><div class="sirius-4c-value">Loading...</div>'; grid.appendChild(card);
-      d.collection('users').doc(u.uid).collection(cfg.collection).orderBy('createdAt','desc').limit(3).get().then(function(snap){
-        var html='<div class="sirius-4c-label">'+esc(cfg.label)+'</div>';
-        if(snap.empty){ html+='<div class="sirius-4c-small">'+esc(cfg.empty)+'</div>'; }
-        else { snap.forEach(function(doc){ var r=doc.data()||{}, name=r.reportName||r.breakdownName||r.name||r.title||'Untitled'; html+='<div style="border-top:1px solid rgba(191,198,209,.08);padding-top:.55rem;margin-top:.55rem"><div class="sirius-4c-value" style="font-size:.82rem">'+esc(name)+'</div><div class="sirius-4c-actions" style="margin-top:.45rem"><button class="sirius-4c-soft" onclick="sirius4COpenItem(\''+kind+'\',\''+doc.id+'\')">Open</button><button class="sirius-4c-soft" onclick="sirius4CRenameItem(\''+kind+'\',\''+doc.id+'\',\''+esc(name)+'\')">Rename</button><button class="sirius-4c-soft danger" onclick="sirius4CDeleteItem(\''+kind+'\',\''+doc.id+'\')">Delete</button></div></div>'; }); }
-        html+='<button class="sirius-4c-soft" style="margin-top:.75rem" onclick="openSavedWork(\''+kind+'\')">View all</button>'; card.innerHTML=html;
-      }).catch(function(e){ card.innerHTML='<div class="sirius-4c-label">'+esc(cfg.label)+'</div><div class="sirius-4c-small">Could not load: '+esc(e.code||e.message)+'</div>'; });
-    });
-  }
-  window.refreshSavedWorkDashboard=refreshSavedWorkDashboard;
-
-  function renderActivityLog(c){
-    if(!isAdmin()){ c.innerHTML=saasCard('Activity Logs','<div class="sirius-4c-note">Admin access required.</div>'); return; }
-    var d=dbx(); if(!d){ c.innerHTML=saasCard('Activity Logs','<div class="sirius-4c-note">Firestore is not ready.</div>'); return; }
-    c.innerHTML=saasCard('Activity Logs','<div class="sirius-4c-note">Showing recent user actions. Full user search/filter can be expanded later.</div><div id="sirius4CActivityRows" style="margin-top:1rem">Loading...</div>');
-    var holder=qs('#sirius4CActivityRows'); var q;
-    try{ q=d.collectionGroup('activityLogs').orderBy('timestamp','desc').limit(80); }catch(e){ q=null; }
-    (q?q.get():d.collection('activityLogs').orderBy('timestamp','desc').limit(80).get()).then(function(snap){
-      if(snap.empty){ holder.innerHTML='<div class="sirius-4c-note">No activity logs yet.</div>'; return; }
-      var rows=[]; snap.forEach(function(doc){ var x=doc.data()||{}; rows.push('<tr><td>'+esc(fmt(x.timestamp))+'</td><td>'+esc(x.userEmail||x.userId||'—')+'</td><td><strong>'+esc(x.actionType||'—')+'</strong></td><td>'+esc(JSON.stringify(x.details||{}))+(x.errorMessage?'<div style="color:#ffb0a8">'+esc(x.errorMessage)+'</div>':'')+'</td></tr>'); });
-      holder.innerHTML='<table class="sirius-4c-table"><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Details</th></tr></thead><tbody>'+rows.join('')+'</tbody></table>';
-    }).catch(function(e){ holder.innerHTML='<div class="sirius-4c-note">Could not load logs: '+esc(e.code||e.message)+'</div>'; });
-  }
-
-  function patchDashboardSavedCards(){
-    var grid=qs('#userDashboardPage .dash-grid'); if(!grid) return;
-    function add(id,title,sub,fn){ if(qs('#'+id)) return; var card=document.createElement('div'); card.id=id; card.className='dash-card'; card.onclick=function(){ if(window[fn]) window[fn](); }; card.innerHTML='<div class="dash-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h10"/></svg></div><div class="dash-card-title">'+esc(title)+'</div><div class="dash-card-sub">'+esc(sub)+'</div>'; grid.appendChild(card); }
-    add('dashSavedBuyerBreakdownsCard','Saved Buyer Breakdowns','Open, rename, or delete buyer payment breakdowns.','openSavedBuyerBreakdowns');
-    add('dashSavedSellerBreakdownsCard','Saved Seller Breakdowns','Open, rename, or delete seller payment breakdowns.','openSavedSellerBreakdowns');
-  }
-
-  function apply(){
-    try{ document.title='SIRIUS — DXB'; }catch(e){}
-    patchDropdownSettings(); stabilizeBreakdownDropdowns(); patchDashboardSavedCards(); ensureSavedWorkDashboard(); refreshSavedWorkDashboard();
-  }
-  var oldOpenDash=window.openUserDashboard;
-  if(typeof oldOpenDash==='function' && !oldOpenDash.__sirius4c){ window.openUserDashboard=function(){ var r=oldOpenDash.apply(this,arguments); setTimeout(apply,200); setTimeout(apply,900); return r; }; window.openUserDashboard.__sirius4c=true; }
-  var oldGoDash=window.goDashboard;
-  if(typeof oldGoDash==='function' && !oldGoDash.__sirius4c){ window.goDashboard=function(){ var r=oldGoDash.apply(this,arguments); setTimeout(apply,200); setTimeout(apply,900); return r; }; window.goDashboard.__sirius4c=true; }
-  document.addEventListener('DOMContentLoaded',function(){ apply(); setTimeout(apply,600); setTimeout(apply,1600); });
-  window.addEventListener('load',function(){ apply(); setTimeout(apply,900); });
-  setInterval(function(){ patchDropdownSettings(); stabilizeBreakdownDropdowns(); patchDashboardSavedCards(); },1800);
+  function applyAll(){ document.title='SIRIUS — DXB'; patchDashboardSubscription(); patchDashboardSavedWork(); patchDropdownSettings(); patchSaveButton(); patchAdminActivityEntry(); wrapAuthLogs(); }
+  document.addEventListener('DOMContentLoaded',function(){applyAll(); setTimeout(applyAll,600); setTimeout(applyAll,1600);}); window.addEventListener('load',function(){applyAll(); setTimeout(applyAll,800);});
 })();
 </script>
 
