@@ -2541,21 +2541,6 @@ body.auth-resetting { pointer-events: none; }
       </div>
 
       <div class="results-section">
-        <!-- PDF Download Buttons -->
-        <div style="display:flex;gap:.65rem;flex-wrap:wrap;margin-bottom:1.5rem">
-          <button class="btn btn-outline" style="font-size:.72rem;padding:.45rem .9rem" onclick="downloadFullReport()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Download Full Report
-          </button>
-          <button class="btn btn-outline" style="font-size:.72rem;padding:.45rem .9rem" onclick="downloadPaymentBreakdown('buyer')">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            Buyer Breakdown
-          </button>
-          <button class="btn btn-outline" style="font-size:.72rem;padding:.45rem .9rem" onclick="downloadPaymentBreakdown('seller')">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            Seller Breakdown
-          </button>
-        </div>
         <div class="results-section-title">Acquisition Fee Breakdown</div>
         <table class="fee-table" style="background:rgba(17,43,77,.3);border-radius:var(--r)">
           <tbody id="feeTableBody">
@@ -3128,21 +3113,19 @@ body.auth-resetting { pointer-events: none; }
       <span id="out-roiSub" style="display:none"></span>
       <div id="out-roiSec" style="display:none"></div>
 
-      <!-- DOWNLOAD REPORT (placeholder) -->
-      <div class="results-section">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;padding:1.25rem 1.5rem;background:rgba(17,43,77,.3);border:1px solid var(--border-subtle);border-radius:var(--r)">
-          <div>
-            <div style="font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--warm-silver);font-weight:600;margin-bottom:.25rem">Report</div>
-            <div style="font-size:.88rem;color:var(--text-muted)">Download a full PDF summary of this evaluation</div>
-          </div>
-          <button class="btn btn-outline btn-sm" onclick="alert('Report download coming soon — available in Pro & Elite plans.')" style="flex-shrink:0">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Download Report
+      <!-- RESULT DOWNLOAD ACTIONS -->
+      <div class="results-section" id="resultDownloadActions">
+        <div style="display:flex;gap:.65rem;flex-wrap:wrap;justify-content:flex-end;margin-top:1.75rem;padding-top:1.25rem;border-top:1px solid var(--border-subtle)">
+          <button class="btn btn-outline" style="font-size:.72rem;padding:.45rem .9rem" onclick="downloadFullReport()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Full Report
+          </button>
+          <button class="btn btn-outline" style="font-size:.72rem;padding:.45rem .9rem" onclick="downloadPaymentBreakdown('buyer')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Download Buyer Payment Breakdown
           </button>
         </div>
       </div>
-
-
 
     </div><!-- /step-3 -->
 
@@ -6701,7 +6684,7 @@ function updateLandingForUser(user){
   if(isAdmin){
     /* Admin: replace hero CTA with direct calculator access */
     if(heroBtn){
-      heroBtn.textContent = 'Open Calculator';
+      heroBtn.textContent = 'Evaluate a Property';
       heroBtn.onclick = function(){ goToEval(); };
     }
     /* Add Dashboard button to nav if not there */
@@ -6727,7 +6710,7 @@ function updateLandingForUser(user){
       if(btn.id !== 'heroCtaBtn'){
         if(!btn.getAttribute('data-visitor-text')) btn.setAttribute('data-visitor-text', btn.textContent);
         btn.setAttribute('data-sirius-auth-cta','1');
-        btn.textContent = 'Open Calculator';
+        btn.textContent = 'Evaluate a Property';
         btn.onclick = function(){ goToEval(); };
       }
     });
@@ -7623,7 +7606,7 @@ function previewLandingAsVisitor(){
       if(navSignIn) navSignIn.style.display = 'none';
       if(navUserInfo) navUserInfo.style.display = '';
       var heroBtn = document.getElementById('heroCtaBtn');
-      if(heroBtn){ heroBtn.textContent = 'Open Calculator'; heroBtn.onclick = function(){ goToEval(); }; }
+      if(heroBtn){ heroBtn.textContent = 'Evaluate a Property'; heroBtn.onclick = function(){ goToEval(); }; }
       var upgrade = document.getElementById('loggedInUpgradeSection');
       if(upgrade) upgrade.classList.toggle('sirius-show-upgrade', shouldShowUpgrade());
     } else {
@@ -7890,7 +7873,7 @@ function previewLandingAsVisitor(){
       var navLinks=qs('#landing .nav-links'); if(navLinks) navLinks.style.display='none';
       var navDemo=qs('#navAuthArea > .btn-ghost[onclick*="openModal"]'); if(navDemo) navDemo.style.display='none';
       var heroDemo=qs('#mainHero .btn-outline[onclick*="openModal"]'); if(heroDemo) heroDemo.style.display='none';
-      var hero=document.getElementById('heroCtaBtn'); if(hero){ hero.textContent='Open Calculator'; hero.onclick=function(){ goToEval(); }; }
+      var hero=document.getElementById('heroCtaBtn'); if(hero){ hero.textContent='Evaluate a Property'; hero.onclick=function(){ goToEval(); }; }
     }else if(!preview){
       document.body.classList.remove('sirius-logged-in');
       qsa('#landing > section').forEach(function(sec){ sec.style.display=''; });
@@ -8121,7 +8104,7 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
     var info=qs('#navUserInfo'); if(info) info.style.display='block';
     var navLinks=qs('#landing .nav-links'); if(navLinks) navLinks.style.display='none';
     var demo=qs('#navAuthArea > .btn-ghost[onclick*="openModal"]'); if(demo) demo.style.display='none';
-    var hero=qs('#heroCtaBtn'); if(hero){ hero.textContent='Open Calculator'; hero.onclick=function(){ if(typeof goToEval==='function') goToEval(); }; }
+    var hero=qs('#heroCtaBtn'); if(hero){ hero.textContent='Evaluate a Property'; hero.onclick=function(){ if(typeof goToEval==='function') goToEval(); }; }
     var heroDemo=qs('#mainHero .btn-outline[onclick*="openModal"]'); if(heroDemo) heroDemo.style.display='none';
   }
   function applyVisibility(){
@@ -8265,7 +8248,7 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
   function patchLoggedInHero(){
     var cta=qs('#heroCtaBtn');
     if(logged() && !document.body.classList.contains('sirius-preview-mode')){
-      if(cta){cta.textContent='Open Calculator'; cta.onclick=function(){goToEval&&goToEval();};}
+      if(cta){cta.textContent='Evaluate a Property'; cta.onclick=function(){goToEval&&goToEval();};}
       var demo=qs('#mainHero .btn-outline[onclick*="openModal"]'); if(demo) demo.style.display='none';
       var topDemo=qs('#navAuthArea > .btn-ghost[onclick*="openModal"]'); if(topDemo) topDemo.style.display='none';
     }else if(!logged() || document.body.classList.contains('sirius-preview-mode')){
@@ -8392,8 +8375,8 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
     var cta=qs('#heroCtaBtn');
     if(!cta) return;
     if(logged() && !isPreview()){
-      cta.textContent='Open Calculator';
-      cta.innerHTML='Open Calculator';
+      cta.textContent='Evaluate a Property';
+      cta.innerHTML='Evaluate a Property';
       cta.onclick=function(e){ if(e) e.preventDefault(); if(typeof goToEval==='function') goToEval(); };
     }
   }
@@ -8731,7 +8714,7 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
     var cta=qs('#heroCtaBtn');
     if(!cta) return;
     if(logged() && !preview()){
-      if((cta.textContent||'').trim()!=='Open Calculator') cta.textContent='Open Calculator';
+      if((cta.textContent||'').trim()!=='Evaluate a Property') cta.textContent='Evaluate a Property';
       cta.onclick=function(e){ if(e) e.preventDefault(); if(typeof window.goToEval==='function') window.goToEval(); return false; };
       var heroDemo=qs('#mainHero .btn-outline[onclick*="openModal"]'); if(heroDemo) heroDemo.style.display='none';
       var topDemo=qs('#navAuthArea > .btn-ghost[onclick*="openModal"]'); if(topDemo) topDemo.style.display='none';
