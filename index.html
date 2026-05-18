@@ -1536,16 +1536,15 @@ tr.fee-excluded .fee-edit-input { text-decoration: line-through; }
 
 
 .nav-dropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
+  position: fixed;
+  top: 64px;
+  right: 24px;
   min-width: 210px;
-  background: rgba(12,22,42,.98);
-  border: 1px solid rgba(191,198,209,.18);
+  background: rgba(12,22,42,.99);
+  border: 1px solid rgba(191,198,209,.2);
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0,0,0,.7);
-  backdrop-filter: blur(20px);
-  z-index: 10000;
+  box-shadow: 0 12px 40px rgba(0,0,0,.8);
+  z-index: 99999;
   display: none;
   overflow: hidden;
   padding: .4rem 0;
@@ -6689,7 +6688,11 @@ function getDisplayPlan(){
 
 /* ── Admin Dashboard ── */
 function openAdminDashboard(){
-  if(!IS_ADMIN){ alert('Admin access required.'); return; }
+  if(!IS_ADMIN){
+    /* Fall through to user dashboard silently */
+    openUserDashboard();
+    return;
+  }
   showPage('adminDashboardPage');
   loadDashboardData();
 }
@@ -7254,15 +7257,13 @@ function openComparisons(){
 /* ── Auth state: route signed-in users to dashboard ── */
 /* This is called from the existing onAuthStateChanged */
 function routeAfterAuth(user){
+  /* Ensure CURRENT_USER is set before routing */
+  if(user) CURRENT_USER = user;
   if(IS_ADMIN){
-    /* Admin sees the landing page with admin UI */
+    openAdminDashboard();
     return;
   }
-  /* Regular signed-in user → dashboard */
-  var currentPage = document.querySelector('.page.active');
-  var currentId = currentPage ? currentPage.id : '';
-  /* Only auto-route if on landing or plan selection page */
-  if(currentId === 'landing' || currentId === 'planSelectionPage' || !currentId){
+  if(CURRENT_USER){
     openUserDashboard();
   }
 }
@@ -7270,35 +7271,55 @@ function routeAfterAuth(user){
 
 /* ── Nav Dropdown ── */
 function toggleNavDropdown(el){
-  /* el = the trigger element passed via onclick="toggleNavDropdown(this)" */
-  var container = el ? el.closest('[data-dropdown-container]') : null;
-  var dd = container ? container.querySelector('.nav-dropdown') : null;
-  if(!dd){
-    /* Fallback: find dropdown on active page */
-    var pg = document.querySelector('.page.active');
-    dd = pg ? pg.querySelector('.nav-dropdown') : null;
+  var dd = null;
+  if(el){
+    var container = el.parentElement;
+    while(container && !container.querySelector('.nav-dropdown')){
+      container = container.parentElement;
+      if(!container || container.tagName === 'BODY') break;
+    }
+    if(container) dd = container.querySelector('.nav-dropdown');
   }
-  if(!dd) return;
-  /* Close all other open dropdowns */
-  document.querySelectorAll('.nav-dropdown.open').forEach(function(d){
-    if(d !== dd) d.classList.remove('open');
+  if(!dd){
+    var pg = document.querySelector('.page.active') || document.body;
+    dd = pg.querySelector('.nav-dropdown');
+  }
+  if(!dd){ return; }
+
+  var isOpen = dd.classList.contains('open');
+  document.querySelectorAll('.nav-dropdown').forEach(function(d){
+    d.classList.remove('open');
+    d.style.display = '';
   });
-  var opening = !dd.classList.contains('open');
-  dd.classList.toggle('open');
-  if(opening){
+
+  if(!isOpen){
+    /* Position dropdown below the trigger element */
+    if(el){
+      var rect = el.getBoundingClientRect();
+      dd.style.top = (rect.bottom + 6) + 'px';
+      dd.style.right = (window.innerWidth - rect.right) + 'px';
+      dd.style.left = 'auto';
+    }
+    dd.style.display = 'block';
+    dd.classList.add('open');
     setTimeout(function(){
-      function _closeOnClick(e){
-        if(!dd.contains(e.target) && (!el || !el.closest('[data-dropdown-container]').contains(e.target))){
+      function _close(e){
+        if(!dd.contains(e.target) && e.target !== el && (!el || !el.contains(e.target))){
           dd.classList.remove('open');
-          document.removeEventListener('click', _closeOnClick);
+          dd.style.display = '';
+          document.removeEventListener('click', _close);
         }
       }
-      document.addEventListener('click', _closeOnClick);
-    }, 15);
+      document.addEventListener('click', _close);
+    }, 20);
   }
 }
+
 function closeNavDropdown(){
-  document.querySelectorAll('.nav-dropdown.open').forEach(function(d){ d.classList.remove('open'); });
+  document.querySelectorAll('.nav-dropdown').forEach(function(d){ 
+    d.classList.remove('open'); 
+    d.style.display = '';
+  });
 }
 function updateNavAvatar(name){
   var initials = (name || '?').trim().split(/\s+/).map(function(w){ return w[0]||''; }).slice(0,2).join('').toUpperCase() || '?';
@@ -7324,27 +7345,7 @@ function previewLandingAsVisitor(){
 }
 
 /* ── updateLandingForUser ── */
-function updateLandingForUser(user){
-  if(!user) return;
-  var heroBtn = document.getElementById('heroCtaBtn');
-  if(IS_ADMIN){
-    if(heroBtn){ heroBtn.textContent='Open Calculator'; heroBtn.onclick=function(){goToEval();}; }
-    document.querySelectorAll('[onclick*="openModal"]').forEach(function(b){ b.style.display='none'; });
-    var pricing = document.getElementById('pricing'); if(pricing) pricing.style.display='none';
-    var demo = document.getElementById('demoSection'); if(demo) demo.style.display='none';
-    document.querySelectorAll('[onclick*="openAuthModal"],[onclick*="openPlanSelection"]').forEach(function(b){
-      if(b.id!=='heroCtaBtn'){ b.textContent='Open Calculator'; b.onclick=function(){goToEval();}; }
-    });
-    _disclaimerAccepted = true;
-  } else {
-    if(heroBtn){ heroBtn.textContent='Go to Dashboard'; heroBtn.onclick=function(){openUserDashboard();}; }
-    var demo2 = document.getElementById('demoSection'); if(demo2) demo2.style.display='none';
-    _disclaimerAccepted = true;
-  }
-  /* Hide visitor sign-in button */
-  var signInBtn = document.getElementById('navSignInBtn');
-  if(signInBtn) signInBtn.style.display = 'none';
-}
+
 
 </script>
            2. Initialize: Paddle.Initialize({ token: 'YOUR_CLIENT_TOKEN' })
