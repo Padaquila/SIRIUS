@@ -10345,5 +10345,228 @@ body.sirius-preview-mode #landing .nav{top:48px!important}
 })();
 </script>
 
+
+<!-- SIRIUS STEP 4K PATCH 2026-05-18: landing action buttons + locked dropdown + persistent delete tombstones -->
+<style id="sirius-step4k-stability-css">
+  /* Dropdown is controlled only by .open. No hover/focus flicker. */
+  .nav-dropdown{display:none!important;pointer-events:auto!important;transform:none!important;animation:none!important;}
+  .nav-dropdown.open{display:block!important;}
+  .nav-dropdown [data-sirius-breakdown-item],
+  .nav-dropdown button[data-tool="buyer"],
+  .nav-dropdown button[data-tool="seller"]{display:none!important;}
+
+  /* Logged-in landing page: Buyer/Seller buttons belong next to Evaluate a Property. */
+  body.sirius-logged-in:not(.sirius-preview-mode):not(.preview-mode) #landing #heroBuyerBreakdownBtn,
+  body.sirius-logged-in:not(.sirius-preview-mode):not(.preview-mode) #landing #heroSellerBreakdownBtn{
+    display:inline-flex!important;
+  }
+  body.sirius-preview-mode #landing #heroBuyerBreakdownBtn,
+  body.sirius-preview-mode #landing #heroSellerBreakdownBtn,
+  body.preview-mode #landing #heroBuyerBreakdownBtn,
+  body.preview-mode #landing #heroSellerBreakdownBtn,
+  body:not(.sirius-logged-in) #landing #heroBuyerBreakdownBtn,
+  body:not(.sirius-logged-in) #landing #heroSellerBreakdownBtn{
+    display:none!important;
+  }
+</style>
+<script id="sirius-step4k-stability-script">
+(function(){
+  function qs(s,r){return (r||document).querySelector(s)}
+  function qsa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+  function user(){try{return window.CURRENT_USER||(window.auth&&auth.currentUser)||null}catch(e){return null}}
+  function logged(){return !!user()}
+  function admin(){var u=user();return !!(window.IS_ADMIN || (u&&String(u.email||'').toLowerCase()==='netflix.officiel.moncef@gmail.com'))}
+  function txt(el){return (el&&el.textContent||'').trim().replace(/\s+/g,' ')}
+  function activePage(){var p=qs('.page.active');return p&&p.id?p.id:''}
+  function preview(){return !!(window.SIRIUS_PREVIEW_MODE||document.body.classList.contains('sirius-preview-mode')||document.body.classList.contains('preview-mode')||qs('.visitor-preview-banner')||qs('#adminPreviewBanner'))}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function escAttr(s){return esc(s).replace(/`/g,'&#96;')}
+  function dbx(){try{return window.db||((window.firebase&&firebase.firestore)?firebase.firestore():null)}catch(e){return null}}
+  function nowField(){try{return firebase.firestore.FieldValue.serverTimestamp()}catch(e){return new Date().toISOString()}}
+  function colTitle(c){return c==='savedBuyerBreakdowns'?'Saved Buyer Payment Breakdowns':c==='savedSellerBreakdowns'?'Saved Seller Payment Breakdowns':'Saved Property Evaluations'}
+  function fmtDate(v){try{if(!v)return '—'; if(v.toDate)v=v.toDate(); if(typeof v==='string')v=new Date(v); return new Intl.DateTimeFormat('en-GB',{day:'2-digit',month:'short',year:'numeric'}).format(v)}catch(e){return '—'}}
+
+  function markLoggedClass(){document.body.classList.toggle('sirius-logged-in',logged());}
+
+  /* ── 1) Permanent dropdown menu lock ───────────────────────── */
+  function menuHTML(){
+    return '<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();goDashboard&&goDashboard()">Dashboard</button>'+ 
+      '<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();openProfile&&openProfile()">My Profile</button>'+ 
+      '<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();openSubscriptionPlan&&openSubscriptionPlan()">Subscription / Plan</button>'+ 
+      '<div class="nav-dropdown-divider"></div>'+ 
+      '<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();goToEval&&goToEval()">Evaluate a Property</button>'+ 
+      (admin()?'<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();openAdminPanel&&openAdminPanel()">Admin Panel</button>':'')+
+      '<button class="nav-dropdown-item" onclick="closeNavDropdown&&closeNavDropdown();openSiriusSettings&&openSiriusSettings(\'subscription\')">Settings</button>'+ 
+      '<div class="nav-dropdown-divider"></div>'+ 
+      '<button class="nav-dropdown-item danger" onclick="closeNavDropdown&&closeNavDropdown();handleSignOut&&handleSignOut()">Sign Out</button>';
+  }
+  function lockDropdown(dd){
+    if(!dd) return;
+    if(logged()) dd.innerHTML=menuHTML();
+    qsa('button,a',dd).forEach(function(el){
+      var t=txt(el);
+      if(/buyer payment breakdown|seller payment breakdown/i.test(t) || el.getAttribute('data-sirius-breakdown-item')) el.remove();
+    });
+  }
+  function lockAllDropdowns(){qsa('.nav-dropdown').forEach(lockDropdown)}
+
+  window.closeNavDropdown=function(){
+    qsa('.nav-dropdown').forEach(function(d){d.classList.remove('open');});
+    document.removeEventListener('pointerdown', window.__sirius4kOutside, true);
+  };
+  window.__sirius4kOutside=function(e){
+    var open=qs('.nav-dropdown.open'); if(!open) return;
+    var c=open.closest('[data-dropdown-container]');
+    if(open.contains(e.target) || (c&&c.contains(e.target))) return;
+    window.closeNavDropdown();
+  };
+  window.toggleNavDropdown=function(el){
+    if(window.event&&event.stopPropagation) event.stopPropagation();
+    var c=el&&el.closest?el.closest('[data-dropdown-container]'):null;
+    var dd=c?qs('.nav-dropdown',c):null;
+    if(!dd){var pg=qs('.page.active')||document.body;dd=qs('.nav-dropdown',pg)}
+    if(!dd) return false;
+    var was=dd.classList.contains('open');
+    window.closeNavDropdown();
+    if(was) return false;
+    lockDropdown(dd);
+    dd.classList.add('open');
+    setTimeout(function(){document.addEventListener('pointerdown', window.__sirius4kOutside, true);},0);
+    return false;
+  };
+
+  /* ── 2) Landing page action buttons: only logged-in, non-preview ─── */
+  function makeLandingButton(id,label,onclick,primary){
+    var b=document.createElement('button');
+    b.id=id; b.type='button'; b.className='btn '+(primary?'btn-primary':'btn-outline')+' btn-lg';
+    b.textContent=label; b.onclick=onclick; return b;
+  }
+  function landingActions(){
+    var landing=qs('#landing'); if(!landing) return;
+    var should=logged() && !preview();
+    var oldPreviewButtons=qsa('button,a',landing).filter(function(el){return /buyer payment breakdown|seller payment breakdown/i.test(txt(el)) && !/^hero(Buyer|Seller)BreakdownBtn$/.test(el.id||'')});
+    oldPreviewButtons.forEach(function(el){el.remove();});
+    var row=qs('.hero-actions',landing) || qs('#heroCtaBtn',landing)&&qs('#heroCtaBtn',landing).parentNode;
+    if(!row) return;
+    if(!should){qsa('#heroBuyerBreakdownBtn,#heroSellerBreakdownBtn',landing).forEach(function(el){el.remove();});return;}
+    var evalBtn=qs('#heroCtaBtn',landing)||qsa('button,a',row).filter(function(el){return /evaluate a property/i.test(txt(el))})[0];
+    if(evalBtn){evalBtn.textContent='Evaluate a Property'; evalBtn.onclick=function(e){if(e)e.preventDefault(); if(window.goToEval)goToEval();};}
+    if(!qs('#heroBuyerBreakdownBtn',landing)){
+      var buyer=makeLandingButton('heroBuyerBreakdownBtn','Buyer Payment Breakdown',function(e){if(e)e.preventDefault(); if(window.goToBuyerBreakdown)goToBuyerBreakdown(); else alert('Buyer Payment Breakdown tool placeholder.');},false);
+      if(evalBtn&&evalBtn.nextSibling) row.insertBefore(buyer,evalBtn.nextSibling); else row.appendChild(buyer);
+    }
+    if(!qs('#heroSellerBreakdownBtn',landing)){
+      var seller=makeLandingButton('heroSellerBreakdownBtn','Seller Payment Breakdown',function(e){if(e)e.preventDefault(); if(window.goToSellerBreakdown)goToSellerBreakdown(); else alert('Seller Payment Breakdown tool placeholder.');},false);
+      var buyerEl=qs('#heroBuyerBreakdownBtn',landing);
+      if(buyerEl&&buyerEl.nextSibling) row.insertBefore(seller,buyerEl.nextSibling); else row.appendChild(seller);
+    }
+  }
+
+  /* Remove old misplaced buyer/seller cards/rows from dashboards/nav; landing has the only action buttons. */
+  function removeMisplacedBreakdownButtons(){
+    qsa('#userBuyerInitialCard,#userSellerInitialCard,#adminNavBuyerBreakdownBtn,#adminNavSellerBreakdownBtn,#dashBuyerBreakdownCard,#dashSellerBreakdownCard,#adminBuyerBreakdownCard,#adminSellerBreakdownCard,.sirius-step4h-tool-row,#siriusStep4HToolRow').forEach(function(el){el.remove();});
+    lockAllDropdowns();
+  }
+
+  /* ── 3) Persistent delete tombstones so deleted old reports stay hidden ─── */
+  function tombKey(collection){var u=user();return 'sirius_deleted_'+(u?u.uid:'anon')+'_'+collection;}
+  function tombstones(collection){try{return JSON.parse(localStorage.getItem(tombKey(collection))||'[]')}catch(e){return []}}
+  function isDeleted(collection,id){return tombstones(collection).indexOf(id)>-1;}
+  function markDeleted(collection,ids){
+    ids=(Array.isArray(ids)?ids:[ids]).filter(Boolean); if(!ids.length) return;
+    var set={}; tombstones(collection).forEach(function(x){set[x]=1}); ids.forEach(function(x){set[x]=1});
+    try{localStorage.setItem(tombKey(collection),JSON.stringify(Object.keys(set).slice(-1000)))}catch(e){}
+  }
+
+  window.deleteSavedItem=function(collection,id){
+    var u=user(),d=dbx(); if(!u||!d)return; if(!confirm('Delete this saved item? This cannot be undone.'))return;
+    markDeleted(collection,id);
+    d.collection('users').doc(u.uid).collection(collection).doc(id).delete().then(function(){openSavedCollection(collection,colTitle(collection));}).catch(function(e){alert('Could not delete: '+(e.code||e.message)); openSavedCollection(collection,colTitle(collection));});
+  };
+  window.deleteSelectedSavedItems=function(collection){
+    var u=user(),d=dbx(); if(!u||!d)return; var ids=qsa('#siriusCollectionBody .sirius-row-check:checked').map(function(c){return c.value;}).filter(Boolean);
+    if(!ids.length){alert('Select at least one item to delete.');return;} if(!confirm('Delete '+ids.length+' selected item(s)? This cannot be undone.'))return;
+    markDeleted(collection,ids);
+    var batch=d.batch(); ids.forEach(function(id){batch.delete(d.collection('users').doc(u.uid).collection(collection).doc(id));});
+    batch.commit().then(function(){openSavedCollection(collection,colTitle(collection));}).catch(function(e){alert('Could not delete selected items: '+(e.code||e.message)); openSavedCollection(collection,colTitle(collection));});
+  };
+
+  /* Re-wrap openSavedCollection so deleted/tombstoned records never show even if old cache/migration tries to reinsert them. */
+  window.openSavedCollection=function(collection,title){
+    var u=user(),d=dbx(); if(!u||!d){alert('Please sign in first.');return;}
+    if(typeof ensureCollectionModal==='function') ensureCollectionModal();
+    var modal=qs('#siriusCollectionModal'), body=qs('#siriusCollectionBody'), ttl=qs('#siriusCollectionTitle');
+    if(!modal||!body){alert('Saved work viewer is not available on this page.');return;}
+    if(ttl) ttl.textContent=title||colTitle(collection);
+    body.innerHTML='<div class="sirius-saas-card">Loading...</div>'; modal.classList.add('open');
+    var ref=d.collection('users').doc(u.uid).collection(collection);
+    ref.orderBy('createdAt','desc').get().catch(function(){return ref.get();}).then(function(snap){
+      var docs=[]; snap.forEach(function(doc){if(!isDeleted(collection,doc.id)) docs.push({id:doc.id,data:doc.data()||{}})});
+      docs.sort(function(a,b){var av=a.data.createdAt&&a.data.createdAt.toMillis?a.data.createdAt.toMillis():0;var bv=b.data.createdAt&&b.data.createdAt.toMillis?b.data.createdAt.toMillis():0;return bv-av;});
+      if(!docs.length){body.innerHTML='<div class="sirius-saas-card">Nothing saved here yet. New completed results will auto-save here.</div>';return;}
+      var rows=docs.map(function(x){var r=x.data,name=r.reportName||r.name||r.title||'Untitled';return '<tr data-id="'+escAttr(x.id)+'"><td class="sirius-check-cell"><input type="checkbox" class="sirius-row-check" value="'+escAttr(x.id)+'"></td><td><strong>'+esc(name)+'</strong><div style="font-size:.68rem;color:rgba(191,198,209,.42);margin-top:.2rem">Created '+fmtDate(r.createdAt)+'</div></td><td>'+fmtDate(r.updatedAt||r.createdAt)+'</td><td><div class="sirius-report-actions"><button class="sirius-soft-btn" onclick="openSavedSnapshot(\''+collection+'\',\''+x.id+'\')">Open</button><button class="sirius-soft-btn" onclick="renameSavedItem(\''+collection+'\',\''+x.id+'\',\''+escAttr(name)+'\')">Rename</button><button class="sirius-soft-btn danger" onclick="deleteSavedItem(\''+collection+'\',\''+x.id+'\')">Delete</button></div></td></tr>';}).join('');
+      body.innerHTML='<div class="sirius-bulk-row"><div class="sirius-bulk-left"><label><input type="checkbox" id="siriusSelectAllSaved"> Select all</label><span id="siriusSelectedCount">0 selected</span></div><button class="sirius-soft-btn danger" onclick="deleteSelectedSavedItems(\''+collection+'\')">Delete selected</button></div><table class="sirius-table"><thead><tr><th class="sirius-check-cell"></th><th>Name</th><th>Updated</th><th>Actions</th></tr></thead><tbody>'+rows+'</tbody></table>';
+      var all=qs('#siriusSelectAllSaved'), count=qs('#siriusSelectedCount');
+      function syncCount(){var n=qsa('#siriusCollectionBody .sirius-row-check:checked').length;if(count)count.textContent=n+' selected';}
+      if(all) all.onchange=function(){qsa('#siriusCollectionBody .sirius-row-check').forEach(function(c){c.checked=all.checked});syncCount();};
+      qsa('#siriusCollectionBody .sirius-row-check').forEach(function(c){c.onchange=syncCount;});
+    }).catch(function(e){body.innerHTML='<div class="sirius-step4h-permission-note"><strong>Could not load saved work:</strong> '+esc(e.code||e.message)+'</div>';});
+  };
+
+  function sync(){markLoggedClass();removeMisplacedBreakdownButtons();landingActions();}
+  document.addEventListener('DOMContentLoaded',function(){sync();setTimeout(sync,350);setTimeout(sync,1200);setTimeout(sync,2500);});
+  window.addEventListener('load',function(){sync();setTimeout(sync,500);setTimeout(sync,1500);});
+  if(window.auth&&auth.onAuthStateChanged){try{auth.onAuthStateChanged(function(){setTimeout(sync,250);setTimeout(sync,1100);});}catch(e){}}
+  var oldShow=window.showPage;if(typeof oldShow==='function'&&!oldShow.__sirius4k){window.showPage=function(){var r=oldShow.apply(this,arguments);setTimeout(sync,120);setTimeout(sync,600);return r;};window.showPage.__sirius4k=true;}
+  var oldLanding=window.goToLanding;if(typeof oldLanding==='function'&&!oldLanding.__sirius4k){window.goToLanding=function(){var r=oldLanding.apply(this,arguments);setTimeout(sync,120);setTimeout(sync,700);return r;};window.goToLanding.__sirius4k=true;}
+})();
+</script>
+
+
+<script id="sirius-step4k-admin-preview-dropdown-final-guard">
+(function(){
+  function qs(s,r){return (r||document).querySelector(s)}
+  function qsa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+  function text(el){return (el&&el.textContent||'').replace(/\s+/g,' ').trim()}
+  function isAdmin(){
+    try{
+      var u=window.CURRENT_USER||(window.auth&&auth.currentUser)||null;
+      var em=(u&&u.email||'').toLowerCase();
+      return !!(window.IS_ADMIN||em==='netflix.officiel.moncef@gmail.com');
+    }catch(e){return !!window.IS_ADMIN}
+  }
+  function lockPreviewVisibility(){
+    var admin=isAdmin();
+    qsa('.nav-dropdown').forEach(function(dd){
+      var hasPreview=false, signout=null;
+      qsa('button,a',dd).forEach(function(el){
+        var t=text(el);
+        if(/buyer payment breakdown|seller payment breakdown/i.test(t) || el.getAttribute('data-sirius-breakdown-item')) el.remove();
+        else if(/preview as visitor/i.test(t)){
+          if(!admin || hasPreview) el.remove();
+          else { hasPreview=true; el.classList.add('nav-dropdown-item'); el.onclick=function(e){if(e)e.preventDefault(); if(window.closeNavDropdown) closeNavDropdown(); if(window.previewLandingAsVisitor) previewLandingAsVisitor();}; }
+        }
+        else if(/sign out/i.test(t)) signout=el;
+      });
+      if(admin && !hasPreview){
+        var b=document.createElement('button');
+        b.className='nav-dropdown-item';
+        b.textContent='Preview as Visitor';
+        b.onclick=function(e){if(e)e.preventDefault(); if(window.closeNavDropdown) closeNavDropdown(); if(window.previewLandingAsVisitor) previewLandingAsVisitor();};
+        if(signout&&signout.parentNode===dd) dd.insertBefore(b,signout); else dd.appendChild(b);
+      }
+    });
+  }
+  document.addEventListener('DOMContentLoaded',function(){lockPreviewVisibility();setTimeout(lockPreviewVisibility,400);setTimeout(lockPreviewVisibility,1500);});
+  window.addEventListener('load',function(){lockPreviewVisibility();setTimeout(lockPreviewVisibility,600);});
+  if(window.auth&&auth.onAuthStateChanged){try{auth.onAuthStateChanged(function(){setTimeout(lockPreviewVisibility,300);setTimeout(lockPreviewVisibility,1200);});}catch(e){}}
+  var oldToggle=window.toggleNavDropdown;
+  if(typeof oldToggle==='function'&&!oldToggle.__sirius4kPreviewGuard){
+    window.toggleNavDropdown=function(){var r=oldToggle.apply(this,arguments);setTimeout(lockPreviewVisibility,0);return r;};
+    window.toggleNavDropdown.__sirius4kPreviewGuard=true;
+  }
+})();
+</script>
+
 </body>
 </html>
