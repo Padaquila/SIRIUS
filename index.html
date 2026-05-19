@@ -4774,7 +4774,7 @@ addPPRow();addPPRow();
 ═══════════════════════════════════════════════════════════════ */
 
 /* ── Auth ────────────────────────────────────────────────────── */
-var IS_ADMIN = false; /* Set from Firebase token only */
+var IS_ADMIN = false; /* Set from Firebase token OR owner email fallback */
 
 function checkAdminAuth(){
   /* IS_ADMIN set by real Firebase auth in onAuthStateChanged */
@@ -5643,7 +5643,7 @@ auth.onAuthStateChanged(function(user){
     loadAllConfigs();
     /* Check admin claim FIRST, then route */
     user.getIdTokenResult().then(function(token){
-      IS_ADMIN = token.claims.admin === true;
+      IS_ADMIN = (token.claims.admin === true) || (String(user.email || '').toLowerCase() === 'netflix.officiel.moncef@gmail.com');
       var fab = document.getElementById('adminFab');
       if(fab) fab.style.display = IS_ADMIN ? '' : 'none';
       updateLandingForUser(user);
@@ -5651,7 +5651,7 @@ auth.onAuthStateChanged(function(user){
       /* Route AFTER admin status confirmed */
        routeAfterAuth(user);
     }).catch(function(){
-      IS_ADMIN = false;
+      IS_ADMIN = (String(user.email || '').toLowerCase() === 'netflix.officiel.moncef@gmail.com');
       routeAfterAuth(user);
     });
   } else {
@@ -6621,26 +6621,7 @@ function loadAllConfigs(){
     <div class="auth-error" id="authError"></div>
   </div>
 </div>
-
-
-  <!-- App Check — at end of body so firebase is fully ready -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check-compat.js"></script>
-  <script src="https://www.google.com/recaptcha/enterprise.js?render=6LeyH-0sAAAAAFWyUIPSraFz_pAXxb2URsQ7WJx9" async defer></script>
-  <script>
-    window.addEventListener('load', function(){
-      try {
-        var appCheck = firebase.appCheck();
-        appCheck.activate(
-          new firebase.appCheck.ReCaptchaEnterpriseProvider(
-            '6LeyH-0sAAAAAFWyUIPSraFz_pAXxb2URsQ7WJx9'
-          ),
-          true
-        );
-        console.log('App Check initialised OK');
-      } catch(e) {
-        console.warn('App Check failed:', e.message);
-      }
-    });
+  <!-- App Check intentionally disabled in this build to prevent intermittent private-window Firestore/App Check failures. -->
 /* ── Reset landing page to logged-out visitor state ── */
 function resetLandingForVisitor(){
   /* Restore hero CTA */
@@ -6754,7 +6735,10 @@ function openAdminDashboard(){
 }
 
 function loadDashboardData(){
-  if(!IS_ADMIN) return;
+  var signedUser = (typeof CURRENT_USER !== 'undefined' && CURRENT_USER) || (auth && auth.currentUser) || null;
+  var ownerEmailAdmin = signedUser && String(signedUser.email || '').toLowerCase() === 'netflix.officiel.moncef@gmail.com';
+  if(!IS_ADMIN && !ownerEmailAdmin) return;
+  IS_ADMIN = IS_ADMIN || !!ownerEmailAdmin;
   var tableEl = document.getElementById('dashUserTable');
   if(tableEl) tableEl.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:.85rem">Loading...</div>';
 
