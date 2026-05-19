@@ -1802,6 +1802,48 @@ body.auth-resetting { pointer-events: none; }
 .scen-vis-chip.on{background:rgba(191,198,209,.12);border-color:rgba(191,198,209,.4);color:var(--ivory)}.scen-vis-chip:hover{border-color:rgba(191,198,209,.35);color:var(--white)}
 .version-row{display:flex;align-items:center;justify-content:space-between;padding:.5rem .65rem;border-radius:6px;background:rgba(10,22,40,.5);border:1px solid rgba(191,198,209,.08);margin-bottom:5px}
 .version-ts{font-size:.72rem;color:var(--brushed-silver)}.version-note{font-size:.68rem;color:var(--text-muted)}
+
+
+/* === STEP 4 PERFORMANCE PATCH: logged-in app mode ===
+   Keeps layout intact, but disables expensive motion/blur once signed in. */
+body.s-in * {
+  animation: none !important;
+  transition-duration: 0s !important;
+  scroll-behavior: auto !important;
+}
+body.s-in .nav,
+body.s-in .modal-overlay,
+body.s-in .pp-modal-overlay,
+body.s-in .demo-form-card {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+body.s-in .sirius-wordmark,
+body.s-in .nav-sirius-text,
+body.s-in .gold-line,
+body.s-in .plan-badge,
+body.s-in .nav .btn-primary {
+  background-size: 100% auto !important;
+}
+body.s-in .btn::after,
+body.s-in .feature-card::before,
+body.s-in .feature-card::after,
+body.s-in .stat-card::before,
+body.s-in .plan-card::after,
+body.s-in .kpi-card::before {
+  display: none !important;
+}
+#adminDashboardPage .nav,
+#profilePage .nav,
+#evaluation .eval-header {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#dashUserTable {
+  max-height: 62vh;
+  overflow: auto;
+}
+
 </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.3/math.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -3374,7 +3416,7 @@ function showPage(id){
 }
 function goToEval(plan){if(!CURRENT_USER){showPage('landing');openAuthModal();return;}var chip=document.getElementById('planChip');if(chip)chip.textContent=(plan||'Free')+' Plan';showPage('evaluation');stepUI();}
 function goToLanding(){showPage('landing');}
-function scrollTo2(sel){var el=document.querySelector(sel);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
+function scrollTo2(sel){var el=document.querySelector(sel);if(el)el.scrollIntoView({behavior:'auto',block:'start'});}
 
 /* MODAL */
 function openModal(){document.getElementById('demoModal').classList.add('open');document.getElementById('demoFormWrap').classList.remove('hidden');document.getElementById('demoSuccess').classList.add('hidden');}
@@ -3426,7 +3468,7 @@ function goStep(n){
   /* Scroll to top of evaluation area */
   var sc=document.querySelector('.step-content');
   if(sc){sc.scrollTop=0;}
-  window.scrollTo({top:0,behavior:'instant'});
+  window.scrollTo(0,0);
   var ev=document.getElementById('evaluation');
   if(ev){ev.scrollTop=0;}
 }
@@ -4694,25 +4736,8 @@ addPPRow();addPPRow();
     if(window.scrollY > 60){ nav && nav.classList.add('scrolled'); }
     else { nav && nav.classList.remove('scrolled'); }
   },{passive:true});
-
-  /* Hero mouse spotlight */
-  var hero = document.getElementById('mainHero');
-  var spot = document.getElementById('hero-spotlight');
-  if(hero && spot){
-    hero.addEventListener('mousemove', function(e){
-      var rect = hero.getBoundingClientRect();
-      spot.style.left = (e.clientX - rect.left) + 'px';
-      spot.style.top  = (e.clientY - rect.top)  + 'px';
-      spot.style.opacity = '1';
-    },{passive:true});
-    hero.addEventListener('mouseleave', function(){
-      spot.style.opacity = '0';
-    });
-    spot.style.opacity = '0';
-    spot.style.transition = 'left .1s ease, top .1s ease, opacity .4s ease';
-  }
-
-  /* Section label trigger */
+  /* Hero mouse spotlight disabled in Step 4 performance test. */
+/* Section label trigger */
   if('IntersectionObserver' in window){
     var slIO = new IntersectionObserver(function(entries){
       entries.forEach(function(e){
@@ -4721,19 +4746,7 @@ addPPRow();addPPRow();
     },{threshold:0.5});
     document.querySelectorAll('.section-label').forEach(function(el){ slIO.observe(el); });
   }
-
-  /* Tilt effect on stat cards */
-  document.querySelectorAll('.stat-card').forEach(function(card){
-    card.addEventListener('mousemove', function(e){
-      var rect = card.getBoundingClientRect();
-      var x = ((e.clientX - rect.left) / rect.width  - 0.5) * 10;
-      var y = ((e.clientY - rect.top)  / rect.height - 0.5) * 10;
-      card.style.transform = 'translateX(-4px) perspective(600px) rotateY('+(-x*.4)+'deg) rotateX('+(y*.4)+'deg)';
-    });
-    card.addEventListener('mouseleave', function(){
-      card.style.transform = '';
-    });
-  });
+  /* Tilt effect on stat cards disabled in Step 4 performance test. */
 
   /* Ripple on btn-primary clicks */
   document.querySelectorAll('.btn-primary').forEach(function(btn){
@@ -4749,57 +4762,8 @@ addPPRow();addPPRow();
       setTimeout(function(){ r.remove(); }, 600);
     });
   });
-
-  /* Feature card cursor-reactive highlight */
-  document.querySelectorAll('.feature-card').forEach(function(card){
-    card.addEventListener('mousemove', function(e){
-      var rect = card.getBoundingClientRect();
-      var x = e.clientX - rect.left;
-      var y = e.clientY - rect.top;
-      card.style.background = 'radial-gradient(circle at '+x+'px '+y+'px, rgba(191,198,209,0.07) 0%, rgba(22,32,51,0.75) 60%)';
-    });
-    card.addEventListener('mouseleave', function(){
-      card.style.background = '';
-    });
-  });
-
-  /* KPI card counter animation */
-  function animateValue(el, duration){
-    var text = el.textContent;
-    if(!text || text.trim() === '' || text === '—') return;
-    var num = parseFloat(text.replace(/[^0-9.]/g,''));
-    if(isNaN(num) || num === 0) return;
-    var prefixMatch = text.match(/^[^0-9]*/);
-    var suffixMatch = text.match(/[^0-9.]+$/);
-    var prefix = prefixMatch ? prefixMatch[0] : '';
-    var suffix = suffixMatch ? suffixMatch[0] : '';
-    var decimals = (text.indexOf('.')>-1) ? text.split('.')[1].replace(/[^0-9]/g,'').length : 0;
-    var start = 0; var startTime = null;
-    function step(ts){
-      if(!startTime) startTime = ts;
-      var p = Math.min((ts - startTime)/duration, 1);
-      var ease = 1 - Math.pow(1-p, 3);
-      var cur = start + (num - start)*ease;
-      el.textContent = prefix + cur.toFixed(decimals) + suffix;
-      if(p < 1) requestAnimationFrame(step);
-      else el.textContent = text;
-    }
-    requestAnimationFrame(step);
-  }
-  if('IntersectionObserver' in window){
-    var kvIO = new IntersectionObserver(function(entries){
-      entries.forEach(function(e){
-        if(e.isIntersecting){
-          e.target.querySelectorAll('.kpi-value').forEach(function(v){
-            animateValue(v, 900);
-          });
-          kvIO.unobserve(e.target);
-        }
-      });
-    },{threshold:0.4});
-    document.querySelectorAll('.kpi-card').forEach(function(c){ kvIO.observe(c); });
-  }
-
+  /* Feature card cursor-reactive highlight disabled in Step 4 performance test. */
+  /* KPI counter animation disabled in Step 4 performance test. */
 })();
 
 
@@ -7191,7 +7155,7 @@ function selectPlan(key, name, monthly, yearly){
   }
   if(form){
     form.style.display = 'block';
-    form.scrollIntoView({behavior:'smooth', block:'nearest'});
+    form.scrollIntoView({behavior:'auto', block:'nearest'});
   }
 }
 
@@ -7662,26 +7626,6 @@ body.s-preview .s-logged-hero{display:none!important}
 /* Admin fab */
 .admin-fab{bottom:auto!important;right:1rem!important;top:76px!important;z-index:8500!important}
 @media(max-width:720px){.s-settings-grid{grid-template-columns:1fr}.s-hero-btns{flex-direction:column}.s-hero-btn{width:100%}}
-
-
-/* ── STEP 3 SAFE PERFORMANCE PATCH (CSS ONLY) ──
-   No Firebase logic changed. No auth logic changed. No Firestore paths changed.
-   This only reduces heavy animations/backdrop effects on logged-in app pages. */
-html { scroll-behavior: auto !important; }
-#adminDashboardPage *, #userDashboardPage *, #profilePage *,
-#sSettingsModal *, #sSavedModal * {
-  animation: none !important;
-  transition-duration: 0.01ms !important;
-}
-#adminDashboardPage .nav, #userDashboardPage .nav, #profilePage .nav {
-  backdrop-filter: none !important;
-}
-#dashUserTable {
-  max-height: 520px;
-  overflow: auto !important;
-  contain: content;
-}
-
 </style>
 
 <!-- Buyer Breakdown Page -->
@@ -8618,16 +8562,8 @@ win.addEventListener('load',function(){setTimeout(_boot,200);});
 window.SR = window.SiriusNav;
 </script>
 
-<!-- App Check -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check-compat.js"></script>
-<script src="https://www.google.com/recaptcha/enterprise.js?render=6LeyH-0sAAAAAFWyUIPSraFz_pAXxb2URsQ7WJx9" async defer></script>
 <script>
-window.addEventListener('load',function(){
-  try{
-    firebase.appCheck().activate(
-      new firebase.appCheck.ReCaptchaEnterpriseProvider('6LeyH-0sAAAAAFWyUIPSraFz_pAXxb2URsQ7WJx9'),true);
-  }catch(e){console.warn('App Check:',e.message);}
-});
+/* App Check disabled in Step 4 performance test. */
 function resetLandingForVisitor(){
   document.body.classList.remove('s-in','s-free','s-preview');
   var b=document.getElementById('sP-banner');if(b)b.classList.remove('on');
