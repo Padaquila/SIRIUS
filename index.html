@@ -6679,86 +6679,95 @@ function loadAllConfigs(){
     });
 /* ── Reset landing page to logged-out visitor state ── */
 function resetLandingForVisitor(){
-  var heroBtn = document.getElementById('heroCtaBtn');
-  if(heroBtn){
-    heroBtn.textContent = 'Start free — no charge for 7 days';
-    heroBtn.onclick = function(){ openPlanSelection(); };
+  /* Restore hero CTA */
+  var heroActions = document.querySelector('.hero-actions');
+  if(heroActions){
+    heroActions.innerHTML =
+      '<button class="btn btn-primary btn-lg" id="heroCtaBtn" onclick="openPlanSelection()">Start free — no charge for 7 days</button>' +
+      '<button class="btn btn-outline btn-lg" onclick="openModal()">Request Demo</button>';
   }
 
-  var pricingEl = document.getElementById('pricing');
-  if(pricingEl) pricingEl.style.display = '';
+  /* Show visitor nav */
+  var navLinks = document.querySelector('.nav-links');
+  if(navLinks) navLinks.style.display = '';
+  var navSignIn = document.getElementById('navSignInBtn');
+  if(navSignIn){ navSignIn.style.display = ''; navSignIn.textContent = 'Sign In'; }
+  var navUserInfo = document.getElementById('navUserInfo');
+  if(navUserInfo) navUserInfo.style.display = 'none';
 
-  var demoSec = document.getElementById('demoSection');
-  if(demoSec) demoSec.style.display = '';
+  /* Show visitor sections */
+  var pricing  = document.getElementById('pricing');
+  var demoSec  = document.getElementById('demoSection');
+  var features = document.getElementById('features');
+  var footer   = document.querySelector('#landing footer');
+  if(pricing)  pricing.style.display  = '';
+  if(demoSec)  demoSec.style.display  = '';
+  if(features) features.style.display = '';
+  if(footer)   footer.style.display   = '';
 
+  /* Show Request Demo buttons */
+  document.querySelectorAll('[onclick*="openModal"]').forEach(function(btn){
+    btn.style.display = '';
+  });
+
+  /* Remove admin-only elements */
   var dashBtn = document.getElementById('adminDashBtn');
   if(dashBtn) dashBtn.remove();
-
   var previewBanner = document.getElementById('adminPreviewBanner');
   if(previewBanner) previewBanner.remove();
 
-  document.querySelectorAll('[data-sirius-auth-cta="1"]').forEach(function(btn){
-    btn.textContent = btn.getAttribute('data-visitor-text') || 'Start free — 7 days on us';
+  /* Restore subscription CTAs */
+  document.querySelectorAll('[data-sirius-auth-cta]').forEach(function(btn){
+    var orig = btn.getAttribute('data-visitor-text');
+    if(orig) btn.textContent = orig;
+    btn.removeAttribute('data-sirius-auth-cta');
     btn.onclick = function(){ openPlanSelection(); };
   });
 }
-
 /* ── Update landing page based on auth state ── */
 function updateLandingForUser(user){
-  resetLandingForVisitor();
-  var isAdmin = IS_ADMIN;
-  var heroBtn = document.getElementById('heroCtaBtn');
-  var navSignIn = document.getElementById('navSignInBtn');
-  var requestDemo = document.querySelector('.nav .btn-ghost[onclick*="openModal"]');
+  if(!user) return;
 
-  if(isAdmin){
-    /* Admin: replace hero CTA with direct calculator access */
-    if(heroBtn){
-      heroBtn.textContent = 'Evaluate a Property';
-      heroBtn.onclick = function(){ goToEval(); };
-    }
-    /* Add Dashboard button to nav if not there */
-    var existingDash = document.getElementById('adminDashBtn');
-    if(existingDash) existingDash.style.display = '';
-    /* Replace all Request Demo buttons with nothing or calculator */
-    document.querySelectorAll('[onclick*="openModal"]').forEach(function(btn){
-      btn.style.display = 'none';
-    });
-    /* Add Dashboard button to nav */
-    var navUserInfoEl = document.getElementById('navUserInfo');
-    if(navUserInfoEl && !document.getElementById('adminDashBtn')){
-      var dashBtn = document.createElement('button');
-      dashBtn.id = 'adminDashBtn';
-      dashBtn.className = 'btn btn-ghost';
-      dashBtn.style.cssText = 'padding:.35rem .75rem;font-size:.72rem;color:var(--gold);border-color:rgba(212,175,55,.3)';
-      dashBtn.textContent = 'Dashboard';
-      dashBtn.onclick = function(){ openAdminDashboard(); };
-      navUserInfoEl.insertBefore(dashBtn, navUserInfoEl.firstChild);
-    }
-    /* Replace all subscription CTAs with calculator */
-    document.querySelectorAll('[onclick*="openAuthModal"], [onclick*="openPlanSelection"]').forEach(function(btn){
-      if(btn.id !== 'heroCtaBtn'){
-        if(!btn.getAttribute('data-visitor-text')) btn.setAttribute('data-visitor-text', btn.textContent);
-        btn.setAttribute('data-sirius-auth-cta','1');
-        btn.textContent = 'Evaluate a Property';
-        btn.onclick = function(){ goToEval(); };
-      }
-    });
-    /* Hide pricing section entirely for admin */
-    var pricingEl = document.getElementById('pricing');
-    if(pricingEl) pricingEl.style.display = 'none';
-    /* Hide disclaimer for admin */
-    _disclaimerAccepted = true;
-    var demoSec = document.getElementById('demoSection'); if(demoSec) demoSec.style.display='none';
-  } else if(user){
-    /* Signed-in non-admin: change CTA to go straight to calculator */
-    if(heroBtn){
-      heroBtn.textContent = 'Go to Calculator';
-      heroBtn.onclick = function(){ goToEval(); };
-    }
-    _disclaimerAccepted = true;
-    var demoSec2 = document.getElementById('demoSection'); if(demoSec2) demoSec2.style.display='none';
+  /* ── 1. Nav: hide visitor elements ── */
+  var navSignIn  = document.getElementById('navSignInBtn');
+  var navUserInfo = document.getElementById('navUserInfo');
+  var navLinks   = document.querySelector('.nav-links');
+  if(navSignIn)   navSignIn.style.display   = 'none';
+  if(navUserInfo) navUserInfo.style.display = '';
+  if(navLinks)    navLinks.style.display    = 'none';      /* hide Features/Pricing/Demo */
+
+  /* ── 2. Nav: remove stray Dashboard button (should only be in dropdown) ── */
+  var existingDash = document.getElementById('adminDashBtn');
+  if(existingDash) existingDash.remove();
+
+  /* ── 3. Nav: hide Request Demo button ── */
+  document.querySelectorAll('[onclick*="openModal"]').forEach(function(btn){
+    btn.style.display = 'none';
+  });
+
+  /* ── 4. Hide visitor-only landing sections ── */
+  var pricing = document.getElementById('pricing');
+  var demoSec = document.getElementById('demoSection');
+  var features = document.getElementById('features');
+  if(pricing)  pricing.style.display  = 'none';
+  if(demoSec)  demoSec.style.display  = 'none';
+  if(features) features.style.display = 'none';
+
+  /* ── 5. Hide footer for logged-in members ── */
+  var footer = document.querySelector('#landing footer');
+  if(footer) footer.style.display = 'none';
+
+  /* ── 6. Hero CTA buttons — replace with 3 member actions ── */
+  var heroActions = document.querySelector('.hero-actions');
+  if(heroActions){
+    heroActions.innerHTML =
+      '<button class="btn btn-primary btn-lg" onclick="goToEval()">Evaluate a Property</button>' +
+      '<button class="btn btn-outline btn-lg" onclick="showPage('buyerBreakdownPage')">Buyer Payment Breakdown</button>' +
+      '<button class="btn btn-outline btn-lg" onclick="showPage('sellerBreakdownPage')">Seller Payment Breakdown</button>';
   }
+
+  /* ── 7. Disclaimer skip for logged-in users ── */
+  _disclaimerAccepted = true;
 }
 
 /* ── Update admin plan display ── */
@@ -7025,20 +7034,11 @@ function loadDashboardData(){
 <!-- ═══ PLAN SELECTION PAGE ═══ -->
 <div id="planSelectionPage" class="page">
   <nav class="nav">
-    <div class="nav-logo nav-logo-sirius" onclick="SR.goHome()" style="cursor:pointer">
+    <div class="nav-logo nav-logo-sirius" onclick="goToLanding()" style="cursor:pointer">
       <svg width="14" height="14" viewBox="0 0 60 60" fill="none"><defs><radialGradient id="psgr" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#8a959e" stop-opacity=".6"/></radialGradient></defs><path d="M30 2L32.5 27.5L58 30L32.5 32.5L30 58L27.5 32.5L2 30L27.5 27.5Z" fill="url(#psgr)"/></svg>
       <span class="nav-sirius-text">SIRIUS</span>
     </div>
-    <div style="display:flex;gap:.75rem;align-items:center">
-      <button class="sirius-back-btn" onclick="SR.back()" style="font-size:.75rem">← Back</button>
-      <div data-dropdown-container style="position:relative">
-        <div class="sirius-avatar-trigger nav-profile-trigger" onclick="toggleNavDropdown(this)">
-          <div class="sirius-avatar-circle nav-profile-avatar-sm" id="planNavAvatar">?</div>
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.45)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-        </div>
-        <div class="nav-dropdown" style="right:0"></div>
-      </div>
-    </div>
+    <button class="btn btn-ghost" onclick="goToLanding()" style="font-size:.75rem">← Back</button>
   </nav>
   <div style="max-width:960px;margin:0 auto;padding:3rem 1.5rem">
     <div style="text-align:center;margin-bottom:2.5rem">
@@ -7339,14 +7339,20 @@ function openComparisons(){
 /* ── Auth state: route signed-in users to dashboard ── */
 /* This is called from the existing onAuthStateChanged */
 function routeAfterAuth(user){
-  /* Ensure CURRENT_USER is set before routing */
+  /* After login: stay on landing page in logged-in state.
+     Dashboard is accessible via dropdown only.
+     Do NOT auto-route to dashboard. */
   if(user) CURRENT_USER = user;
-  if(IS_ADMIN){
-    openAdminDashboard();
-    return;
-  }
-  if(CURRENT_USER){
-    openUserDashboard();
+  /* Apply logged-in landing state — hero buttons, hide visitor sections */
+  updateLandingForUser(user);
+  /* Ensure we are on landing */
+  if(typeof showPage === 'function'){
+    var curPage = document.querySelector('.page.active');
+    var curId = curPage ? curPage.id : '';
+    /* Only redirect to landing if we are NOT already on a meaningful page */
+    if(!curId || curId === 'landing' || curId === 'planSelectionPage'){
+      showPage('landing');
+    }
   }
 }
 
@@ -7949,6 +7955,10 @@ function _menuHTML(){
   return (
     '<button class="nav-dropdown-item" onclick="closeNavDropdown();SiriusNav.openDashboard()">'+
       '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</button>'+
+    '<button class="nav-dropdown-item" onclick="closeNavDropdown();Sirius.openSaved(\'savedReports\',\'Saved Property Evaluations\')">'+'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Saved Evaluations</button>'+
+    '<button class="nav-dropdown-item" onclick="closeNavDropdown();Sirius.openSaved(\'savedBuyerBreakdowns\',\'Saved Buyer Breakdowns\')">'+'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>Saved Buyer Breakdowns</button>'+
+    '<button class="nav-dropdown-item" onclick="closeNavDropdown();Sirius.openSaved(\'savedSellerBreakdowns\',\'Saved Seller Breakdowns\')">'+'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Saved Seller Breakdowns</button>'+
+    '<div class="nav-dropdown-divider"></div>'+
     '<button class="nav-dropdown-item" onclick="closeNavDropdown();openProfile&&openProfile()">'+
       '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>My Profile</button>'+
     '<button class="nav-dropdown-item" onclick="closeNavDropdown();Sirius.openSubscriptionPlan()">'+
@@ -8031,7 +8041,7 @@ function _applyLandingState(){
   if(info) info.style.display = logged ? '' : 'none';
 
   if(logged){
-    _renderLoggedInHero();
+    /* Hero buttons handled by updateLandingForUser in the main auth flow */
     _checkLocked();
   } else {
     /* Visitor — restore original hero buttons */
@@ -8482,14 +8492,17 @@ function _onAuth(user){
     /* Only patch navs once after first login */
     if(!_authApplied){
       _authApplied=true;
-      /* Wrap showPage once now — safe because auth has resolved */
       _wrapShowPage();
       setTimeout(_patchStaticNavs,100);
     }
     _loadUserPlan(user);
+    /* Apply landing state — do NOT route to dashboard */
     _applyLandingState();
     _syncAvatars();
     _loadPublicText();
+    /* Ensure we are showing landing, not stuck on plan selection */
+    var cur=doc.querySelector('.page.active');
+    if(cur&&cur.id==='planSelectionPage') _rawShow('landing');
   } else {
     _authApplied=false;
     _navPatched=false;
@@ -8578,6 +8591,11 @@ else _boot();
 win.addEventListener('load',function(){setTimeout(_boot,200);});
 
 })(window, document);
+</script>
+
+<script>
+/* SR alias — backwards compatibility */
+window.SR = window.SiriusNav;
 </script>
 
 <!-- App Check -->
