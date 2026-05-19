@@ -1802,6 +1802,24 @@ body.auth-resetting { pointer-events: none; }
 .scen-vis-chip.on{background:rgba(191,198,209,.12);border-color:rgba(191,198,209,.4);color:var(--ivory)}.scen-vis-chip:hover{border-color:rgba(191,198,209,.35);color:var(--white)}
 .version-row{display:flex;align-items:center;justify-content:space-between;padding:.5rem .65rem;border-radius:6px;background:rgba(10,22,40,.5);border:1px solid rgba(191,198,209,.08);margin-bottom:5px}
 .version-ts{font-size:.72rem;color:var(--brushed-silver)}.version-note{font-size:.68rem;color:var(--text-muted)}
+
+/* ── STEP 2 PERFORMANCE SAFETY PATCH ──
+   Keep layout intact, but reduce heavy animation/backdrop work on logged-in app pages. */
+html { scroll-behavior: auto !important; }
+#adminDashboardPage *, #userDashboardPage *, #profilePage *,
+#sSettingsModal *, #sSavedModal * {
+  animation: none !important;
+  transition-duration: 0.01ms !important;
+}
+#adminDashboardPage .nav, #userDashboardPage .nav, #profilePage .nav {
+  backdrop-filter: none !important;
+}
+#dashUserTable {
+  max-height: 520px;
+  overflow: auto !important;
+  contain: content;
+}
+
 </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.3/math.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -6229,8 +6247,7 @@ function loadProfile(){
   if(!CURRENT_USER) return;
   document.getElementById('pf-email').value = CURRENT_USER.email || '';
 
-  db.collection('users').doc(CURRENT_USER.uid).get().then(function(doc){
-    var data = doc.exists ? (doc.data() || {}) : {};
+  _sGetUserDocData(false).then(function(data){
     var profile = data.profile || {};
     USER_PROFILE = profile;
 
@@ -6332,6 +6349,7 @@ function saveProfile(){
     { merge: true }
   ).then(function(){
     USER_PROFILE = profile;
+    if(_sUserDocCache){_sUserDocCache.profile=profile;_sUserDocCacheAt=Date.now();}
     if(statusEl) statusEl.textContent = '✓ Profile saved successfully';
     setTimeout(function(){ if(statusEl) statusEl.textContent = ''; }, 3000);
     updateProfileDisplay(profile);
@@ -6794,7 +6812,7 @@ function loadDashboardData(){
   var tableEl = document.getElementById('dashUserTable');
   if(tableEl) tableEl.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:.85rem">Loading...</div>';
 
-  db.collection('users').get().then(function(snap){
+  _sWithTimeout(db.collection('users').get(),'Subscribers load',12000).then(function(snap){
     var users = [];
     snap.forEach(function(doc){
       var d = doc.data();
@@ -7284,8 +7302,7 @@ function loadUserDashboard(){
   var wName = document.getElementById('udWelcomeName');
   if(wName) wName.textContent = USER_PROFILE.name || CURRENT_USER.displayName || 'Welcome';
 
-  db.collection('users').doc(CURRENT_USER.uid).get().then(function(doc){
-    var data = doc.exists ? (doc.data()||{}) : {};
+  _sGetUserDocData(false).then(function(data){
     var plan = IS_ADMIN ? 'admin' : (data.plan||'free');
     var status = data.subscriptionStatus || 'active';
     var trialEnd = data.trialEndsAt ? (data.trialEndsAt.toDate ? data.trialEndsAt.toDate() : new Date(data.trialEndsAt)) : null;
@@ -7831,6 +7848,48 @@ function isExpired(){return String(win._userSubStatus||'').toLowerCase()==='expi
 function displayName(){var u=getUser();return (win.USER_PROFILE&&USER_PROFILE.name)||(u&&(u.displayName||u.email))||''}
 function initials(){return (displayName().trim().split(/\s+/).map(function(w){return w[0]||''}).slice(0,2).join('')||'?').toUpperCase()}
 
+/* ── STEP 2 DATA LOADING HELPERS ── */
+var _sUserDocCache=null,_sUserDocCacheAt=0,_sUserDocPromise=null;
+function _sWithTimeout(p,label,ms){
+  ms=ms||12000;
+  return new Promise(function(resolve,reject){
+    var done=false;
+    var timer=setTimeout(function(){
+      if(done)return;
+      done=true;
+      reject(new Error((label||'Request')+' timed out. Check Firebase/network/permissions.'));
+    },ms);
+    p.then(function(v){
+      if(done)return;
+      done=true;clearTimeout(timer);resolve(v);
+    }).catch(function(e){
+      if(done)return;
+      done=true;clearTimeout(timer);reject(e);
+    });
+  });
+}
+function _sGetUserDocData(force){
+  var u=getUser(),d=getDB();
+  if(!u||!d) return Promise.resolve({});
+  var now=Date.now();
+  if(!force&&_sUserDocCache&&now-_sUserDocCacheAt<30000) return Promise.resolve(_sUserDocCache);
+  if(!force&&_sUserDocPromise) return _sUserDocPromise;
+  _sUserDocPromise=_sWithTimeout(d.collection('users').doc(u.uid).get(),'User profile load',12000)
+    .then(function(doc){
+      var data=doc.exists?(doc.data()||{}):{};
+      _sUserDocCache=data;_sUserDocCacheAt=Date.now();_sUserDocPromise=null;
+      return data;
+    })
+    .catch(function(e){
+      _sUserDocPromise=null;
+      console.warn('User document load failed:',e);
+      throw e;
+    });
+  return _sUserDocPromise;
+}
+function _sClearUserDocCache(){_sUserDocCache=null;_sUserDocCacheAt=0;_sUserDocPromise=null;}
+
+
 /* ── PAGE HISTORY STACK ── */
 /* Simple push-down stack. go() pushes current, back() pops. */
 var _stack = [];   /* history of pages before current */
@@ -8219,7 +8278,7 @@ win.Sirius = {
     tb.textContent=title||col;
     body.innerHTML='<div class="s-empty" style="padding:2rem">Loading...</div>';
     m.classList.add('open');
-    d.collection('users').doc(u.uid).collection(col).get()
+    _sWithTimeout(d.collection('users').doc(u.uid).collection(col).get(),'Saved work load',12000)
       .then(function(snap){
         var docs=[];
         snap.forEach(function(doc){
@@ -8347,8 +8406,7 @@ function _renderSettings(tab){
     return;
   }
   c.innerHTML='<div style="padding:1rem;color:rgba(191,198,209,.4);font-size:.82rem">Loading...</div>';
-  d.collection('users').doc(u.uid).get().then(function(doc){
-    var data=doc.exists?doc.data():{};
+  _sGetUserDocData(false).then(function(data){
     var plan=isAdmin()?'Admin':(String(data.planName||data.plan||'Free').charAt(0).toUpperCase()+String(data.planName||data.plan||'Free').slice(1));
     var status=String(data.subscriptionStatus||'Active');
     var trialEnd=data.trialEndsAt||null;
