@@ -6762,8 +6762,8 @@ function updateLandingForUser(user){
   if(heroActions){
     heroActions.innerHTML =
       '<button class="btn btn-primary btn-lg" onclick="goToEval()">Evaluate a Property</button>' +
-      '<button class="btn btn-outline btn-lg" onclick="showPage(\'buyerBreakdownPage\')">Draw Up Buyer Payment Breakdown</button>' +
-      '<button class="btn btn-outline btn-lg" onclick="showPage(\'sellerBreakdownPage\')">Draw Up Seller Payment Breakdown</button>';
+      '<button class="btn btn-outline btn-lg" onclick="showPage(\'buyerBreakdownPage\')">Buyer Payment Breakdown</button>' +
+      '<button class="btn btn-outline btn-lg" onclick="showPage(\'sellerBreakdownPage\')">Seller Payment Breakdown</button>';
   }
 
   /* ── 7. Disclaimer skip for logged-in users ── */
@@ -8064,8 +8064,8 @@ function _renderLoggedInHero(){
   area.className='s-hero-btns s-logged-hero';
   area.innerHTML=
     '<button class="s-hero-btn primary" onclick="_sr_eval()">Evaluate a Property</button>'+
-    '<button class="s-hero-btn secondary" onclick="_sr_buyer()">Draw Up Buyer Payment Breakdown</button>'+
-    '<button class="s-hero-btn secondary" onclick="_sr_seller()">Draw Up Seller Payment Breakdown</button>';
+    '<button class="s-hero-btn secondary" onclick="_sr_buyer()">Buyer Payment Breakdown</button>'+
+    '<button class="s-hero-btn secondary" onclick="_sr_seller()">Seller Payment Breakdown</button>';
   if(!existing){
     /* Insert after original hero-actions div */
     var ha=qs('.hero-actions',container)||qs('#heroActionsOriginal',container);
