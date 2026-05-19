@@ -6679,9 +6679,6 @@ function loadAllConfigs(){
     });
 /* ── Reset landing page to logged-out visitor state ── */
 function resetLandingForVisitor(){
-  /* Do not reset if user is currently logged in */
-  if(window.CURRENT_USER) return;
-
   /* Restore hero CTA */
   var heroActions = document.querySelector('.hero-actions');
   if(heroActions){
@@ -6765,8 +6762,8 @@ function updateLandingForUser(user){
   if(heroActions){
     heroActions.innerHTML =
       '<button class="btn btn-primary btn-lg" onclick="goToEval()">Evaluate a Property</button>' +
-      '<button class="btn btn-outline btn-lg" onclick="SiriusNav.go('buyerBreakdownPage')">Draw Up Buyer Payment Breakdown</button>' +
-      '<button class="btn btn-outline btn-lg" onclick="SiriusNav.go('sellerBreakdownPage')">Draw Up Seller Payment Breakdown</button>';
+      '<button class="btn btn-outline btn-lg" onclick="SiriusNav.go(\'buyerBreakdownPage\')">Draw Up Buyer Payment Breakdown</button>' +
+      '<button class="btn btn-outline btn-lg" onclick="SiriusNav.go(\'sellerBreakdownPage\')">Draw Up Seller Payment Breakdown</button>';
   }
 
   /* ── 7. Disclaimer skip for logged-in users ── */
@@ -7330,11 +7327,10 @@ function loadUserDashboard(){
     if(upgradeEl) upgradeEl.style.display = (plan==='free'&&!IS_ADMIN) ? 'flex' : 'none';
   }).catch(function(e){
     console.error('[loadUserDashboard] Firestore error:', e.code || e.message);
-    /* Still show the page — don't leave it blank */
     var badge = document.getElementById('udPlanBadge');
     if(badge) badge.textContent = IS_ADMIN ? 'Admin' : 'Free Plan';
     var usageText = document.getElementById('udUsageText');
-    if(usageText) usageText.textContent = 'Could not load usage data.';
+    if(usageText) usageText.textContent = 'Usage data unavailable.';
   });
 }
 
@@ -7343,7 +7339,7 @@ function openSavedReports(){
   if(window.Sirius && typeof Sirius.openSaved === 'function'){
     Sirius.openSaved('savedReports', 'Saved Property Evaluations');
   } else {
-    console.warn('[Sirius] openSaved not ready');
+    console.warn('[Sirius] openSaved not ready yet');
   }
 }
 function openComparisons(){
@@ -7590,7 +7586,7 @@ function previewLandingAsVisitor(){
     <div style="font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(191,198,209,.45);margin-bottom:.5rem">Account</div>
     <h1 style="font-family:'Cormorant Garamond',serif;font-weight:300;font-size:2rem;color:var(--ivory);margin-bottom:2rem">My Plan</h1>
     <div id="myPlanContent">
-      <div style="color:rgba(191,198,209,.45);font-size:.85rem">Loading your plan details...</div>
+      <div style="color:rgba(191,198,209,.4);font-size:.85rem;padding:.5rem 0">Loading your plan details...</div>
     </div>
   </div>
 </div>
@@ -8376,135 +8372,108 @@ win.Sirius = {
 
 function openMyPlanPage(){
   SiriusNav.go('myPlanPage');
-  var c = document.getElementById('myPlanContent');
-  var u = getUser(), d = getDB();
+  var c=document.getElementById('myPlanContent');
   if(!c) return;
-  if(!u || !d){
-    c.innerHTML = '<div class="s-card">Please sign in to view your plan.</div>';
+  var u=getUser(), d=getDB();
+  if(!u||!d){
+    c.innerHTML='<div class="s-card">Please sign in to view your plan.</div>';
     return;
   }
-  c.innerHTML = '<div style="color:rgba(191,198,209,.4);font-size:.85rem;padding:.5rem 0">Loading...</div>';
+  c.innerHTML='<div style="color:rgba(191,198,209,.4);font-size:.85rem;padding:.5rem 0">Loading...</div>';
 
   d.collection('users').doc(u.uid).get().then(function(doc){
-    var data = doc.exists ? (doc.data()||{}) : {};
-    var plan = isAdmin() ? 'admin' : (data.plan || data.planName || 'free');
-    var status = String(data.subscriptionStatus || 'active').toLowerCase();
-    var trialEnd = data.trialEndsAt || null;
-    var billing = data.billingCycle || 'monthly';
+    var data=doc.exists?(doc.data()||{}):{};
+    var plan=isAdmin()?'admin':(String(data.plan||data.planName||'free').toLowerCase());
+    var status=String(data.subscriptionStatus||'active').toLowerCase();
+    var trialEnd=data.trialEndsAt||null;
+    var billing=data.billingCycle||'monthly';
 
-    var planLabels = {
-      free:  'Free Plan',
-      starter: 'Starter',
-      pro: 'Professional',
-      professional: 'Professional',
-      agency: 'Agency',
-      admin: 'Admin'
+    var labels={free:'Free Plan',starter:'Starter',pro:'Professional',professional:'Professional',agency:'Agency',admin:'Free Plan — Admin'};
+    var includes={
+      free:    ['Limited calculations per month','Basic property evaluation','Access to the calculator'],
+      starter: ['Up to 20 calculations/month','Save up to 5 reports','PDF export','Email support'],
+      pro:     ['Unlimited calculations','Unlimited saved reports','Full PDF branding','Priority support','Buyer & Seller breakdown tools'],
+      professional:['Unlimited calculations','Unlimited saved reports','Full PDF branding','Priority support','Buyer & Seller breakdown tools'],
+      agency:  ['Everything in Professional','Multi-user access','Custom branding','Dedicated support'],
+      admin:   ['Full platform access','Admin dashboard','All features unlocked','No billing required']
     };
+    var label=labels[plan]||'Free Plan';
+    var feats=includes[plan]||includes.free;
+    var statusLabel=status==='trial'?'Free Trial':status==='expired'?'Expired':'Active';
+    var statusClass=status==='trial'?'trial':status==='expired'?'expired':'active';
 
-    var planIncludes = {
-      free:    ['Limited calculations per month', 'Basic property evaluation', 'Access to calculator'],
-      starter: ['Up to 20 calculations/month', 'Save up to 5 reports', 'PDF export', 'Email support'],
-      pro:     ['Unlimited calculations', 'Unlimited saved reports', 'PDF export with full branding', 'Priority support', 'Buyer & Seller breakdown tools'],
-      professional: ['Unlimited calculations', 'Unlimited saved reports', 'PDF export with full branding', 'Priority support', 'Buyer & Seller breakdown tools'],
-      agency:  ['Everything in Professional', 'Multi-user access', 'Custom branding', 'Dedicated support'],
-      admin:   ['Full platform access', 'Admin dashboard', 'All features unlocked', 'No billing required']
-    };
-
-    var includes = planIncludes[plan] || planIncludes.free;
-    var label = planLabels[plan] || 'Free Plan';
-    var statusLabel = status === 'trial' ? 'Free Trial' : status === 'expired' ? 'Expired' : 'Active';
-    var statusClass = status === 'trial' ? 'trial' : status === 'expired' ? 'expired' : 'active';
-
-    var trialHtml = '';
-    if(status === 'trial' && trialEnd){
-      var dl = daysLeft(trialEnd);
-      var chargeDate = fmtDate(trialEnd);
-      trialHtml = '<div class="s-card" style="margin-top:1rem;border-color:rgba(212,175,55,.25);background:rgba(212,175,55,.05)">' +
-        '<div style="font-size:.78rem;color:rgba(212,175,55,.9);font-weight:700;margin-bottom:.4rem">Free Trial Active</div>' +
-        '<div style="font-size:.82rem;color:rgba(191,198,209,.7);line-height:1.6">' +
-        (dl !== null ? dl + ' day' + (dl!==1?'s':'') + ' remaining. ' : '') +
-        'Your card will be charged on <strong style="color:#F7F6F2">' + chargeDate + '</strong> unless you cancel before then.' +
-        '</div></div>';
+    var trialHtml='';
+    if(status==='trial'&&trialEnd){
+      var td=trialEnd.toDate?trialEnd.toDate():trialEnd.seconds?new Date(trialEnd.seconds*1000):new Date(trialEnd);
+      var dl=Math.max(0,Math.ceil((td-Date.now())/86400000));
+      var chargeDate=td.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+      trialHtml='<div class="s-card" style="margin-top:1rem;border-color:rgba(212,175,55,.25);background:rgba(212,175,55,.05)">'+
+        '<div style="font-size:.78rem;font-weight:700;color:rgba(212,175,55,.9);margin-bottom:.4rem">Free Trial Active</div>'+
+        '<div style="font-size:.82rem;color:rgba(191,198,209,.7);line-height:1.6">'+dl+' day'+(dl!==1?'s':'')+' remaining. Your card will be charged on <strong style="color:#F7F6F2">'+chargeDate+'</strong> unless you cancel before then.</div>'+
+      '</div>';
     }
 
-    var upgradeHtml = '';
-    if(plan === 'starter'){
-      upgradeHtml = '<div class="s-card" style="margin-top:1rem">' +
-        '<div style="font-size:.82rem;font-weight:700;color:#F7F6F2;margin-bottom:.4rem">Upgrade to Professional</div>' +
-        '<div style="font-size:.8rem;color:rgba(191,198,209,.65);line-height:1.6;margin-bottom:.85rem">Get unlimited calculations, full PDF branding, and priority support.</div>' +
-        '<button class="btn btn-primary" onclick="SiriusNav.go('planSelectionPage');renderPlanSelectionGrid&&renderPlanSelectionGrid()">Upgrade Now</button>' +
-        '</div>';
+    var upgradeHtml='';
+    if(plan==='starter'){
+      upgradeHtml='<div class="s-card" style="margin-top:1rem">'+
+        '<div style="font-size:.82rem;font-weight:700;color:#F7F6F2;margin-bottom:.4rem">Upgrade to Professional</div>'+
+        '<div style="font-size:.8rem;color:rgba(191,198,209,.65);line-height:1.6;margin-bottom:.85rem">Unlimited calculations, full PDF branding, and priority support.</div>'+
+        '<button class="btn btn-primary" onclick="SiriusNav.go('planSelectionPage');renderPlanSelectionGrid&&renderPlanSelectionGrid()">Upgrade Now</button>'+
+      '</div>';
     }
 
-    var expiredHtml = '';
-    if(status === 'expired'){
-      expiredHtml = '<div class="s-card" style="margin-top:1rem;border-color:rgba(231,76,60,.25);background:rgba(231,76,60,.05)">' +
-        '<div style="font-size:.82rem;font-weight:700;color:rgba(231,76,60,.9);margin-bottom:.4rem">Trial Expired</div>' +
-        '<div style="font-size:.8rem;color:rgba(191,198,209,.65);line-height:1.6;margin-bottom:.85rem">Your free trial has ended. Resubscribe to continue using Sirius.</div>' +
-        '<button class="btn btn-primary" onclick="SiriusNav.go('planSelectionPage');renderPlanSelectionGrid&&renderPlanSelectionGrid()">Choose a Plan</button>' +
-        '</div>';
+    var expiredHtml='';
+    if(status==='expired'){
+      expiredHtml='<div class="s-card" style="margin-top:1rem;border-color:rgba(231,76,60,.25);background:rgba(231,76,60,.05)">'+
+        '<div style="font-size:.82rem;font-weight:700;color:rgba(231,76,60,.9);margin-bottom:.4rem">Trial Expired</div>'+
+        '<div style="font-size:.8rem;color:rgba(191,198,209,.65);line-height:1.6;margin-bottom:.85rem">Your free trial has ended. Resubscribe to continue using Sirius.</div>'+
+        '<button class="btn btn-primary" onclick="SiriusNav.go('planSelectionPage');renderPlanSelectionGrid&&renderPlanSelectionGrid()">Choose a Plan</button>'+
+      '</div>';
     }
 
-    var billingHtml = '';
-    if(plan !== 'free' && plan !== 'admin' && status !== 'trial' && status !== 'expired'){
-      billingHtml = '<div class="s-kpi-row" style="margin-top:1rem">' +
-        '<div class="s-kpi"><div class="s-kpi-label">Billing cycle</div>' +
-        '<div class="s-kpi-value">' + (billing === 'yearly' ? 'Annual' : billing === 'monthly' ? 'Monthly' : billing) + '</div></div>' +
-        '<div class="s-kpi"><div class="s-kpi-label">Next charge</div>' +
-        '<div class="s-kpi-value">' + fmtDate(data.nextBillingDate || null) + '</div></div>' +
-        '</div>';
+    var billingHtml='';
+    if(plan!=='free'&&plan!=='admin'&&status!=='trial'&&status!=='expired'){
+      var nextCharge=data.nextBillingDate?
+        (data.nextBillingDate.toDate?data.nextBillingDate.toDate():new Date(data.nextBillingDate.seconds*1000)).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):
+        '—';
+      billingHtml='<div class="s-kpi-row" style="margin-top:1rem">'+
+        '<div class="s-kpi"><div class="s-kpi-label">Billing cycle</div><div class="s-kpi-value">'+(billing==='yearly'?'Annual':billing==='monthly'?'Monthly':billing)+'</div></div>'+
+        '<div class="s-kpi"><div class="s-kpi-label">Next charge</div><div class="s-kpi-value">'+nextCharge+'</div></div>'+
+      '</div>';
     }
 
-    var includesList = includes.map(function(f){
-      return '<li style="display:flex;gap:.5rem;align-items:flex-start;font-size:.8rem;color:rgba(191,198,209,.75);line-height:1.5;margin-bottom:.35rem">' +
-        '<span style="color:rgba(46,204,113,.8);font-weight:900;flex-shrink:0">✓</span>' + f + '</li>';
+    var featList=feats.map(function(f){
+      return '<li style="display:flex;gap:.5rem;align-items:flex-start;font-size:.8rem;color:rgba(191,198,209,.75);line-height:1.5;margin-bottom:.35rem">'+
+        '<span style="color:rgba(46,204,113,.8);font-weight:900;flex-shrink:0">✓</span>'+f+'</li>';
     }).join('');
 
-    c.innerHTML =
-      '<div class="s-card">' +
-        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">' +
-          '<div>' +
-            '<div class="s-kpi-label">Current Plan</div>' +
-            '<div style="font-size:1.5rem;font-family:'Cormorant Garamond',serif;font-weight:700;color:#F7F6F2;margin-top:.2rem">' + label + '</div>' +
-          '</div>' +
-          '<span class="s-status ' + statusClass + '">' + statusLabel + '</span>' +
-        '</div>' +
-        (plan === 'admin' ? '<div style="font-size:.82rem;color:rgba(191,198,209,.6);line-height:1.6;margin-bottom:.75rem">Admin accounts are not billed. You have full access to all platform features.</div>' : '') +
-        billingHtml +
-        '<div style="margin-top:1rem">' +
-          '<div style="font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(191,198,209,.4);font-weight:800;margin-bottom:.65rem">What's included</div>' +
-          '<ul style="list-style:none;padding:0;margin:0">' + includesList + '</ul>' +
-        '</div>' +
-      '</div>' +
-      trialHtml +
-      upgradeHtml +
-      expiredHtml;
+    c.innerHTML=
+      '<div class="s-card">'+
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">'+
+          '<div><div class="s-kpi-label">Current Plan</div>'+
+          '<div style="font-size:1.5rem;font-family:'Cormorant Garamond',serif;font-weight:700;color:#F7F6F2;margin-top:.2rem">'+label+'</div></div>'+
+          '<span class="s-status '+statusClass+'">'+statusLabel+'</span>'+
+        '</div>'+
+        (plan==='admin'?'<div style="font-size:.82rem;color:rgba(191,198,209,.6);line-height:1.6;margin-bottom:.75rem">Admin accounts are not billed. You have full access to all platform features.</div>':'')+
+        billingHtml+
+        '<div style="margin-top:1rem">'+
+          '<div style="font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(191,198,209,.4);font-weight:800;margin-bottom:.65rem">What's included</div>'+
+          '<ul style="list-style:none;padding:0;margin:0">'+featList+'</ul>'+
+        '</div>'+
+      '</div>'+
+      trialHtml+upgradeHtml+expiredHtml;
 
   }).catch(function(e){
-    console.error('[MyPlan] Failed to load:', e);
-    if(isAdmin()){
-      /* Admin may not have a user document — show admin state directly */
-      document.getElementById('myPlanContent').innerHTML =
-        '<div class="s-card">' +
-          '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:.75rem">' +
-            '<div><div class="s-kpi-label">Current Plan</div>' +
-            '<div style="font-size:1.5rem;font-family:'Cormorant Garamond',serif;font-weight:700;color:#F7F6F2">Free Plan — Admin</div></div>' +
-            '<span class="s-status active">Admin Access</span>' +
-          '</div>' +
-          '<p style="font-size:.82rem;color:rgba(191,198,209,.6);line-height:1.6">Admin accounts are not billed. You have full access to all platform features.</p>' +
-        '</div>';
-    } else {
-      document.getElementById('myPlanContent').innerHTML =
-        '<div class="s-card" style="color:rgba(231,76,60,.75)">Could not load plan details. Please try again.</div>';
-    }
+    console.error('[MyPlan] load error:', e.code||e.message);
+    /* Admin fallback: may not have a user document */
+    c.innerHTML= isAdmin()
+      ? '<div class="s-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:.75rem">'+
+          '<div><div class="s-kpi-label">Current Plan</div>'+
+          '<div style="font-size:1.5rem;font-family:'Cormorant Garamond',serif;font-weight:700;color:#F7F6F2">Free Plan — Admin</div></div>'+
+          '<span class="s-status active">Admin Access</span></div>'+
+          '<p style="font-size:.82rem;color:rgba(191,198,209,.6);line-height:1.6">Admin accounts are not billed. Full access to all platform features.</p></div>'
+      : '<div class="s-card" style="color:rgba(231,76,60,.75)">Could not load plan details. Please check your connection and try again.</div>';
   });
-}
-
-function daysLeft(v){
-  try{
-    var d = v && v.toDate ? v.toDate() : v && v.seconds ? new Date(v.seconds*1000) : new Date(v);
-    return Math.max(0, Math.ceil((d - Date.now()) / 86400000));
-  } catch(e){ return null; }
 }
 
 function _renderSettings(tab){
