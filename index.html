@@ -2151,7 +2151,7 @@ body.auth-resetting { pointer-events: none; }
     <div class="eval-header-logo nav-logo-sirius" onclick="goToLanding()" style="cursor:pointer" title="Go to home"><svg width="13" height="13" viewBox="0 0 60 60" fill="none" aria-hidden="true"><defs><radialGradient id="starEvalGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff"/><stop offset="40%" stop-color="#e0e8f0"/><stop offset="100%" stop-color="#8a959e" stop-opacity="0.6"/></radialGradient></defs><path d="M30 1 L32.8 27.2 L59 30 L32.8 32.8 L30 59 L27.2 32.8 L1 30 L27.2 27.2 Z" fill="url(#starEvalGrad)"/><path d="M30 18 L31.5 28.5 L42 30 L31.5 31.5 L30 42 L28.5 31.5 L18 30 L28.5 28.5 Z" fill="white" opacity="0.8"/></svg><span class="nav-sirius-text" style="font-size:1.1rem">SIRIUS</span></div>
     <div class="eval-header-actions">
       <div class="plan-chip" id="planChip">Pro Plan</div>
-      <button class="btn btn-ghost btn-sm" onclick="SR.back()">&#8592; Back</button>
+      <button class="btn btn-ghost btn-sm" onclick="SiriusNav.back()">&#8592; Back</button>
       <div data-dropdown-container style="position:relative">
         <div class="sirius-avatar-trigger nav-profile-trigger" onclick="toggleNavDropdown(this)" style="padding:.22rem .38rem">
           <div class="sirius-avatar-circle nav-profile-avatar-sm" id="evalNavAvatar" style="width:24px;height:24px;font-size:.68rem">?</div>
@@ -7547,157 +7547,170 @@ function previewLandingAsVisitor(){
 
 
 
-<!-- ============================================================
-  SIRIUS RUNTIME v2
-  Full nav, back stack, pricing visibility, trial display,
-  saved work modals, settings, page-specific nav bars.
-============================================================ -->
-
-<!-- Buyer Breakdown Page -->
+<!-- ================================================================
+  SIRIUS RUNTIME v4 — complete, self-contained, no dependencies on
+  previous patch layers. Handles: page stack, nav, dropdown, CTA,
+  pricing visibility, trial, saved work, settings, locked state.
+================================================================ -->
 <style>
-  /* ── TOOL PAGES ── */
-  .sirius-tool-shell{background:var(--bg,#0A1628);min-height:100vh;color:var(--white,#F7F6F2)}
-  .sirius-tool-wrap{max-width:920px;margin:0 auto;padding:6.5rem 1.5rem 4rem}
-  .sirius-tool-kicker{font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(191,198,209,.55);margin-bottom:.5rem}
-  .sirius-tool-title{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:2rem;color:#F7F6F2;margin-bottom:.5rem}
-  .sirius-tool-sub{font-size:.9rem;color:rgba(191,198,209,.72);line-height:1.7;max-width:640px;margin-bottom:1.5rem}
-  .sirius-placeholder-card{background:rgba(17,32,58,.5);border:1px solid rgba(191,198,209,.14);border-radius:14px;padding:1.5rem}
-  .sirius-placeholder-card h3{font-size:.86rem;font-weight:700;color:#F7F6F2;margin-bottom:.75rem}
-  .sirius-placeholder-list{margin:.75rem 0 0;padding:0;list-style:none;display:grid;gap:.5rem}
-  .sirius-placeholder-list li{font-size:.82rem;color:rgba(191,198,209,.72);display:flex;gap:.5rem;align-items:flex-start;line-height:1.5}
-  .sirius-placeholder-list li:before{content:'·';color:#BFC6D1;font-weight:700;flex-shrink:0}
-  /* ── UNIVERSAL NAV BAR ── */
-  .sirius-universal-nav{display:flex;align-items:center;justify-content:space-between;padding:.9rem 2rem;background:rgba(10,27,46,.96);border-bottom:1px solid rgba(191,198,209,.12);backdrop-filter:blur(12px);position:fixed;top:0;left:0;right:0;z-index:200}
-  .sirius-nav-left{display:flex;align-items:center;gap:.75rem}
-  .sirius-nav-right{display:flex;align-items:center;gap:.75rem}
-  .sirius-back-btn{display:inline-flex;align-items:center;gap:.35rem;background:transparent;border:1px solid rgba(191,198,209,.2);border-radius:8px;color:rgba(191,198,209,.75);font-size:.75rem;font-family:var(--font-body,system-ui);padding:.35rem .75rem;cursor:pointer;transition:all .18s ease}
-  .sirius-back-btn:hover{border-color:rgba(191,198,209,.45);color:#F7F6F2}
-  .sirius-avatar-trigger{display:flex;align-items:center;gap:.45rem;cursor:pointer;padding:.28rem .45rem .28rem .32rem;border-radius:999px;border:1px solid rgba(191,198,209,.18);background:rgba(255,255,255,.035);transition:.18s ease}
-  .sirius-avatar-trigger:hover{border-color:rgba(191,198,209,.38);background:rgba(191,198,209,.07)}
-  .sirius-avatar-circle{width:28px;height:28px;border-radius:50%;background:rgba(191,198,209,.12);border:1px solid rgba(191,198,209,.22);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#F7F6F2;flex-shrink:0}
-  .sirius-avatar-name{font-size:.76rem;color:#F7F6F2;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .sirius-trial-badge{font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(212,175,55,.9);background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.25);border-radius:99px;padding:.18rem .55rem;white-space:nowrap}
-  /* ── MODALS ── */
-  .sirius-modal-shell{position:fixed;inset:0;background:rgba(5,12,24,.82);backdrop-filter:blur(10px);z-index:120000;display:none;align-items:center;justify-content:center;padding:1rem}
-  .sirius-modal-shell.open{display:flex}
-  .sirius-modal-box{width:min(980px,96vw);max-height:92vh;overflow:auto;background:#0A1628;border:1px solid rgba(191,198,209,.2);border-radius:18px;box-shadow:0 28px 100px rgba(0,0,0,.55)}
-  .sirius-modal-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.2rem 1.4rem;border-bottom:1px solid rgba(191,198,209,.1);flex-shrink:0}
-  .sirius-modal-title-text{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:700;color:#F7F6F2}
-  .sirius-modal-body{padding:1.4rem}
-  /* ── SAVED WORK TABLE ── */
-  .sirius-table{width:100%;border-collapse:collapse}
-  .sirius-table th{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(191,198,209,.45);padding:.7rem .8rem;text-align:left;border-bottom:1px solid rgba(191,198,209,.1)}
-  .sirius-table td{padding:.75rem .8rem;border-bottom:1px solid rgba(191,198,209,.07);font-size:.78rem;color:rgba(247,246,242,.86);vertical-align:middle}
-  .sirius-table tr:last-child td{border-bottom:none}
-  .sirius-table tr:hover td{background:rgba(191,198,209,.03)}
-  .sirius-empty-state{text-align:center;padding:3rem 1rem;color:rgba(191,198,209,.45);font-size:.88rem}
-  .sirius-empty-state svg{margin-bottom:.75rem;opacity:.3}
-  .sirius-action-set{display:flex;gap:.4rem;flex-wrap:wrap}
-  .sirius-mini-btn{border:1px solid rgba(191,198,209,.18);background:rgba(255,255,255,.04);color:#F7F6F2;border-radius:7px;padding:.35rem .65rem;font-size:.72rem;cursor:pointer;font-family:var(--font-body,system-ui);transition:.15s ease}
-  .sirius-mini-btn:hover{background:rgba(191,198,209,.1)}
-  .sirius-mini-btn.danger{border-color:rgba(231,76,60,.28);color:rgba(231,76,60,.85)}
-  .sirius-mini-btn.danger:hover{background:rgba(231,76,60,.08)}
-  /* ── SETTINGS ── */
-  .sirius-settings-grid{display:grid;grid-template-columns:190px 1fr;gap:1.25rem}
-  .sirius-settings-tabs{display:flex;flex-direction:column;gap:.35rem}
-  .sirius-settings-tab{padding:.7rem .85rem;border-radius:9px;border:1px solid rgba(191,198,209,.08);background:rgba(255,255,255,.03);color:rgba(191,198,209,.72);font-size:.78rem;cursor:pointer;text-align:left;font-family:var(--font-body,system-ui);transition:.15s ease}
-  .sirius-settings-tab.active,.sirius-settings-tab:hover{background:rgba(191,198,209,.1);border-color:rgba(191,198,209,.22);color:#F7F6F2}
-  .sirius-kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.85rem;margin-top:1rem}
-  .sirius-mini-kpi{background:rgba(255,255,255,.035);border:1px solid rgba(191,198,209,.09);border-radius:12px;padding:.9rem}
-  .sirius-mini-label{font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.48);font-weight:800;margin-bottom:.35rem}
-  .sirius-mini-value{font-size:.92rem;color:#F7F6F2;font-weight:700;line-height:1.35;word-break:break-word}
-  .sirius-status-pill{display:inline-flex;align-items:center;gap:.4rem;padding:.22rem .62rem;border-radius:99px;border:1px solid rgba(46,204,113,.25);background:rgba(46,204,113,.09);color:#2ecc71;font-size:.62rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
-  .sirius-status-pill.trial{border-color:rgba(212,175,55,.3);background:rgba(212,175,55,.09);color:rgba(212,175,55,.95)}
-  .sirius-status-pill.expired{border-color:rgba(231,76,60,.3);background:rgba(231,76,60,.08);color:rgba(231,76,60,.9)}
-  .sirius-saas-card{background:rgba(17,43,77,.55);border:1px solid rgba(191,198,209,.12);border-radius:14px;padding:1.3rem}
-  /* ── HERO BUTTONS — three equal-size cards ── */
-  .sirius-hero-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:.85rem;margin-top:2rem;max-width:680px}
-  .sirius-hero-btn{display:flex;flex-direction:column;align-items:flex-start;gap:.4rem;padding:1rem 1.1rem;border-radius:10px;border:1px solid rgba(191,198,209,.2);background:rgba(191,198,209,.055);color:#F7F6F2;font-family:var(--font-body,system-ui);cursor:pointer;transition:all .2s ease;text-align:left;min-height:72px}
-  .sirius-hero-btn:hover{border-color:rgba(191,198,209,.42);background:rgba(191,198,209,.1);transform:translateY(-2px)}
-  .sirius-hero-btn.primary{background:var(--gold,#BFC6D1);color:#0A1628;border-color:var(--gold,#BFC6D1)}
-  .sirius-hero-btn.primary:hover{background:#F7F6F2;border-color:#F7F6F2}
-  .sirius-hero-btn-label{font-size:.72rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;line-height:1.2}
-  .sirius-hero-btn-sub{font-size:.68rem;color:rgba(191,198,209,.6);line-height:1.3}
-  .sirius-hero-btn.primary .sirius-hero-btn-sub{color:rgba(10,22,40,.6)}
-  /* ── TRIAL BANNER on dashboard ── */
-  .sirius-trial-banner{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;background:linear-gradient(135deg,rgba(212,175,55,.1),rgba(212,175,55,.04));border:1px solid rgba(212,175,55,.25);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem}
-  .sirius-trial-banner-text{font-size:.84rem;color:rgba(212,175,55,.95);font-weight:600}
-  .sirius-trial-banner-sub{font-size:.75rem;color:rgba(191,198,209,.6);margin-top:.18rem}
-  /* ── LOCKED STATE ── */
-  .sirius-locked-overlay{position:fixed;inset:0;background:rgba(5,12,22,.96);z-index:99000;display:flex;align-items:center;justify-content:center;padding:1.5rem}
-  .sirius-locked-card{background:#0A1628;border:1px solid rgba(191,198,209,.2);border-radius:18px;max-width:440px;width:100%;padding:2.5rem 2rem;text-align:center}
-  .sirius-locked-card h2{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;color:#F7F6F2;margin:.75rem 0 .5rem}
-  .sirius-locked-card p{font-size:.88rem;color:rgba(191,198,209,.7);line-height:1.65;margin-bottom:1.5rem}
-  /* ── UPGRADE BANNER on dashboard (starter only) ── */
-  .sirius-upgrade-banner{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;background:rgba(191,198,209,.05);border:1px solid rgba(191,198,209,.15);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem}
-  /* ── PREVIEW BANNER ── */
-  #siriusPreviewBanner{position:fixed;top:0;left:0;right:0;z-index:100000;background:rgba(191,198,209,.98);color:#0A1628;display:none;align-items:center;justify-content:space-between;padding:.5rem 1.2rem;min-height:46px;font-size:.72rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase;box-shadow:0 8px 26px rgba(0,0,0,.35)}
-  #siriusPreviewBanner.visible{display:flex}
-  #siriusPreviewBanner button{background:#0A1628;color:#F7F6F2;border:none;padding:.35rem .85rem;border-radius:7px;cursor:pointer;font-weight:800;font-size:.72rem;font-family:var(--font-body,system-ui)}
-  body.sirius-preview-mode #landing .nav{top:46px!important}
-  body.sirius-preview-mode #landing{padding-top:46px!important}
-  /* ── INTERNAL PAGE PADDING ── */
-  #userDashboardPage > .sirius-page-content,
-  #adminDashboardPage > .sirius-page-content,
-  #profilePage > .profile-page,
-  #planSelectionPage > .sirius-page-content{padding-top:72px}
-  /* ── PRICING VISIBILITY ── */
-  /* Admin: never show pricing, never show visitor sections */
-  body.sirius-logged-in:not(.sirius-preview-mode) #pricing{display:none!important}
-  body.sirius-logged-in:not(.sirius-preview-mode) #landing .nav-links{display:none!important}
-  body.sirius-logged-in:not(.sirius-preview-mode) #landing > section:not(#mainHero){display:none!important}
-  body.sirius-logged-in:not(.sirius-preview-mode) #landing footer{display:none!important}
-  /* Free plan only: show pricing section */
-  body.sirius-logged-in.sirius-plan-free:not(.sirius-preview-mode) #pricing{display:block!important}
-  /* Request Demo button: hidden when logged in */
-  body.sirius-logged-in:not(.sirius-preview-mode) .btn-ghost[onclick*="openModal"]{display:none!important}
-  /* Preview mode: show everything exactly as visitor sees it */
-  body.sirius-preview-mode #landing > section,
-  body.sirius-preview-mode #landing footer{display:block!important}
-  body.sirius-preview-mode #siriusBuyerBtn,
-  body.sirius-preview-mode #siriusSellerBtn{display:none!important}
-  body.sirius-preview-mode .sirius-avatar-trigger,
-  body.sirius-preview-mode #navUserInfo{display:none!important}
-  body.sirius-preview-mode #navSignInBtn{display:inline-flex!important}
-  body.sirius-preview-mode #landing .nav-links{display:flex!important}
-  /* ── ADMIN FAB ── */
-  .admin-fab{bottom:auto!important;right:1rem!important;top:76px!important;z-index:8500!important}
-  /* ── DROPDOWN stays on top ── */
-  .nav-dropdown{z-index:99999!important}
-  @media(max-width:760px){.sirius-settings-grid{grid-template-columns:1fr}.sirius-hero-actions{grid-template-columns:1fr}}
+/* ── TOOL SHELLS ── */
+.sirius-tool-shell{background:var(--bg,#0A1628);min-height:100vh;color:#F7F6F2}
+.sirius-tool-wrap{max-width:920px;margin:0 auto;padding:6rem 1.5rem 4rem}
+.sirius-tool-kicker{font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(191,198,209,.5);margin-bottom:.5rem}
+.sirius-tool-title{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:2rem;color:#F7F6F2;margin-bottom:.5rem}
+.sirius-tool-sub{font-size:.9rem;color:rgba(191,198,209,.68);line-height:1.7;max-width:640px;margin-bottom:1.5rem}
+.sirius-ph-card{background:rgba(17,32,58,.5);border:1px solid rgba(191,198,209,.14);border-radius:14px;padding:1.5rem}
+.sirius-ph-card h3{font-size:.86rem;font-weight:700;color:#F7F6F2;margin-bottom:.75rem}
+.sirius-ph-list{padding:0;list-style:none;display:grid;gap:.5rem}
+.sirius-ph-list li{font-size:.82rem;color:rgba(191,198,209,.68);display:flex;gap:.5rem;line-height:1.5}
+.sirius-ph-list li::before{content:'·';color:#BFC6D1;font-weight:700;flex-shrink:0}
+/* ── UNIVERSAL NAV ── */
+.s-nav{display:flex;align-items:center;justify-content:space-between;padding:.85rem 2rem;background:rgba(10,27,46,.97);border-bottom:1px solid rgba(191,198,209,.12);backdrop-filter:blur(12px);position:fixed;top:0;left:0;right:0;z-index:500}
+.s-nav-left{display:flex;align-items:center;gap:.75rem}
+.s-nav-right{display:flex;align-items:center;gap:.75rem}
+.s-back{display:inline-flex;align-items:center;gap:.35rem;background:transparent;border:1px solid rgba(191,198,209,.18);border-radius:8px;color:rgba(191,198,209,.7);font-size:.75rem;font-family:var(--font-body,system-ui);padding:.32rem .7rem;cursor:pointer;transition:all .15s ease}
+.s-back:hover{border-color:rgba(191,198,209,.4);color:#F7F6F2}
+.s-avatar-wrap{display:flex;align-items:center;gap:.4rem;cursor:pointer;padding:.25rem .42rem .25rem .3rem;border-radius:999px;border:1px solid rgba(191,198,209,.16);background:rgba(255,255,255,.03);transition:.15s ease}
+.s-avatar-wrap:hover{border-color:rgba(191,198,209,.35);background:rgba(191,198,209,.06)}
+.s-avatar-circle{width:26px;height:26px;border-radius:50%;background:rgba(191,198,209,.12);border:1px solid rgba(191,198,209,.2);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:#F7F6F2;flex-shrink:0;letter-spacing:.02em}
+.s-avatar-name{font-size:.74rem;color:#F7F6F2;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.s-trial-pill{font-size:.58rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(212,175,55,.9);background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.22);border-radius:99px;padding:.16rem .52rem;white-space:nowrap}
+/* ── INTERNAL PAGE PADDING (fixed nav) ── */
+#adminDashboardPage.active,#userDashboardPage.active,#profilePage.active,#planSelectionPage.active{padding-top:0}
+#adminDashboardPage.active > div[style*="max-width"],
+#userDashboardPage.active > div[style*="max-width"],
+#profilePage.active .profile-page{padding-top:4.5rem!important}
+/* ── DROPDOWN ── */
+.nav-dropdown{z-index:99999!important;min-width:218px}
+/* ── MODALS ── */
+.s-modal-bg{position:fixed;inset:0;background:rgba(5,12,24,.84);backdrop-filter:blur(10px);z-index:200000;display:none;align-items:center;justify-content:center;padding:1rem}
+.s-modal-bg.open{display:flex}
+.s-modal-box{width:min(960px,96vw);max-height:92vh;overflow:auto;background:#0A1628;border:1px solid rgba(191,198,209,.2);border-radius:18px;box-shadow:0 28px 100px rgba(0,0,0,.55)}
+.s-modal-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.15rem 1.4rem;border-bottom:1px solid rgba(191,198,209,.1)}
+.s-modal-title{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:700;color:#F7F6F2}
+.s-modal-body{padding:1.4rem}
+/* ── SAVED WORK TABLE ── */
+.s-table{width:100%;border-collapse:collapse}
+.s-table th{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(191,198,209,.42);padding:.65rem .8rem;text-align:left;border-bottom:1px solid rgba(191,198,209,.1)}
+.s-table td{padding:.75rem .8rem;border-bottom:1px solid rgba(191,198,209,.07);font-size:.78rem;color:rgba(247,246,242,.85);vertical-align:middle}
+.s-table tr:last-child td{border-bottom:none}
+.s-table tr:hover td{background:rgba(191,198,209,.025)}
+.s-act{display:flex;gap:.38rem;flex-wrap:wrap}
+.s-btn{border:1px solid rgba(191,198,209,.16);background:rgba(255,255,255,.04);color:#F7F6F2;border-radius:7px;padding:.32rem .62rem;font-size:.72rem;cursor:pointer;font-family:var(--font-body,system-ui);transition:.14s ease}
+.s-btn:hover{background:rgba(191,198,209,.09)}
+.s-btn.danger{border-color:rgba(231,76,60,.26);color:rgba(231,76,60,.82)}
+.s-btn.danger:hover{background:rgba(231,76,60,.07)}
+.s-empty{text-align:center;padding:3rem 1.5rem;color:rgba(191,198,209,.4);font-size:.86rem}
+/* ── SETTINGS ── */
+.s-settings-grid{display:grid;grid-template-columns:185px 1fr;gap:1.25rem}
+.s-tabs{display:flex;flex-direction:column;gap:.32rem}
+.s-tab{padding:.68rem .85rem;border-radius:9px;border:1px solid rgba(191,198,209,.08);background:rgba(255,255,255,.03);color:rgba(191,198,209,.68);font-size:.78rem;cursor:pointer;text-align:left;font-family:var(--font-body,system-ui);transition:.14s ease}
+.s-tab:hover,.s-tab.active{background:rgba(191,198,209,.09);border-color:rgba(191,198,209,.2);color:#F7F6F2}
+.s-kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:.8rem;margin-top:.9rem}
+.s-kpi{background:rgba(255,255,255,.035);border:1px solid rgba(191,198,209,.09);border-radius:12px;padding:.85rem}
+.s-kpi-label{font-size:.56rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.45);font-weight:800;margin-bottom:.32rem}
+.s-kpi-value{font-size:.9rem;color:#F7F6F2;font-weight:700;line-height:1.3;word-break:break-word}
+.s-card{background:rgba(17,43,77,.5);border:1px solid rgba(191,198,209,.11);border-radius:13px;padding:1.25rem}
+.s-status{display:inline-flex;align-items:center;padding:.2rem .6rem;border-radius:99px;font-size:.6rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+.s-status.active{border:1px solid rgba(46,204,113,.24);background:rgba(46,204,113,.09);color:#2ecc71}
+.s-status.trial{border:1px solid rgba(212,175,55,.28);background:rgba(212,175,55,.09);color:rgba(212,175,55,.95)}
+.s-status.expired{border:1px solid rgba(231,76,60,.28);background:rgba(231,76,60,.08);color:rgba(231,76,60,.88)}
+/* ── HERO BUTTONS (logged in) ── */
+.s-hero-btns{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.75rem}
+.s-hero-btn{display:inline-flex;align-items:center;justify-content:center;min-width:180px;padding:.85rem 1.35rem;border-radius:9px;font-family:var(--font-body,system-ui);font-size:.82rem;font-weight:700;letter-spacing:.04em;cursor:pointer;transition:all .18s ease;text-align:center;white-space:nowrap}
+.s-hero-btn.primary{background:var(--gold,#BFC6D1);color:#0A1628;border:none}
+.s-hero-btn.primary:hover{background:#F7F6F2}
+.s-hero-btn.secondary{background:transparent;color:#F7F6F2;border:1px solid rgba(191,198,209,.25)}
+.s-hero-btn.secondary:hover{border-color:rgba(191,198,209,.5);background:rgba(191,198,209,.06)}
+/* ── TRIAL BANNER ── */
+.s-trial-banner{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;background:linear-gradient(135deg,rgba(212,175,55,.09),rgba(212,175,55,.03));border:1px solid rgba(212,175,55,.22);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem}
+.s-upgrade-banner{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;background:rgba(191,198,209,.04);border:1px solid rgba(191,198,209,.13);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem}
+/* ── LOCKED OVERLAY ── */
+.s-locked{position:fixed;inset:0;background:rgba(5,12,22,.97);z-index:99000;display:none;align-items:center;justify-content:center;padding:1.5rem}
+.s-locked-card{background:#0A1628;border:1px solid rgba(191,198,209,.18);border-radius:18px;max-width:420px;width:100%;padding:2.5rem 2rem;text-align:center}
+.s-locked-card h2{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;color:#F7F6F2;margin:.75rem 0 .5rem}
+.s-locked-card p{font-size:.88rem;color:rgba(191,198,209,.68);line-height:1.65;margin-bottom:1.5rem}
+/* ── PREVIEW BANNER ── */
+#sP-banner{position:fixed;top:0;left:0;right:0;z-index:100000;background:rgba(191,198,209,.97);color:#0A1628;display:none;align-items:center;justify-content:space-between;padding:.5rem 1.2rem;min-height:44px;font-size:.7rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+#sP-banner.on{display:flex}
+#sP-banner button{background:#0A1628;color:#F7F6F2;border:none;padding:.32rem .8rem;border-radius:7px;cursor:pointer;font-weight:800;font-size:.7rem;font-family:var(--font-body,system-ui)}
+body.s-preview .nav{top:44px!important}
+/* ── SAVED WORK PANEL ── */
+.s-saved-panel{margin:1.5rem 0}
+/* ── PRICING VISIBILITY ── */
+/* Logged in + paid/admin: hide all visitor sections */
+body.s-in:not(.s-preview) #landing > section:not(#mainHero){display:none!important}
+body.s-in:not(.s-preview) #landing footer{display:none!important}
+body.s-in:not(.s-preview) #landing .nav-links{display:none!important}
+body.s-in:not(.s-preview) .btn-ghost[onclick*="openModal"]{display:none!important}
+/* Free plan: show pricing */
+body.s-in.s-free:not(.s-preview) #pricing{display:block!important}
+/* Preview: show everything visitor would see */
+body.s-preview #landing > section{display:block!important}
+body.s-preview #landing footer{display:block!important}
+body.s-preview #landing .nav-links{display:flex!important}
+body.s-preview .btn-ghost[onclick*="openModal"]{display:inline-flex!important}
+body.s-preview #navUserInfo{display:none!important}
+body.s-preview #navSignInBtn{display:inline-flex!important}
+body.s-preview .s-logged-hero{display:none!important}
+/* Admin fab */
+.admin-fab{bottom:auto!important;right:1rem!important;top:76px!important;z-index:8500!important}
+@media(max-width:720px){.s-settings-grid{grid-template-columns:1fr}.s-hero-btns{flex-direction:column}.s-hero-btn{width:100%}}
 </style>
 
+<!-- Buyer Breakdown Page -->
 <div id="buyerBreakdownPage" class="page sirius-tool-shell">
-  <div id="buyerBreakdownNav"></div>
+  <nav class="s-nav" id="buyerNav">
+    <div class="s-nav-left">
+      <div class="nav-logo-sirius" onclick="SiriusNav.goHome()" style="cursor:pointer;display:flex;align-items:center;gap:.45rem">
+        <svg width="14" height="14" viewBox="0 0 60 60" fill="none"><defs><radialGradient id="sg1" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#8a959e" stop-opacity=".7"/></radialGradient></defs><path d="M30 2L32.5 27.5L58 30L32.5 32.5L30 58L27.5 32.5L2 30L27.5 27.5Z" fill="url(#sg1)"/></svg>
+        <span class="nav-sirius-text">SIRIUS</span>
+      </div>
+      <div style="width:1px;height:16px;background:rgba(191,198,209,.14)"></div>
+      <button class="s-back" onclick="SiriusNav.back()">← Back</button>
+    </div>
+    <div class="s-nav-right" id="buyerNavRight"></div>
+  </nav>
   <div class="sirius-tool-wrap">
     <div class="sirius-tool-kicker">Payment Breakdown</div>
     <h1 class="sirius-tool-title">Buyer Payment Breakdown</h1>
-    <p class="sirius-tool-sub">The dedicated buyer-cost workflow. Currently a placeholder — inputs and formulas will be built in the next phase, focused solely on buyer-side acquisition obligations.</p>
-    <div class="sirius-placeholder-card">
+    <p class="sirius-tool-sub">Dedicated buyer-cost workflow. Currently a placeholder — inputs and formulas will be built in the next phase, focused solely on buyer-side acquisition obligations.</p>
+    <div class="sirius-ph-card">
       <h3>What this tool will include</h3>
-      <ul class="sirius-placeholder-list">
+      <ul class="sirius-ph-list">
         <li>Total cash needed at transfer — down payment, DLD, agency, trustee, title deed</li>
         <li>Off-plan payment schedule with milestone tracking</li>
         <li>Mortgage-related buyer costs — registration, valuation, bank processing</li>
         <li>No ROI or investment metrics — buyer obligations only</li>
       </ul>
       <div style="margin-top:1.25rem;display:flex;gap:.75rem;flex-wrap:wrap">
-        <button class="btn btn-primary" onclick="SR.go('evaluation')">Use Full Evaluation For Now</button>
-        <button class="btn btn-outline" onclick="SR.back()">Back</button>
+        <button class="btn btn-primary" onclick="goToEval&&goToEval()">Use Full Evaluation For Now</button>
+        <button class="btn btn-outline" onclick="SiriusNav.back()">Back</button>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Seller Breakdown Page -->
 <div id="sellerBreakdownPage" class="page sirius-tool-shell">
-  <div id="sellerBreakdownNav"></div>
+  <nav class="s-nav" id="sellerNav">
+    <div class="s-nav-left">
+      <div class="nav-logo-sirius" onclick="SiriusNav.goHome()" style="cursor:pointer;display:flex;align-items:center;gap:.45rem">
+        <svg width="14" height="14" viewBox="0 0 60 60" fill="none"><defs><radialGradient id="sg2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#8a959e" stop-opacity=".7"/></radialGradient></defs><path d="M30 2L32.5 27.5L58 30L32.5 32.5L30 58L27.5 32.5L2 30L27.5 27.5Z" fill="url(#sg2)"/></svg>
+        <span class="nav-sirius-text">SIRIUS</span>
+      </div>
+      <div style="width:1px;height:16px;background:rgba(191,198,209,.14)"></div>
+      <button class="s-back" onclick="SiriusNav.back()">← Back</button>
+    </div>
+    <div class="s-nav-right" id="sellerNavRight"></div>
+  </nav>
   <div class="sirius-tool-wrap">
     <div class="sirius-tool-kicker">Payment Breakdown</div>
     <h1 class="sirius-tool-title">Seller Payment Breakdown</h1>
-    <p class="sirius-tool-sub">The seller net-proceeds workflow. Currently a placeholder — formulas will be built in the next phase covering all seller-side costs and final net-to-seller calculation.</p>
-    <div class="sirius-placeholder-card">
+    <p class="sirius-tool-sub">Seller net-proceeds workflow. Currently a placeholder — formulas will be built in the next phase covering all seller-side costs and final net-to-seller calculation.</p>
+    <div class="sirius-ph-card">
       <h3>What this tool will include</h3>
-      <ul class="sirius-placeholder-list">
+      <ul class="sirius-ph-list">
         <li>Selling price and all resale cost inputs</li>
         <li>Agency commission, NOC fee, and seller-side transaction costs</li>
         <li>Outstanding balance to developer where applicable</li>
@@ -7705,209 +7718,251 @@ function previewLandingAsVisitor(){
         <li>Final net to seller — cash in pocket after all deductions</li>
       </ul>
       <div style="margin-top:1.25rem">
-        <button class="btn btn-outline" onclick="SR.back()">Back</button>
+        <button class="btn btn-outline" onclick="SiriusNav.back()">Back</button>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Saved Result View Page -->
 <div id="siriusSavedViewPage" class="page sirius-tool-shell">
-  <div id="savedViewNav"></div>
+  <nav class="s-nav" id="savedViewNav">
+    <div class="s-nav-left">
+      <div class="nav-logo-sirius" onclick="SiriusNav.goHome()" style="cursor:pointer;display:flex;align-items:center;gap:.45rem">
+        <svg width="14" height="14" viewBox="0 0 60 60" fill="none"><defs><radialGradient id="sg3" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#8a959e" stop-opacity=".7"/></radialGradient></defs><path d="M30 2L32.5 27.5L58 30L32.5 32.5L30 58L27.5 32.5L2 30L27.5 27.5Z" fill="url(#sg3)"/></svg>
+        <span class="nav-sirius-text">SIRIUS</span>
+      </div>
+      <div style="width:1px;height:16px;background:rgba(191,198,209,.14)"></div>
+      <button class="s-back" onclick="SiriusNav.back()">← Back</button>
+    </div>
+    <div class="s-nav-right" id="savedViewNavRight"></div>
+  </nav>
   <div class="sirius-tool-wrap">
-    <div style="font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(191,198,209,.45);margin-bottom:.4rem">Saved Result</div>
-    <h1 id="siriusSavedViewTitle" style="font-family:'Cormorant Garamond',serif;font-weight:700;color:#F7F6F2;font-size:1.8rem;margin-bottom:1.5rem">Result</h1>
-    <div id="siriusSavedViewContent"></div>
+    <div style="font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(191,198,209,.4);margin-bottom:.4rem">Saved Result</div>
+    <h1 id="sSavedViewTitle" style="font-family:'Cormorant Garamond',serif;font-weight:700;color:#F7F6F2;font-size:1.8rem;margin-bottom:1.5rem">Result</h1>
+    <div id="sSavedViewContent"></div>
   </div>
 </div>
 
 <!-- Preview Banner -->
-<div id="siriusPreviewBanner">
-  <span>Admin Preview Mode — Visitor View</span>
-  <button onclick="SR.exitPreview()">← Exit Preview</button>
+<div id="sP-banner">
+  <span>Admin Preview — Visitor View</span>
+  <button onclick="SiriusNav.exitPreview()">← Exit Preview</button>
 </div>
 
 <!-- Saved Work Modal -->
-<div id="siriusSavedWorkModal" class="sirius-modal-shell" role="dialog">
-  <div class="sirius-modal-box">
-    <div class="sirius-modal-head">
-      <div class="sirius-modal-title-text" id="siriusSavedWorkTitle">Saved Work</div>
-      <button class="modal-close" onclick="SR.closeSavedWork()">&#10005;</button>
+<div id="sSavedModal" class="s-modal-bg" role="dialog">
+  <div class="s-modal-box">
+    <div class="s-modal-head">
+      <div class="s-modal-title" id="sSavedTitle">Saved Work</div>
+      <button class="modal-close" onclick="Sirius.closeSaved()">&#10005;</button>
     </div>
-    <div class="sirius-modal-body" id="siriusSavedWorkBody"></div>
+    <div class="s-modal-body" id="sSavedBody"></div>
   </div>
 </div>
 
 <!-- Settings Modal -->
-<div id="siriusSettingsModal" class="sirius-modal-shell" role="dialog">
-  <div class="sirius-modal-box" style="max-width:680px">
-    <div class="sirius-modal-head">
-      <div class="sirius-modal-title-text">Settings</div>
-      <button class="modal-close" onclick="SR.closeSettings()">&#10005;</button>
+<div id="sSettingsModal" class="s-modal-bg" role="dialog">
+  <div class="s-modal-box" style="max-width:660px">
+    <div class="s-modal-head">
+      <div class="s-modal-title">Settings</div>
+      <button class="modal-close" onclick="Sirius.closeSettings()">&#10005;</button>
     </div>
-    <div class="sirius-modal-body">
-      <div class="sirius-settings-grid">
-        <div class="sirius-settings-tabs" id="siriusSettingsTabs">
-          <button class="sirius-settings-tab active" data-tab="plan" id="siriusTabPlan">My Plan</button>
-          <button class="sirius-settings-tab" data-tab="billing" id="siriusTabBilling">Billing</button>
-          <button class="sirius-settings-tab" data-tab="logs" id="siriusTabLogs" style="display:none">Activity Logs</button>
+    <div class="s-modal-body">
+      <div class="s-settings-grid">
+        <div class="s-tabs" id="sSettingsTabs">
+          <button class="s-tab active" data-stab="plan">My Plan</button>
+          <button class="s-tab" data-stab="billing">Billing</button>
+          <button class="s-tab" data-stab="logs" id="sLogsTab" style="display:none">Activity Logs</button>
         </div>
-        <div id="siriusSettingsContent" style="min-height:180px"></div>
+        <div id="sSettingsContent" style="min-height:160px"></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Locked State Overlay (expired trial) -->
-<div id="siriusLockedOverlay" class="sirius-locked-overlay" style="display:none">
-  <div class="sirius-locked-card">
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.4)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-    <h2>Your trial has ended</h2>
-    <p>Your 7-day free trial is over. Choose a plan to continue using Sirius. Your saved work is safe and will be restored once you resubscribe.</p>
-    <button class="btn btn-primary" style="width:100%;margin-bottom:.75rem" onclick="SR.go('planSelectionPage');renderPlanSelectionGrid&&renderPlanSelectionGrid()">Choose a Plan</button>
+<!-- Locked Overlay -->
+<div id="sLockedOverlay" class="s-locked">
+  <div class="s-locked-card">
+    <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.35)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+    <h2>Trial ended</h2>
+    <p>Your 7-day free trial is over. Choose a plan to continue. Your saved work is safe and will be restored once you resubscribe.</p>
+    <button class="btn btn-primary" style="width:100%;margin-bottom:.75rem" onclick="showPage('planSelectionPage');renderPlanSelectionGrid&&renderPlanSelectionGrid()">Choose a Plan</button>
     <button class="btn btn-ghost" style="width:100%" onclick="handleSignOut&&handleSignOut()">Sign Out</button>
   </div>
 </div>
 
 <script>
-/* ============================================================
-   SIRIUS RUNTIME v2
-   Single implementation. No timers rebuilding DOM.
-   Handles: page stack, nav bars, dropdown, pricing visibility,
-   plan/trial display, saved work modals, settings, locked state.
-============================================================ */
-(function(){
+/* ================================================================
+   SIRIUS RUNTIME v4
+   One object. No _SR_afterNav. No competing wrappers. No timers.
+   Page stack tracks history. Dropdown rebuilt once on open.
+   Auth state applied exactly once per change.
+================================================================ */
+(function(win,doc){
 'use strict';
 
 /* ── HELPERS ── */
-function qs(s,r){return (r||document).querySelector(s)}
-function qsa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+var qs=function(s,r){return (r||doc).querySelector(s)};
+var qsa=function(s,r){return [].slice.call((r||doc).querySelectorAll(s))};
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function escA(v){return esc(v).replace(/`/g,'&#96;')}
-function fmtDate(v){try{if(!v)return'—';if(v.toDate)v=v.toDate();return new Date(v).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}catch(e){return'—'}}
-function daysLeft(v){try{if(!v)return null;var d=v.toDate?v.toDate():new Date(v);var n=Math.ceil((d-Date.now())/86400000);return Math.max(0,n)}catch(e){return null}}
+function fmtDate(v){try{if(!v)return'—';if(v.toDate)v=v.toDate();else if(v.seconds)v=new Date(v.seconds*1000);return new Date(v).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}catch(e){return'—'}}
+function daysLeft(v){try{var d=v&&v.toDate?v.toDate():v&&v.seconds?new Date(v.seconds*1000):new Date(v);return Math.max(0,Math.ceil((d-Date.now())/86400000))}catch(e){return null}}
 function nowTs(){try{return firebase.firestore.FieldValue.serverTimestamp()}catch(e){return new Date().toISOString()}}
-function monthKey(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
+function getDB(){try{return win.db||null}catch(e){return null}}
 
-/* ── STATE ── */
-function getUser(){try{return window.CURRENT_USER||(window.auth&&auth.currentUser)||null}catch(e){return window.CURRENT_USER||null}}
-function isAdmin(){var u=getUser();return !!(window.IS_ADMIN||(u&&String(u.email||'').toLowerCase()==='netflix.officiel.moncef@gmail.com'))}
+/* ── USER STATE ── */
+function getUser(){try{return win.CURRENT_USER||(win.auth&&auth.currentUser)||null}catch(e){return win.CURRENT_USER||null}}
+function isAdmin(){var u=getUser();return !!(win.IS_ADMIN||(u&&String(u.email||'').toLowerCase()==='netflix.officiel.moncef@gmail.com'))}
 function isLogged(){return !!getUser()}
-function isPreview(){return document.body.classList.contains('sirius-preview-mode')}
-function getDB(){try{return window.db||null}catch(e){return null}}
-function getPlanKey(){return String(window._userPlan||'free').toLowerCase()}
-function isFree(){var p=getPlanKey();return p==='free'||p==='';}
-function isStarter(){return getPlanKey()==='starter'}
-function isPro(){var p=getPlanKey();return p==='pro'||p==='professional'}
-function isAgency(){return getPlanKey()==='agency'}
-function isUnlimited(){return isAdmin()||isPro()||isAgency()}
-function isTrial(){return String(window._userSubStatus||'').toLowerCase()==='trial'}
-function isExpired(){return String(window._userSubStatus||'').toLowerCase()==='expired'}
+function planKey(){return String(win._userPlan||'free').toLowerCase()}
+function isFree(){var p=planKey();return p==='free'||p==='';}
+function isStarter(){return planKey()==='starter'}
+function isPaidOrAdmin(){return isAdmin()||!isFree()&&!isStarter()}
+function isTrial(){return String(win._userSubStatus||'').toLowerCase()==='trial'}
+function isExpired(){return String(win._userSubStatus||'').toLowerCase()==='expired'}
+function displayName(){var u=getUser();return (win.USER_PROFILE&&USER_PROFILE.name)||(u&&(u.displayName||u.email))||''}
+function initials(){return (displayName().trim().split(/\s+/).map(function(w){return w[0]||''}).slice(0,2).join('')||'?').toUpperCase()}
 
 /* ── PAGE HISTORY STACK ── */
-var _pageStack = ['landing'];
-var _currentPage = 'landing';
+/* Simple push-down stack. go() pushes current, back() pops. */
+var _stack = [];   /* history of pages before current */
+var _cur   = 'landing';
 
-function _pushPage(id){
-  if(_currentPage===id) return;
-  if(_pageStack[_pageStack.length-1]!==_currentPage) _pageStack.push(_currentPage);
-  _currentPage=id;
-}
-
-/* ── UNIVERSAL NAV BAR HTML ── */
-function _navHTML(opts){
-  // opts: { showBack, backLabel, logo }
-  var u=getUser();
-  var name=(window.USER_PROFILE&&USER_PROFILE.name)||u&&(u.displayName||u.email)||'';
-  var initials=((name.trim().split(/\s+/).map(function(w){return w[0]||''}).slice(0,2).join(''))||'?').toUpperCase();
-  var trialDays=null;
-  if(isTrial()&&window._trialEndsAt) trialDays=daysLeft(window._trialEndsAt);
-  var trialBadge=isTrial()&&trialDays!==null?'<span class="sirius-trial-badge">Trial · '+trialDays+'d left</span>':'';
-  var backBtn=opts&&opts.showBack!==false?
-    '<button class="sirius-back-btn" onclick="SR.back()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>'+(opts&&opts.backLabel||'Back')+'</button>':'';
-  var dropdown=isLogged()?
-    '<div data-dropdown-container style="position:relative">'+
-      '<div class="sirius-avatar-trigger nav-profile-trigger" onclick="toggleNavDropdown(this)">'+
-        '<div class="sirius-avatar-circle nav-profile-avatar-sm">'+initials+'</div>'+
-        '<span class="sirius-avatar-name">'+esc(name||u&&u.email||'')+'</span>'+
-        '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.45)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'+
-      '</div>'+
-      '<div class="nav-dropdown" style="right:0"></div>'+
-    '</div>':'';
-  return '<nav class="sirius-universal-nav">'+
-    '<div class="sirius-nav-left">'+
-      '<div class="nav-logo nav-logo-sirius" onclick="SR.goHome()" style="cursor:pointer">'+
-        '<svg width="14" height="14" viewBox="0 0 60 60" fill="none"><defs><radialGradient id="unav_sg" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#8a959e" stop-opacity=".7"/></radialGradient></defs><path d="M30 2L32.5 27.5L58 30L32.5 32.5L30 58L27.5 32.5L2 30L27.5 27.5Z" fill="url(#unav_sg)"/></svg>'+
-        '<span class="nav-sirius-text">SIRIUS</span>'+
-      '</div>'+
-      (backBtn?'<div style="width:1px;height:16px;background:rgba(191,198,209,.15)"></div>'+backBtn:'') +
-    '</div>'+
-    '<div class="sirius-nav-right">'+trialBadge+dropdown+'</div>'+
-  '</nav>';
-}
-
-/* ── INJECT NAV into page containers ── */
-var _navContainers = {
-  buyerBreakdownPage:  'buyerBreakdownNav',
-  sellerBreakdownPage: 'sellerBreakdownNav',
-  siriusSavedViewPage: 'savedViewNav'
+win.SiriusNav = {
+  go: function(pageId){
+    if(_cur !== pageId) _stack.push(_cur);
+    _cur = pageId;
+    _rawShow(pageId);
+    _afterNav();
+  },
+  back: function(){
+    var target = _stack.length ? _stack.pop() : 'landing';
+    _cur = target;
+    _rawShow(target);
+    _afterNav();
+  },
+  goHome: function(){
+    _stack = [];
+    _cur = 'landing';
+    _rawShow('landing');
+    _afterNav();
+  },
+  openDashboard: function(){
+    var id = isAdmin() ? 'adminDashboardPage' : 'userDashboardPage';
+    SiriusNav.go(id);
+    if(isAdmin() && typeof loadDashboardData==='function') setTimeout(loadDashboardData, 100);
+    else if(!isAdmin() && typeof loadUserDashboard==='function') setTimeout(loadUserDashboard, 100);
+  },
+  previewAsVisitor: function(){
+    if(!isAdmin()) return;
+    doc.body.classList.add('s-preview');
+    qs('#sP-banner').classList.add('on');
+    _rawShow('landing');
+    _cur = 'landing';
+    /* Restore visitor nav */
+    var sign=qs('#navSignInBtn');if(sign){sign.style.display='';sign.textContent='Sign In';}
+    var info=qs('#navUserInfo');if(info)info.style.display='none';
+    /* Remove logged-in hero buttons */
+    qs('#sLoggedHeroArea')&&qs('#sLoggedHeroArea').remove();
+    /* Show original visitor hero buttons */
+    var ha=qs('#heroActionsOriginal');if(ha)ha.style.display='';
+    if(typeof renderPricing==='function') renderPricing();
+    _loadPublicText();
+  },
+  exitPreview: function(){
+    doc.body.classList.remove('s-preview');
+    qs('#sP-banner').classList.remove('on');
+    _rawShow('landing');
+    _cur = 'landing';
+    _applyLandingState();
+    _syncAvatars();
+  }
 };
-function _injectToolNavs(){
-  Object.keys(_navContainers).forEach(function(pid){
-    var el=qs('#'+_navContainers[pid]);
-    if(el) el.innerHTML=_navHTML({showBack:true});
-  });
+
+/* ── RAW SHOW (calls original showPage, no side-effects loop) ── */
+var _rawShow = (function(){
+  /* Capture the original showPage once, before any wrapper */
+  var _orig = null;
+  return function(id){
+    if(!_orig){
+      /* Find the unwrapped version */
+      _orig = win._origShowPageSirius || win.showPage;
+    }
+    if(typeof _orig==='function') _orig(id);
+    win.scrollTo(0,0);
+    /* Inject nav avatars for tool pages after render */
+    setTimeout(_injectToolNavRights, 20);
+    /* Update saved work panel and banners for dashboards */
+    if(id==='userDashboardPage'||id==='adminDashboardPage'){
+      setTimeout(function(){_ensureSavedPanel(id);_ensureBanners(id);}, 50);
+    }
+  };
+})();
+
+/* ── AFTER NAV (non-crashing, no undefined calls) ── */
+function _afterNav(){
+  _applyLandingState();
+  _syncAvatars();
 }
 
 /* ── DROPDOWN ── */
-var _ddOutside=null;
-window.closeNavDropdown=function(){
+var _ddClose = null;
+win.closeNavDropdown = function(){
   qsa('.nav-dropdown').forEach(function(d){d.classList.remove('open');d.style.display='';});
-  if(_ddOutside){document.removeEventListener('click',_ddOutside,true);_ddOutside=null;}
+  if(_ddClose){doc.removeEventListener('click',_ddClose,true);_ddClose=null;}
 };
-window.toggleNavDropdown=function(el){
-  if(window.event) window.event.stopPropagation();
-  var container=el&&el.closest?el.closest('[data-dropdown-container]'):null;
-  var dd=container?qs('.nav-dropdown',container):qs('.nav-dropdown');
+win.toggleNavDropdown = function(el){
+  if(win.event) win.event.stopPropagation();
+  var wrap=el&&el.closest?el.closest('[data-dropdown-container]'):null;
+  var dd=wrap?qs('.nav-dropdown',wrap):qs('.nav-dropdown');
   if(!dd) return false;
   var wasOpen=dd.classList.contains('open');
-  window.closeNavDropdown();
+  win.closeNavDropdown();
   if(wasOpen) return false;
-  dd.innerHTML=_dropdownHTML();
+  /* Build menu content fresh each open */
+  dd.innerHTML = _menuHTML();
+  /* Position */
   if(el&&el.getBoundingClientRect){
     var r=el.getBoundingClientRect();
     dd.style.top=(r.bottom+6)+'px';
-    dd.style.right=Math.max(12,window.innerWidth-r.right)+'px';
+    dd.style.right=Math.max(12,win.innerWidth-r.right)+'px';
     dd.style.left='auto';
   }
   dd.style.display='block';
   dd.classList.add('open');
-  _ddOutside=function(e){
-    if(dd.contains(e.target)||(container&&container.contains(e.target))) return;
-    window.closeNavDropdown();
+  _ddClose=function(e){
+    if(dd.contains(e.target)||(wrap&&wrap.contains(e.target)))return;
+    win.closeNavDropdown();
   };
-  setTimeout(function(){document.addEventListener('click',_ddOutside,true);},0);
+  setTimeout(function(){doc.addEventListener('click',_ddClose,true);},0);
   return false;
 };
 
-function _dropdownHTML(){
+function _menuHTML(){
   var admin=isAdmin();
-  var subPlanItem=_subscriptionPlanMenuLabel();
+  /* Subscription label */
+  var subLabel = admin ? 'My Plan'
+    : isStarter() ? 'Upgrade to Professional'
+    : 'Subscription / Plan';
   return (
-    '<button class="nav-dropdown-item" onclick="closeNavDropdown();SR.openDashboard()">'+
+    '<button class="nav-dropdown-item" onclick="closeNavDropdown();SiriusNav.openDashboard()">'+
       '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</button>'+
     '<button class="nav-dropdown-item" onclick="closeNavDropdown();openProfile&&openProfile()">'+
       '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>My Profile</button>'+
-    '<button class="nav-dropdown-item" onclick="closeNavDropdown();SR.openSubscriptionPlan()">'+
-      '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>'+subPlanItem+'</button>'+
+    '<button class="nav-dropdown-item" onclick="closeNavDropdown();Sirius.openSubscriptionPlan()">'+
+      '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>'+subLabel+'</button>'+
     '<div class="nav-dropdown-divider"></div>'+
     '<button class="nav-dropdown-item" onclick="closeNavDropdown();goToEval&&goToEval()">'+
       '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Evaluate a Property</button>'+
-    (admin?
-      '<button class="nav-dropdown-item" onclick="closeNavDropdown();openAdminPanel&&openAdminPanel()">'+
-        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/></svg>Admin Panel</button>'+
-      '<button class="nav-dropdown-item" onclick="closeNavDropdown();SR.previewAsVisitor()">'+
-        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Preview as Visitor</button>':'') +
-    '<button class="nav-dropdown-item" onclick="closeNavDropdown();SR.openSettings(\'plan\')">'+
+    (admin
+      ? '<button class="nav-dropdown-item" onclick="closeNavDropdown();openAdminPanel&&openAdminPanel()">'+
+          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4"/></svg>Admin Panel</button>'+
+          '<button class="nav-dropdown-item" onclick="closeNavDropdown();SiriusNav.previewAsVisitor()">'+
+          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Preview as Visitor</button>'
+      : '') +
+    '<button class="nav-dropdown-item" onclick="closeNavDropdown();Sirius.openSettings(\'plan\')">'+
       '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>Settings</button>'+
     '<div class="nav-dropdown-divider"></div>'+
     '<button class="nav-dropdown-item danger" onclick="closeNavDropdown();handleSignOut&&handleSignOut()">'+
@@ -7915,661 +7970,614 @@ function _dropdownHTML(){
   );
 }
 
-function _subscriptionPlanMenuLabel(){
-  if(isAdmin()) return 'My Plan';
-  if(isStarter()) return 'Upgrade to Professional';
-  return 'Subscription / Plan';
+/* ── AVATAR WIDGET HTML ── */
+function _avatarHTML(idSuffix){
+  var n=displayName(), init=initials();
+  var trialBit='';
+  if(isTrial()&&win._trialEndsAt){
+    var dl=daysLeft(win._trialEndsAt);
+    if(dl!==null) trialBit='<span class="s-trial-pill">Trial · '+dl+'d</span>';
+  }
+  return trialBit+
+    '<div data-dropdown-container style="position:relative">'+
+      '<div class="s-avatar-wrap nav-profile-trigger" onclick="toggleNavDropdown(this)">'+
+        '<div class="s-avatar-circle nav-profile-avatar-sm" id="sAv_'+idSuffix+'">'+init+'</div>'+
+        '<span class="s-avatar-name">'+esc(n)+'</span>'+
+        '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'+
+      '</div>'+
+      '<div class="nav-dropdown" style="right:0"></div>'+
+    '</div>';
 }
 
-/* ── MAIN SR OBJECT ── */
-window.SR = {
+/* ── INJECT AVATAR INTO TOOL PAGE NAV RIGHTS ── */
+function _injectToolNavRights(){
+  var map={
+    buyerBreakdownPage:  'buyerNavRight',
+    sellerBreakdownPage: 'sellerNavRight',
+    siriusSavedViewPage: 'savedViewNavRight'
+  };
+  Object.keys(map).forEach(function(pid){
+    var el=qs('#'+map[pid]); if(!el||!isLogged()) return;
+    if(!qs('[data-dropdown-container]',el)) el.innerHTML=_avatarHTML(pid);
+  });
+}
 
-  /* Navigation */
-  go: function(pageId){
-    _pushPage(pageId);
-    if(typeof showPage==='function') showPage(pageId);
-    _SR_afterNav(pageId);
-  },
-  back: function(){
-    var target=_pageStack.length>0?_pageStack.pop():'landing';
-    _currentPage=target;
-    if(typeof showPage==='function') showPage(target);
-    _SR_afterNav(target);
-  },
-  goHome: function(){
-    _pageStack=['landing'];_currentPage='landing';
-    if(typeof goToLanding==='function') goToLanding();
-    else if(typeof showPage==='function') showPage('landing');
-    _SR_afterNav('landing');
-  },
-  openDashboard: function(){
-    if(isAdmin()){
-      this.go('adminDashboardPage');
-      if(typeof loadDashboardData==='function') setTimeout(loadDashboardData,100);
-    } else {
-      this.go('userDashboardPage');
-      if(typeof loadUserDashboard==='function') setTimeout(loadUserDashboard,100);
-    }
-  },
-  openSubscriptionPlan: function(){
-    if(isAdmin()){
-      SR.openSettings('plan');
-      return;
-    }
-    if(isPro()||isAgency()){
-      SR.openSettings('plan');
-      return;
-    }
-    // Free or starter — show plan selection
-    _pushPage('planSelectionPage');
-    if(typeof showPage==='function') showPage('planSelectionPage');
-    if(typeof renderPlanSelectionGrid==='function') renderPlanSelectionGrid();
-    _SR_afterNav('planSelectionPage');
-  },
-  previewAsVisitor: function(){
-    if(!isAdmin()) return;
-    document.body.classList.add('sirius-preview-mode');
-    qs('#siriusPreviewBanner').classList.add('visible');
-    if(typeof showPage==='function') showPage('landing');
-    qsa('#landing > section,#landing footer').forEach(function(el){el.style.display='';});
-    _applyLandingNav(true);
-    if(typeof renderPricing==='function') renderPricing();
-    _loadPublicText();
-  },
-  exitPreview: function(){
-    document.body.classList.remove('sirius-preview-mode');
-    /* Restore logged-in classes */
-    if(isLogged()){
-      document.body.classList.add('sirius-logged-in');
-      if(isFree()) document.body.classList.add('sirius-plan-free');
-    }
-    qs('#siriusPreviewBanner').classList.remove('visible');
-    if(typeof _origShow==='function') _origShow('landing');
-    else if(typeof showPage==='function') showPage('landing');
-    _applyLandingState();
-    _patchPageNavs();
-    _syncNavAvatars();
-  },
+/* ── SYNC ALL AVATAR INITIALS ── */
+function _syncAvatars(){
+  if(!isLogged()) return;
+  var init=initials(), n=displayName();
+  qsa('.nav-profile-avatar-sm,.s-avatar-circle').forEach(function(el){el.textContent=init;});
+  qsa('.s-avatar-name,#navUserEmail').forEach(function(el){el.textContent=n;});
+  var ai=qs('#navAvatarInitial');if(ai)ai.textContent=init;
+  var un=qs('#udNavName');if(un)un.textContent=n;
+  /* Plan chip in eval header */
+  var pc=qs('#planChip');
+  if(pc){
+    var label=isAdmin()?'Admin':(String(planKey()||'Free').charAt(0).toUpperCase()+String(planKey()||'Free').slice(1));
+    if(isTrial()) label+=' · Trial';
+    pc.textContent=label+' Plan';
+  }
+}
 
-  /* Saved work */
+/* ── LANDING STATE ── */
+function _applyLandingState(){
+  if(doc.body.classList.contains('s-preview')) return;
+  var logged=isLogged();
+  doc.body.classList.toggle('s-in',  logged);
+  doc.body.classList.toggle('s-free', logged&&isFree());
+
+  var sign=qs('#navSignInBtn'), info=qs('#navUserInfo');
+  if(sign) sign.style.display = logged ? 'none' : '';
+  if(info) info.style.display = logged ? '' : 'none';
+
+  if(logged){
+    _renderLoggedInHero();
+    _checkLocked();
+  } else {
+    /* Visitor — restore original hero buttons */
+    var lha=qs('#sLoggedHeroArea'); if(lha) lha.remove();
+    var orig=qs('#heroActionsOriginal'); if(orig) orig.style.display='';
+    qs('#sLockedOverlay').style.display='none';
+  }
+}
+
+/* ── HERO BUTTONS (logged in) ── */
+function _renderLoggedInHero(){
+  /* Hide original visitor buttons */
+  var orig=qs('#heroActionsOriginal'); if(orig) orig.style.display='none';
+  /* Insert or update logged-in action buttons */
+  var existing=qs('#sLoggedHeroArea');
+  var container=qs('.hero-content');
+  if(!container) return;
+  var area=existing||doc.createElement('div');
+  area.id='sLoggedHeroArea';
+  area.className='s-hero-btns s-logged-hero';
+  area.innerHTML=
+    '<button class="s-hero-btn primary" onclick="_sr_eval()">Evaluate a Property</button>'+
+    '<button class="s-hero-btn secondary" onclick="_sr_buyer()">Buyer Payment Breakdown</button>'+
+    '<button class="s-hero-btn secondary" onclick="_sr_seller()">Seller Payment Breakdown</button>';
+  if(!existing){
+    /* Insert after original hero-actions div */
+    var ha=qs('.hero-actions',container)||qs('#heroActionsOriginal',container);
+    if(ha&&ha.parentNode) ha.parentNode.insertBefore(area, ha.nextSibling);
+    else container.appendChild(area);
+  }
+}
+win._sr_eval  =function(){_stack.push(_cur);_cur='evaluation';if(typeof goToEval==='function')goToEval();};
+win._sr_buyer =function(){SiriusNav.go('buyerBreakdownPage');};
+win._sr_seller=function(){SiriusNav.go('sellerBreakdownPage');};
+
+/* ── PATCH EXISTING PAGE NAV BARS (clean, not additive) ── */
+/* We patch the nav bars of existing pages by replacing their right-side content.
+   Done once after auth, not on every nav change. */
+var _navPatched = false;
+function _patchStaticNavs(){
+  if(_navPatched||!isLogged()) return;
+  _navPatched = true;
+
+  /* Admin dashboard nav — replace right div entirely */
+  var adminNavRight = qs('#adminDashboardPage > nav > div:last-child');
+  if(adminNavRight){
+    adminNavRight.innerHTML =
+      '<button class="s-back" onclick="SiriusNav.back()">← Back</button>'+
+      _avatarHTML('admin');
+  }
+
+  /* User dashboard nav — replace right div */
+  var userNavRight = qs('#userDashboardPage > nav > div:last-child');
+  if(userNavRight){
+    userNavRight.innerHTML =
+      '<button class="s-back" onclick="SiriusNav.back()">← Back</button>'+
+      _avatarHTML('user');
+  }
+
+  /* Profile page nav — replace right div */
+  var profileNavRight = qs('#profileNavRight');
+  if(profileNavRight){
+    profileNavRight.innerHTML =
+      '<button class="s-back" onclick="SiriusNav.back()">← Back</button>'+
+      _avatarHTML('profile');
+  }
+
+  /* Plan selection nav — replace the lone back button with Back + avatar */
+  var planNav = qs('#planSelectionPage > nav');
+  if(planNav){
+    /* Clear stray buttons */
+    qsa('button',planNav).forEach(function(b){b.remove();});
+    /* Inject right side */
+    var rd=doc.createElement('div');
+    rd.style='display:flex;gap:.75rem;align-items:center';
+    rd.innerHTML='<button class="s-back" onclick="SiriusNav.back()">← Back</button>'+_avatarHTML('plan');
+    planNav.appendChild(rd);
+  }
+
+  /* Evaluation header — remove Request Demo, fix Back, add avatar */
+  var evalActions = qs('#evaluation .eval-header-actions');
+  if(evalActions){
+    /* Remove Request Demo */
+    qsa('button',evalActions).forEach(function(b){
+      if((b.textContent||'').indexOf('Request Demo')>-1||(b.getAttribute('onclick')||'').indexOf('openModal')>-1) b.remove();
+    });
+    /* Fix Back button */
+    qsa('button',evalActions).forEach(function(b){
+      if((b.textContent||'').indexOf('Back')>-1||(b.innerHTML||'').indexOf('8592')>-1){
+        b.onclick=function(){SiriusNav.back();};
+      }
+    });
+    /* Add avatar if not present */
+    if(!qs('[data-dropdown-container]',evalActions)){
+      var ad=doc.createElement('div');
+      ad.innerHTML=_avatarHTML('eval');
+      evalActions.appendChild(ad);
+    }
+  }
+}
+
+/* ── LOCKED STATE ── */
+function _checkLocked(){
+  var overlay=qs('#sLockedOverlay');if(!overlay)return;
+  overlay.style.display=(isLogged()&&isExpired())?'flex':'none';
+}
+
+/* ── SAVED WORK PANEL on dashboards ── */
+function _ensureSavedPanel(pid){
+  if(!isLogged()) return;
+  var page=qs('#'+pid);if(!page)return;
+  if(qs('.s-saved-panel',page)) return;
+  var wrap=qs('[style*="max-width:960px"],[style*="max-width:1100px"]',page)||page;
+  var panel=doc.createElement('div');
+  panel.className='s-saved-panel';
+  panel.innerHTML='<div class="s-card">'+
+    '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">'+
+      '<div><div style="font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(191,198,209,.42);font-weight:800;margin-bottom:.3rem">Saved Work</div>'+
+      '<div style="font-size:1.05rem;font-weight:700;color:#F7F6F2">Reports &amp; Breakdowns</div></div>'+
+      '<div style="display:flex;gap:.55rem;flex-wrap:wrap">'+
+        '<button class="s-btn" onclick="Sirius.openSaved(\'savedReports\',\'Saved Property Evaluations\')">Property Evaluations</button>'+
+        '<button class="s-btn" onclick="Sirius.openSaved(\'savedBuyerBreakdowns\',\'Saved Buyer Breakdowns\')">Buyer Breakdowns</button>'+
+        '<button class="s-btn" onclick="Sirius.openSaved(\'savedSellerBreakdowns\',\'Saved Seller Breakdowns\')">Seller Breakdowns</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+  var grid=qs('.dash-grid',wrap);
+  if(grid&&grid.parentNode) grid.parentNode.insertBefore(panel,grid);
+  else wrap.appendChild(panel);
+}
+
+/* ── BANNERS (trial / upgrade) ── */
+function _ensureBanners(pid){
+  var page=qs('#'+pid);if(!page||!isLogged()) return;
+  var wrap=qs('[style*="max-width:960px"],[style*="max-width:1100px"]',page)||page;
+  /* Trial banner */
+  if(isTrial()&&win._trialEndsAt&&!qs('.s-trial-banner',page)){
+    var dl=daysLeft(win._trialEndsAt);
+    var b=doc.createElement('div');
+    b.className='s-trial-banner';
+    b.innerHTML='<div>'+
+      '<div style="font-size:.84rem;font-weight:700;color:rgba(212,175,55,.95)">Free Trial — '+(dl!==null?dl+' days remaining':'Active')+'</div>'+
+      '<div style="font-size:.74rem;color:rgba(191,198,209,.55);margin-top:.18rem">Card will be charged on '+fmtDate(win._trialEndsAt)+' unless you cancel before then.</div>'+
+    '</div>'+
+    '<button class="btn btn-outline" style="font-size:.74rem;white-space:nowrap" onclick="Sirius.openSettings(\'plan\')">Manage Trial</button>';
+    wrap.insertBefore(b,wrap.firstChild);
+  }
+  /* Upgrade banner — starter only, not on trial */
+  if(isStarter()&&!isTrial()&&!qs('.s-upgrade-banner',page)){
+    var ub=doc.createElement('div');
+    ub.className='s-upgrade-banner';
+    ub.innerHTML='<div>'+
+      '<div style="font-size:.84rem;font-weight:700;color:#F7F6F2">Upgrade to Professional</div>'+
+      '<div style="font-size:.74rem;color:rgba(191,198,209,.55);margin-top:.18rem">Unlimited calculations, reports, and full PDF branding.</div>'+
+    '</div>'+
+    '<button class="btn btn-outline" style="font-size:.74rem;white-space:nowrap" onclick="showPage(\'planSelectionPage\');renderPlanSelectionGrid&&renderPlanSelectionGrid()">Upgrade</button>';
+    wrap.insertBefore(ub,wrap.firstChild);
+  }
+}
+
+/* ── SAVED WORK ── */
+var _deleted={};
+
+win.Sirius = {
   openSaved: function(col,title){
-    var u=getUser(),d=getDB(); if(!u||!d){alert('Please sign in first.');return;}
-    var m=qs('#siriusSavedWorkModal'),tb=qs('#siriusSavedWorkTitle'),body=qs('#siriusSavedWorkBody');
+    var u=getUser(),d=getDB();
+    var m=qs('#sSavedModal'),tb=qs('#sSavedTitle'),body=qs('#sSavedBody');
     if(!m) return;
-    tb.textContent=title||_colTitle(col);
-    body.innerHTML='<div style="padding:2rem;text-align:center;color:rgba(191,198,209,.4);font-size:.85rem">Loading...</div>';
+    if(!u||!d){
+      tb.textContent=title||col;
+      body.innerHTML='<div class="s-empty">Please sign in to view saved work.</div>';
+      m.classList.add('open');
+      return;
+    }
+    tb.textContent=title||col;
+    body.innerHTML='<div class="s-empty" style="padding:2rem">Loading...</div>';
     m.classList.add('open');
     d.collection('users').doc(u.uid).collection(col).get()
       .then(function(snap){
         var docs=[];
         snap.forEach(function(doc){
-          if(!_deleted[col]||!_deleted[col].has(doc.id)) docs.push({id:doc.id,d:doc.data()||{}});
+          if(!_deleted[col]||!_deleted[col].has(doc.id)) docs.push({id:doc.id,r:doc.data()||{}});
         });
+        /* Client-side sort newest first */
         docs.sort(function(a,b){
-          function ms(v){return v&&v.toMillis?v.toMillis():v&&v.seconds?v.seconds*1000:0;}
-          return ms(b.d.createdAt)-ms(a.d.createdAt);
+          function ms(r){
+            var v=r.createdAt;
+            if(!v) return 0;
+            if(v.toMillis) return v.toMillis();
+            if(v.seconds) return v.seconds*1000;
+            return new Date(v).getTime()||0;
+          }
+          return ms(b.r)-ms(a.r);
         });
         if(!docs.length){
-          body.innerHTML='<div style="padding:3.5rem 1.5rem;text-align:center">'+
-            '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto .85rem"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>'+
-            '<div style="color:rgba(191,198,209,.45);font-size:.88rem">Nothing saved here yet.</div></div>';
+          body.innerHTML='<div class="s-empty">'+
+            '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto .75rem"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'+
+            'Nothing saved here yet.</div>';
           return;
         }
         var rows=docs.map(function(x){
-          var r=x.d,c=col;
+          var r=x.r,c=col;
           var name=esc(r.reportName||r.name||r.title||'Untitled');
           return '<tr data-id="'+escA(x.id)+'">'+
             '<td><strong>'+name+'</strong>'+
-              (r.autoSaved?'<span style="font-size:.58rem;color:rgba(191,198,209,.28);margin-left:.35rem">auto-saved</span>':'')+
-              '<div style="font-size:.68rem;color:rgba(191,198,209,.38);margin-top:.15rem">'+fmtDate(r.createdAt)+'</div></td>'+
-            '<td style="white-space:nowrap;color:rgba(191,198,209,.55)">'+fmtDate(r.updatedAt||r.createdAt)+'</td>'+
-            '<td><div class="sirius-action-set">'+
-              '<button class="sirius-mini-btn" onclick="SR.openItem(''+escA(c)+'',''+escA(x.id)+'')">Open</button>'+
-              '<button class="sirius-mini-btn" onclick="SR.renameItem(''+escA(c)+'',''+escA(x.id)+'',''+escA(r.reportName||r.name||r.title||'Untitled')+'')">Rename</button>'+
-              '<button class="sirius-mini-btn danger" onclick="SR.deleteItem(''+escA(c)+'',''+escA(x.id)+'')">Delete</button>'+
+              (r.autoSaved?'<span style="font-size:.58rem;color:rgba(191,198,209,.28);margin-left:.35rem">auto</span>':'')+
+              '<div style="font-size:.66rem;color:rgba(191,198,209,.36);margin-top:.12rem">'+fmtDate(r.createdAt)+'</div></td>'+
+            '<td style="white-space:nowrap;color:rgba(191,198,209,.5)">'+fmtDate(r.updatedAt||r.createdAt)+'</td>'+
+            '<td><div class="s-act">'+
+              '<button class="s-btn" onclick="Sirius.viewItem(\''+escA(c)+'\',\''+escA(x.id)+'\')">Open</button>'+
+              '<button class="s-btn" onclick="Sirius.renameItem(\''+escA(c)+'\',\''+escA(x.id)+'\',\''+escA(r.reportName||r.name||r.title||'Untitled')+'\')">Rename</button>'+
+              '<button class="s-btn danger" onclick="Sirius.deleteItem(\''+escA(c)+'\',\''+escA(x.id)+'\')">Delete</button>'+
             '</div></td></tr>';
         }).join('');
-        body.innerHTML='<table class="sirius-table"><thead><tr><th>Name</th><th>Saved</th><th>Actions</th></tr></thead><tbody>'+rows+'</tbody></table>';
+        body.innerHTML='<table class="s-table"><thead><tr><th>Name</th><th>Saved</th><th>Actions</th></tr></thead><tbody>'+rows+'</tbody></table>';
       })
       .catch(function(e){
         var msg=e.code==='permission-denied'
-          ?"Permission denied — check Firestore rules."
-          :"Could not load: "+(e.code||e.message);
+          ?'Permission denied — check Firestore rules.'
+          :'Could not load: '+(e.code||e.message);
         body.innerHTML='<div style="padding:2rem;color:rgba(231,76,60,.75);font-size:.82rem">'+esc(msg)+'</div>';
       });
   },
-    closeSavedWork: function(){var m=qs('#siriusSavedWorkModal');if(m)m.classList.remove('open');},
-  openItem: function(col,id){
-    var u=getUser(),d=getDB(); if(!u||!d) return;
+  closeSaved: function(){var m=qs('#sSavedModal');if(m)m.classList.remove('open');},
+  viewItem: function(col,id){
+    var u=getUser(),d=getDB();if(!u||!d)return;
     d.collection('users').doc(u.uid).collection(col).doc(id).get().then(function(doc){
       if(!doc.exists){alert('Not found.');return;}
       var r=doc.data()||{};
       var html=(r.fullEvaluationData&&r.fullEvaluationData.resultsHTML)||r.resultsHTML||r.htmlSnapshot||
-        '<div class="sirius-saas-card">This result has no saved visual snapshot yet. Save a new evaluation from the Results step to capture the full layout.</div>';
-      qs('#siriusSavedViewTitle').textContent=r.reportName||r.name||r.title||'Saved Result';
-      qs('#siriusSavedViewContent').innerHTML=html;
-      qs('#siriusSavedWorkModal').classList.remove('open');
-      SR.go('siriusSavedViewPage');
+        '<div class="s-card">This result has no visual snapshot yet. Save a new evaluation from the Results step to capture the full layout.</div>';
+      qs('#sSavedViewTitle').textContent=r.reportName||r.name||r.title||'Saved Result';
+      qs('#sSavedViewContent').innerHTML=html;
+      Sirius.closeSaved();
+      SiriusNav.go('siriusSavedViewPage');
     });
   },
   renameItem: function(col,id,current){
-    var u=getUser(),d=getDB(); if(!u||!d) return;
-    var n=prompt('Rename',current||'Untitled'); if(!n) return;
+    var u=getUser(),d=getDB();if(!u||!d)return;
+    var n=prompt('Rename',current||'Untitled');if(!n)return;
     d.collection('users').doc(u.uid).collection(col).doc(id)
       .set({reportName:n,name:n,updatedAt:nowTs()},{merge:true})
-      .then(function(){SR.openSaved(col,_colTitle(col));})
+      .then(function(){win.Sirius.openSaved(col,col==='savedReports'?'Saved Property Evaluations':col==='savedBuyerBreakdowns'?'Saved Buyer Breakdowns':'Saved Seller Breakdowns');})
       .catch(function(e){alert('Rename failed: '+(e.code||e.message));});
   },
   deleteItem: function(col,id){
-    var u=getUser(),d=getDB(); if(!u||!d) return;
-    if(!confirm('Delete this item? This cannot be undone.')) return;
+    var u=getUser(),d=getDB();if(!u||!d)return;
+    if(!confirm('Delete this item? This cannot be undone.'))return;
     if(!_deleted[col]) _deleted[col]=new Set();
     _deleted[col].add(id);
-    var row=qs('[data-id="'+id+'"]');
-    if(row) row.style.display='none';
+    /* Remove row from UI immediately */
+    var row=qs('[data-id="'+id+'"]');if(row)row.remove();
+    /* Check if table is now empty */
+    var body=qs('#sSavedBody');
+    if(body&&!qs('tr',body)){
+      body.innerHTML='<div class="s-empty"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="rgba(191,198,209,.2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto .75rem"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Nothing saved here yet.</div>';
+    }
+    /* Delete from Firestore */
     d.collection('users').doc(u.uid).collection(col).doc(id).delete()
       .catch(function(e){
         _deleted[col].delete(id);
-        if(row) row.style.display='';
         alert('Delete failed: '+(e.code||e.message));
+        win.Sirius.openSaved(col);
       });
   },
 
-  /* Settings */
+  /* ── SETTINGS ── */
   openSettings: function(tab){
-    var m=qs('#siriusSettingsModal'); if(!m) return;
-    /* Show/hide Activity Logs tab based on admin status */
-    var logsTab=qs('#siriusTabLogs',m)||qs('[data-tab="logs"]',m);
-    if(logsTab) logsTab.style.display=isAdmin()?'':'none';
+    var m=qs('#sSettingsModal');if(!m)return;
+    /* Show logs tab only for admin */
+    var lt=qs('#sLogsTab',m);if(lt)lt.style.display=isAdmin()?'':'none';
     m.classList.add('open');
-    _activeTab=tab||'plan';
-    /* Update active tab styling */
-    qsa('.sirius-settings-tab',m).forEach(function(b){
-      b.classList.toggle('active',b.getAttribute('data-tab')===_activeTab);
+    var active=tab||'plan';
+    qsa('.s-tab',m).forEach(function(b){
+      b.classList.toggle('active',b.getAttribute('data-stab')===active);
       b.onclick=function(){
-        _activeTab=b.getAttribute('data-tab');
-        qsa('.sirius-settings-tab',m).forEach(function(x){x.classList.remove('active');});
+        qsa('.s-tab',m).forEach(function(x){x.classList.remove('active');});
         b.classList.add('active');
-        _renderSettingsTab(_activeTab);
+        _renderSettings(b.getAttribute('data-stab'));
       };
     });
-    _renderSettingsTab(_activeTab);
+    _renderSettings(active);
   },
-  closeSettings: function(){var m=qs('#siriusSettingsModal');if(m)m.classList.remove('open');}
+  closeSettings: function(){var m=qs('#sSettingsModal');if(m)m.classList.remove('open');},
+
+  openSubscriptionPlan: function(){
+    if(isAdmin()||isPaidOrAdmin()){
+      Sirius.openSettings('plan');
+      return;
+    }
+    SiriusNav.go('planSelectionPage');
+    if(typeof renderPlanSelectionGrid==='function') renderPlanSelectionGrid();
+  }
 };
 
-/* ── DELETION TOMBSTONE ── */
-var _deleted={};
-
-/* ── SETTINGS CONTENT ── */
-var _activeTab='plan';
-function _renderSettingsTab(tab){
-  var c=qs('#siriusSettingsContent'); if(!c) return;
+function _renderSettings(tab){
+  var c=qs('#sSettingsContent');if(!c)return;
   var u=getUser(),d=getDB();
-  if(!u||!d){c.innerHTML='<div class="sirius-saas-card">Please sign in to view settings.</div>';return;}
+  if(!u||!d){c.innerHTML='<div class="s-card">Please sign in.</div>';return;}
   if(tab==='logs'){
-    if(!isAdmin()){c.innerHTML='<div class="sirius-saas-card">Admin only.</div>';return;}
-    c.innerHTML='<div class="sirius-saas-card"><p style="color:rgba(191,198,209,.65);font-size:.82rem;margin-bottom:1rem">Recent activity across all users.</p><button class="btn btn-outline" onclick="_loadActivityLogs()">Load Activity Logs</button></div>';
+    if(!isAdmin()){c.innerHTML='<div class="s-card">Admin only.</div>';return;}
+    c.innerHTML='<div class="s-card"><button class="btn btn-outline" onclick="_sLoadLogs()">Load Activity Logs</button></div>';
     return;
   }
-  c.innerHTML='<div style="padding:1rem;color:rgba(191,198,209,.5);font-size:.82rem">Loading...</div>';
+  c.innerHTML='<div style="padding:1rem;color:rgba(191,198,209,.4);font-size:.82rem">Loading...</div>';
   d.collection('users').doc(u.uid).get().then(function(doc){
     var data=doc.exists?doc.data():{};
-    var plan=isAdmin()?'Admin':String(data.planName||data.plan||'Free');
-    var status=isAdmin()?'Internal Access':String(data.subscriptionStatus||'Active');
+    var plan=isAdmin()?'Admin':(String(data.planName||data.plan||'Free').charAt(0).toUpperCase()+String(data.planName||data.plan||'Free').slice(1));
+    var status=String(data.subscriptionStatus||'Active');
     var trialEnd=data.trialEndsAt||null;
     var dl=trialEnd?daysLeft(trialEnd):null;
-    var statusClass=isTrial()?'trial':isExpired()?'expired':'';
 
     if(tab==='plan'){
-      var planContent='';
+      var content='';
       if(isAdmin()){
-        planContent='<div class="sirius-saas-card">'+
+        content='<div class="s-card">'+
           '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap">'+
-            '<div><div class="sirius-mini-label">Account Type</div><div class="sirius-mini-value" style="font-size:1.2rem">Admin / Owner</div></div>'+
-            '<span class="sirius-status-pill">Internal Access</span>'+
+            '<div><div class="s-kpi-label">Account</div><div style="font-size:1.2rem;font-weight:700;color:#F7F6F2">Admin / Owner</div></div>'+
+            '<span class="s-status active">Internal Access</span>'+
           '</div>'+
-          '<p style="margin-top:1rem;color:rgba(191,198,209,.55);font-size:.8rem;line-height:1.6">Admin accounts are not billed. Full access is granted by the owner token on your Firebase account.</p>'+
+          '<p style="margin-top:.85rem;color:rgba(191,198,209,.5);font-size:.8rem;line-height:1.6">Admin accounts are not billed. Full access is granted internally.</p>'+
         '</div>';
       } else if(isTrial()){
-        planContent='<div class="sirius-saas-card">'+
-          '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">'+
-            '<div><div class="sirius-mini-label">Current Plan</div><div class="sirius-mini-value" style="font-size:1.2rem">'+esc(plan)+' — Free Trial</div></div>'+
-            '<span class="sirius-status-pill trial">Trial · '+(dl!==null?dl+' days left':'Active')+'</span>'+
+        content='<div class="s-card">'+
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:.85rem">'+
+            '<div><div class="s-kpi-label">Current Plan</div><div style="font-size:1.1rem;font-weight:700;color:#F7F6F2">'+esc(plan)+' — Free Trial</div></div>'+
+            '<span class="s-status trial">Trial · '+(dl!==null?dl+' days left':'Active')+'</span>'+
           '</div>'+
-          '<div class="sirius-kpi-row">'+
-            '<div class="sirius-mini-kpi"><div class="sirius-mini-label">Trial ends</div><div class="sirius-mini-value">'+fmtDate(trialEnd)+'</div></div>'+
-            '<div class="sirius-mini-kpi"><div class="sirius-mini-label">Billing starts</div><div class="sirius-mini-value">'+fmtDate(trialEnd)+'</div></div>'+
+          '<div class="s-kpi-row">'+
+            '<div class="s-kpi"><div class="s-kpi-label">Trial ends</div><div class="s-kpi-value">'+fmtDate(trialEnd)+'</div></div>'+
+            '<div class="s-kpi"><div class="s-kpi-label">Card charged</div><div class="s-kpi-value">'+fmtDate(trialEnd)+'</div></div>'+
           '</div>'+
-          '<p style="margin-top:1rem;color:rgba(191,198,209,.6);font-size:.8rem;line-height:1.6">Your card will be charged on the date above unless you cancel before then. To cancel, contact support or manage your subscription through the Paddle customer portal.</p>'+
+          '<p style="margin-top:.85rem;color:rgba(191,198,209,.55);font-size:.8rem;line-height:1.6">Your card will be charged on the date above unless you cancel before then. Cancellation goes through the Paddle customer portal.</p>'+
         '</div>';
       } else if(isExpired()){
-        planContent='<div class="sirius-saas-card">'+
-          '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">'+
-            '<div><div class="sirius-mini-label">Status</div><div class="sirius-mini-value" style="font-size:1.2rem">Trial Expired</div></div>'+
-            '<span class="sirius-status-pill expired">Expired</span>'+
+        content='<div class="s-card">'+
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:.85rem">'+
+            '<div><div class="s-kpi-label">Status</div><div style="font-size:1.1rem;font-weight:700;color:#F7F6F2">Trial Expired</div></div>'+
+            '<span class="s-status expired">Expired</span>'+
           '</div>'+
-          '<p style="color:rgba(191,198,209,.65);font-size:.82rem;line-height:1.6;margin-bottom:1rem">Your free trial has ended. Choose a plan to continue using Sirius.</p>'+
-          '<button class="btn btn-primary" onclick="SR.closeSettings();SR.go(\'planSelectionPage\');renderPlanSelectionGrid&&renderPlanSelectionGrid()">Choose a Plan</button>'+
+          '<p style="color:rgba(191,198,209,.6);font-size:.82rem;line-height:1.6;margin-bottom:.85rem">Your free trial has ended. Choose a plan to continue using Sirius.</p>'+
+          '<button class="btn btn-primary" onclick="Sirius.closeSettings();showPage(\'planSelectionPage\');renderPlanSelectionGrid&&renderPlanSelectionGrid()">Choose a Plan</button>'+
         '</div>';
       } else if(isStarter()){
-        planContent='<div class="sirius-saas-card">'+
-          '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">'+
-            '<div><div class="sirius-mini-label">Current Plan</div><div class="sirius-mini-value" style="font-size:1.2rem">Starter</div></div>'+
-            '<span class="sirius-status-pill">'+esc(status)+'</span>'+
+        content='<div class="s-card">'+
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:.85rem">'+
+            '<div><div class="s-kpi-label">Current Plan</div><div style="font-size:1.1rem;font-weight:700;color:#F7F6F2">Starter</div></div>'+
+            '<span class="s-status active">'+esc(status)+'</span>'+
           '</div>'+
-          '<p style="color:rgba(191,198,209,.6);font-size:.82rem;line-height:1.6;margin-bottom:1rem">Upgrade to Professional for unlimited calculations, PDF downloads, full branding, and more.</p>'+
-          '<button class="btn btn-primary" onclick="SR.closeSettings();SR.go(\'planSelectionPage\');renderPlanSelectionGrid&&renderPlanSelectionGrid()">Upgrade to Professional</button>'+
+          '<p style="color:rgba(191,198,209,.6);font-size:.82rem;line-height:1.6;margin-bottom:.85rem">Upgrade to Professional for unlimited calculations, PDF downloads, and full branding.</p>'+
+          '<button class="btn btn-primary" onclick="Sirius.closeSettings();showPage(\'planSelectionPage\');renderPlanSelectionGrid&&renderPlanSelectionGrid()">Upgrade to Professional</button>'+
         '</div>';
       } else {
-        // Pro, Agency, Free
-        planContent='<div class="sirius-saas-card">'+
+        content='<div class="s-card">'+
           '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap">'+
-            '<div><div class="sirius-mini-label">Current Plan</div><div class="sirius-mini-value" style="font-size:1.2rem">'+esc(plan)+'</div></div>'+
-            '<span class="sirius-status-pill">'+esc(status)+'</span>'+
+            '<div><div class="s-kpi-label">Current Plan</div><div style="font-size:1.1rem;font-weight:700;color:#F7F6F2">'+esc(plan)+'</div></div>'+
+            '<span class="s-status active">'+esc(status)+'</span>'+
           '</div>'+
-          (isFree()?'<p style="margin-top:1rem;color:rgba(191,198,209,.6);font-size:.82rem;line-height:1.6">You are on the free plan. Subscribe to access all features.</p><button class="btn btn-primary" style="margin-top:.75rem" onclick="SR.closeSettings();SR.go(\'planSelectionPage\');renderPlanSelectionGrid&&renderPlanSelectionGrid()">Choose a Plan</button>':'')+
+          (isFree()?'<p style="margin-top:.85rem;color:rgba(191,198,209,.6);font-size:.82rem;line-height:1.6;margin-bottom:.85rem">You are on the free plan.</p><button class="btn btn-primary" onclick="Sirius.closeSettings();showPage(\'planSelectionPage\');renderPlanSelectionGrid&&renderPlanSelectionGrid()">Choose a Plan</button>':'')+
         '</div>';
       }
-      c.innerHTML=planContent+
-        '<div style="margin-top:1rem;display:flex;gap:.6rem;flex-wrap:wrap">'+
-          '<button class="btn btn-outline" onclick="SR.openSaved(\'savedReports\',\'Saved Property Evaluations\')">Saved Evaluations</button>'+
-          '<button class="btn btn-outline" onclick="SR.openSaved(\'savedBuyerBreakdowns\',\'Saved Buyer Breakdowns\')">Buyer Breakdowns</button>'+
-          '<button class="btn btn-outline" onclick="SR.openSaved(\'savedSellerBreakdowns\',\'Saved Seller Breakdowns\')">Seller Breakdowns</button>'+
-        '</div>';
+      /* Saved work links always at bottom */
+      content+='<div style="margin-top:.85rem;display:flex;gap:.55rem;flex-wrap:wrap">'+
+        '<button class="s-btn" onclick="Sirius.openSaved(\'savedReports\',\'Saved Property Evaluations\')">Property Evaluations</button>'+
+        '<button class="s-btn" onclick="Sirius.openSaved(\'savedBuyerBreakdowns\',\'Saved Buyer Breakdowns\')">Buyer Breakdowns</button>'+
+        '<button class="s-btn" onclick="Sirius.openSaved(\'savedSellerBreakdowns\',\'Saved Seller Breakdowns\')">Seller Breakdowns</button>'+
+      '</div>';
+      c.innerHTML=content;
     } else if(tab==='billing'){
-      c.innerHTML='<div class="sirius-saas-card">'+
-        '<div class="sirius-mini-label" style="margin-bottom:.75rem">Billing Information</div>'+
-        '<div class="sirius-kpi-row">'+
-          '<div class="sirius-mini-kpi"><div class="sirius-mini-label">Billing email</div><div class="sirius-mini-value">'+esc(data.billingEmail||data.email||u.email||'—')+'</div></div>'+
-          '<div class="sirius-mini-kpi"><div class="sirius-mini-label">Payment method</div><div class="sirius-mini-value">'+(data.maskedCard||'Managed via Paddle')+'</div></div>'+
-          '<div class="sirius-mini-kpi"><div class="sirius-mini-label">Next charge</div><div class="sirius-mini-value">'+fmtDate(data.nextBillingDate||data.trialEndsAt||null)+'</div></div>'+
+      c.innerHTML='<div class="s-card">'+
+        '<div class="s-kpi-label" style="margin-bottom:.75rem">Billing Information</div>'+
+        '<div class="s-kpi-row">'+
+          '<div class="s-kpi"><div class="s-kpi-label">Billing email</div><div class="s-kpi-value">'+esc(data.billingEmail||data.email||u.email||'—')+'</div></div>'+
+          '<div class="s-kpi"><div class="s-kpi-label">Payment method</div><div class="s-kpi-value">'+(data.maskedCard||'Managed via Paddle')+'</div></div>'+
+          '<div class="s-kpi"><div class="s-kpi-label">Next charge</div><div class="s-kpi-value">'+fmtDate(data.nextBillingDate||data.trialEndsAt||null)+'</div></div>'+
         '</div>'+
-        '<p style="margin-top:1rem;color:rgba(191,198,209,.5);font-size:.78rem;line-height:1.6">Payment details are managed securely via Paddle. Card data is never stored by Sirius.</p>'+
+        '<p style="margin-top:.85rem;color:rgba(191,198,209,.45);font-size:.76rem;line-height:1.6">Payment details are managed securely via Paddle. Card data is never stored by Sirius.</p>'+
       '</div>';
     }
-  }).catch(function(){c.innerHTML='<div class="sirius-saas-card" style="color:rgba(231,76,60,.8)">Could not load settings. Check your connection.</div>';});
+  }).catch(function(){c.innerHTML='<div class="s-card" style="color:rgba(231,76,60,.75)">Could not load settings. Check your connection.</div>';});
 }
 
-window._loadActivityLogs=function(){
-  var c=qs('#siriusSettingsContent'); if(!c||!isAdmin()) return;
-  var d=getDB(); if(!d) return;
-  c.innerHTML='<div style="padding:1rem;color:rgba(191,198,209,.5);font-size:.82rem">Loading...</div>';
+win._sLoadLogs=function(){
+  var c=qs('#sSettingsContent');if(!c||!isAdmin())return;
+  var d=getDB();if(!d)return;
+  c.innerHTML='<div style="padding:1rem;color:rgba(191,198,209,.4);font-size:.82rem">Loading...</div>';
   var q;try{q=d.collectionGroup('activityLogs').orderBy('timestamp','desc').limit(80);}catch(e){q=null;}
-  (q?q.get():d.collection('activityLogs').orderBy('timestamp','desc').limit(80).get()).then(function(snap){
-    var rows=[];snap.forEach(function(doc){var x=doc.data()||{};
-      rows.push('<tr><td style="white-space:nowrap">'+fmtDate(x.timestamp)+'</td><td>'+esc(x.userEmail||x.userId||'—')+'</td><td><strong>'+esc(x.actionType||'—')+'</strong></td><td style="font-size:.7rem;color:rgba(191,198,209,.55)">'+esc(JSON.stringify(x.details||{}))+'</td></tr>');
-    });
-    c.innerHTML=rows.length?'<div style="overflow-x:auto"><table class="sirius-table"><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Details</th></tr></thead><tbody>'+rows.join('')+'</tbody></table></div>':
-      '<div class="sirius-empty-state"><p>No activity logs found.</p></div>';
-  }).catch(function(e){c.innerHTML='<div style="color:rgba(231,76,60,.8);padding:1rem;font-size:.82rem">Could not load logs: '+esc(e.code||e.message)+'</div>';});
+  (q?q.get():d.collection('activityLogs').orderBy('timestamp','desc').limit(80).get())
+    .then(function(snap){
+      if(snap.empty){c.innerHTML='<div class="s-empty">No activity logs yet.</div>';return;}
+      var rows=[];
+      snap.forEach(function(doc){
+        var x=doc.data()||{};
+        rows.push('<tr><td style="white-space:nowrap">'+fmtDate(x.timestamp)+'</td><td>'+esc(x.userEmail||x.userId||'—')+'</td><td><strong>'+esc(x.actionType||'—')+'</strong></td><td style="font-size:.7rem;color:rgba(191,198,209,.5)">'+esc(JSON.stringify(x.details||{}))+'</td></tr>');
+      });
+      c.innerHTML='<div style="overflow-x:auto"><table class="s-table"><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Details</th></tr></thead><tbody>'+rows.join('')+'</tbody></table></div>';
+    })
+    .catch(function(e){c.innerHTML='<div style="padding:1rem;color:rgba(231,76,60,.75);font-size:.82rem">Could not load logs: '+esc(e.code||e.message)+'</div>';});
 };
-
-/* ── COLLECTION TITLE ── */
-function _colTitle(col){
-  return col==='savedBuyerBreakdowns'?'Saved Buyer Breakdowns':
-         col==='savedSellerBreakdowns'?'Saved Seller Breakdowns':'Saved Property Evaluations';
-}
-
-/* ── LANDING STATE ── */
-function _applyLandingState(){
-  if(isPreview()) return;
-  var logged=isLogged();
-  var plan=getPlanKey();
-  // Body class for CSS pricing visibility
-  document.body.classList.toggle('sirius-logged-in', logged);
-  document.body.classList.toggle('sirius-plan-free', logged&&isFree());
-
-  var sign=qs('#navSignInBtn'), userInfo=qs('#navUserInfo');
-  var navLinks=qs('#landing .nav-links');
-  var hero=qs('#heroCtaBtn');
-  var reqDemo=qs('#navAuthArea > .btn-ghost[onclick*="openModal"]');
-
-  if(logged){
-    if(sign) sign.style.display='none';
-    if(userInfo) userInfo.style.display='';
-    if(navLinks) navLinks.style.display='none';
-    if(reqDemo) reqDemo.style.display='none';
-    if(hero){
-      hero.textContent='Evaluate a Property';
-      hero.onclick=function(){_pushPage(_currentPage);if(typeof goToEval==='function')goToEval();};
-    }
-    _renderHeroActions();
-    _checkLockedState();
-  } else {
-    if(sign){sign.style.display='';sign.textContent='Sign In';}
-    if(userInfo) userInfo.style.display='none';
-    if(navLinks) navLinks.style.display='flex';
-    if(reqDemo) reqDemo.style.display='';
-    if(hero){
-      hero.textContent='Start free — no charge for 7 days';
-      hero.onclick=function(){if(typeof openPlanSelection==='function')openPlanSelection();};
-    }
-    _removeHeroActions();
-    qs('#siriusLockedOverlay').style.display='none';
-  }
-}
-
-/* ── HERO ACTION BUTTONS (logged in) ── */
-function _renderHeroActions(){
-  var hero=qs('#heroCtaBtn'); if(!hero||!hero.parentNode) return;
-  var wrap=hero.parentNode;
-  // Remove old injected buttons
-  qsa('.sirius-hero-btn',wrap).forEach(function(el){el.remove();});
-  // Remove old btn-outline breakdown buttons too
-  qsa('#siriusBuyerBtn,#siriusSellerBtn',wrap).forEach(function(el){el.remove();});
-
-  var buyer=document.createElement('button');
-  buyer.id='siriusBuyerBtn';
-  buyer.className='btn btn-outline btn-lg';
-  buyer.style.cssText='min-width:200px;text-align:center';
-  buyer.textContent='Buyer Payment Breakdown';
-  buyer.onclick=function(){_pushPage(_currentPage);SR.go('buyerBreakdownPage');};
-
-  var seller=document.createElement('button');
-  seller.id='siriusSellerBtn';
-  seller.className='btn btn-outline btn-lg';
-  seller.style.cssText='min-width:200px;text-align:center';
-  seller.textContent='Seller Payment Breakdown';
-  seller.onclick=function(){_pushPage(_currentPage);SR.go('sellerBreakdownPage');};
-
-  // Make the hero CTA the same style as the others
-  hero.className='btn btn-primary btn-lg';
-  hero.style.cssText='min-width:200px;text-align:center';
-
-  wrap.appendChild(buyer);
-  wrap.appendChild(seller);
-}
-function _removeHeroActions(){
-  qsa('#siriusBuyerBtn,#siriusSellerBtn').forEach(function(el){el.remove();});
-}
-
-/* ── LOCKED STATE CHECK ── */
-function _checkLockedState(){
-  var overlay=qs('#siriusLockedOverlay');
-  if(!overlay) return;
-  if(isLogged()&&isExpired()){
-    overlay.style.display='flex';
-  } else {
-    overlay.style.display='none';
-  }
-}
-
-/* ── NAV SYNC (avatars, names) ── */
-function _syncNavAvatars(){
-  var u=getUser();
-  var name=(window.USER_PROFILE&&USER_PROFILE.name)||(u&&(u.displayName||u.email))||'';
-  var initials=((name.trim().split(/\s+/).map(function(w){return w[0]||''}).slice(0,2).join(''))||'?').toUpperCase();
-  qsa('.nav-profile-avatar-sm,.sirius-avatar-circle').forEach(function(el){el.textContent=initials;});
-  qsa('#navUserEmail,.sirius-avatar-name').forEach(function(el){el.textContent=name||(u&&u.email)||'';});
-  var ai=qs('#navAvatarInitial');if(ai)ai.textContent=initials;
-  var aa=qs('#adminNavAvatar');if(aa)aa.textContent=initials;
-  var un=qs('#udNavName');if(un)un.textContent=name||(u&&u.email)||'';
-}
-
-/* ── PATCH INDIVIDUAL PAGE NAV BARS ── */
-function _patchPageNavs(){
-  if(!isLogged()) return;
-  /* HTML source navs are already clean — we only sync avatars and inject tool navs */
-  _syncNavAvatars();
-  _injectToolNavs();
-}
-
-/* ── TRIAL BANNER on dashboard ── */
-function _renderTrialBanner(){
-  if(!isLogged()||!isTrial()) return;
-  var pages=['#userDashboardPage > div','#adminDashboardPage > div:last-child'];
-  pages.forEach(function(sel){
-    var container=qs(sel); if(!container) return;
-    if(qs('.sirius-trial-banner',container)) return;
-    var dl=window._trialEndsAt?daysLeft(window._trialEndsAt):null;
-    var banner=document.createElement('div');
-    banner.className='sirius-trial-banner';
-    banner.innerHTML='<div>'+
-      '<div class="sirius-trial-banner-text">Free Trial — '+(dl!==null?dl+' days remaining':'Active')+'</div>'+
-      '<div class="sirius-trial-banner-sub">Your card will be charged on '+fmtDate(window._trialEndsAt)+' unless you cancel before then.</div>'+
-    '</div>'+
-    '<button class="btn btn-outline" style="font-size:.75rem;white-space:nowrap" onclick="SR.openSettings(\'plan\')">Manage Trial</button>';
-    container.insertBefore(banner,container.firstChild);
-  });
-}
-
-/* ── STARTER UPGRADE BANNER ── */
-function _renderUpgradeBanner(){
-  if(!isLogged()||!isStarter()||isTrial()) return;
-  var container=qs('#userDashboardPage > div'); if(!container) return;
-  if(qs('.sirius-upgrade-banner',container)) return;
-  var banner=document.createElement('div');
-  banner.className='sirius-upgrade-banner';
-  banner.innerHTML='<div><div style="font-size:.84rem;font-weight:700;color:#F7F6F2">Upgrade to Professional</div><div style="font-size:.75rem;color:rgba(191,198,209,.6);margin-top:.2rem">Unlimited calculations, reports and full branding on every PDF.</div></div>'+
-    '<button class="btn btn-outline" style="font-size:.75rem;white-space:nowrap" onclick="SR.go(\'planSelectionPage\');renderPlanSelectionGrid&&renderPlanSelectionGrid()">Upgrade</button>';
-  container.insertBefore(banner,container.firstChild);
-}
-
-/* ── SAVED WORK PANEL on dashboards ── */
-function _ensureSavedWorkPanel(){
-  if(!isLogged()) return;
-  ['#userDashboardPage > div','#adminDashboardPage > div:last-child'].forEach(function(sel){
-    var page=qs(sel); if(!page) return;
-    if(qs('#siriusSavedWorkPanelV2',page)) return;
-    var panel=document.createElement('div');
-    panel.id='siriusSavedWorkPanelV2';
-    panel.style='margin:1.5rem 0';
-    panel.innerHTML='<div class="sirius-saas-card">'+
-      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">'+
-        '<div><div class="sirius-mini-label">Saved Work</div><div class="sirius-mini-value" style="font-size:1.05rem">Reports &amp; Breakdowns</div></div>'+
-        '<div style="display:flex;gap:.6rem;flex-wrap:wrap">'+
-          '<button class="btn btn-outline" style="font-size:.75rem" onclick="SR.openSaved(\'savedReports\',\'Saved Property Evaluations\')">Property Evaluations</button>'+
-          '<button class="btn btn-outline" style="font-size:.75rem" onclick="SR.openSaved(\'savedBuyerBreakdowns\',\'Saved Buyer Breakdowns\')">Buyer Breakdowns</button>'+
-          '<button class="btn btn-outline" style="font-size:.75rem" onclick="SR.openSaved(\'savedSellerBreakdowns\',\'Saved Seller Breakdowns\')">Seller Breakdowns</button>'+
-        '</div>'+
-      '</div>'+
-    '</div>';
-    var grid=qs('.dash-grid',page)||page;
-    if(grid.parentNode===page) page.insertBefore(panel,grid.nextSibling||null);
-    else page.appendChild(panel);
-  });
-}
 
 /* ── PUBLIC LANDING TEXT ── */
 function _loadPublicText(){
-  var d=getDB(); if(!d) return;
-  d.collection('config').doc('publicLanding').get().then(function(doc){
-    var texts=doc.exists?(doc.data().texts||doc.data()):null;
-    if(texts&&typeof applyLandingTexts==='function') applyLandingTexts(texts);
-    else return d.collection('config').doc('landingText').get().then(function(old){
-      if(old.exists&&typeof applyLandingTexts==='function') applyLandingTexts(old.data());
+  var d=getDB();if(!d)return;
+  d.collection('config').doc('publicLanding').get()
+    .then(function(doc){
+      var t=doc.exists?(doc.data().texts||doc.data()):null;
+      if(t&&typeof applyLandingTexts==='function') applyLandingTexts(t);
+      else return d.collection('config').doc('landingText').get().then(function(old){
+        if(old.exists&&typeof applyLandingTexts==='function') applyLandingTexts(old.data());
+      });
+    })
+    .catch(function(){
+      try{d.collection('config').doc('landingText').get().then(function(old){if(old.exists&&typeof applyLandingTexts==='function')applyLandingTexts(old.data());});}catch(e){}
     });
-  }).catch(function(){
-    try{d.collection('config').doc('landingText').get().then(function(old){if(old.exists&&typeof applyLandingTexts==='function')applyLandingTexts(old.data());});}catch(e){}
-  });
 }
 
-/* ── PREVIEW AS VISITOR ── */
-window.previewLandingAsVisitor=function(){
-  if(!isAdmin()) return;
-  /* Enter preview — show exactly what a visitor sees */
-  document.body.classList.add('sirius-preview-mode');
-  document.body.classList.remove('sirius-logged-in','sirius-plan-free');
-  qs('#siriusPreviewBanner').classList.add('visible');
-  /* Navigate to landing without pushing to page stack */
-  if(typeof _origShow==='function') _origShow('landing');
-  else if(typeof showPage==='function') showPage('landing');
-  /* Restore all visitor sections */
-  qsa('#landing > section,#landing footer').forEach(function(el){el.style.display='';});
-  /* Visitor nav state */
-  var sign=qs('#navSignInBtn');
-  if(sign){sign.style.display='inline-flex';sign.textContent='Sign In';sign.onclick=function(){if(typeof openAuthModal==='function')openAuthModal();};}
-  var userInfo=qs('#navUserInfo');if(userInfo)userInfo.style.display='none';
-  var navLinks=qs('#landing .nav-links');if(navLinks)navLinks.style.display='flex';
-  /* Visitor CTA */
-  var hero=qs('#heroCtaBtn');
-  if(hero){
-    hero.textContent='Start free — no charge for 7 days';
-    hero.onclick=function(){if(typeof openPlanSelection==='function')openPlanSelection();};
-  }
-  /* Remove logged-in breakdown buttons */
-  qsa('#siriusBuyerBtn,#siriusSellerBtn').forEach(function(el){el.remove();});
-  /* Show Request Demo */
-  qsa('.btn-ghost[onclick*="openModal"]').forEach(function(el){el.style.display='';});
-  /* Render pricing */
-  if(typeof renderPricing==='function') renderPricing();
-  _loadPublicText();
-};
-
 /* ── LOAD USER PLAN DATA ── */
-function _loadUserPlanData(u){
-  var d=getDB(); if(!u||!d) return;
+function _loadUserPlan(u){
+  var d=getDB();if(!u||!d)return;
   d.collection('users').doc(u.uid).get().then(function(doc){
     if(!doc.exists) return;
     var data=doc.data()||{};
-    window._userPlan=data.plan||data.planName||'free';
-    window._userSubStatus=data.subscriptionStatus||'active';
-    window._trialEndsAt=data.trialEndsAt||null;
-    // Update plan badge
+    win._userPlan=data.plan||data.planName||'free';
+    win._userSubStatus=data.subscriptionStatus||'active';
+    win._trialEndsAt=data.trialEndsAt||null;
+    /* Update plan badge in eval header */
+    _syncAvatars();
+    /* Update body classes */
+    doc.body&&doc.body.classList.toggle('s-free',isFree());
+    _checkLocked();
+    /* Update plan badge */
     var badge=qs('#udPlanBadge');
     if(badge){
-      var label=isAdmin()?'Admin':String(window._userPlan||'Free');
-      label=label.charAt(0).toUpperCase()+label.slice(1);
-      if(isTrial()){
-        var dl=window._trialEndsAt?daysLeft(window._trialEndsAt):null;
-        label+=' — Trial'+(dl!==null?' · '+dl+'d left':'');
-      }
-      badge.textContent=label;
+      var lbl=String(win._userPlan||'Free');lbl=lbl.charAt(0).toUpperCase()+lbl.slice(1);
+      if(isTrial()){var dl=win._trialEndsAt?daysLeft(win._trialEndsAt):null;lbl+=' — Trial'+(dl!==null?' · '+dl+'d left':'');}
+      badge.textContent=lbl+' Plan';
     }
-    _checkLockedState();
-    _renderTrialBanner();
-    _renderUpgradeBanner();
-    _applyLandingState();
   }).catch(function(){});
 }
 
-/* ── AUTH STATE ── */
+/* ── AUTH STATE CHANGED ── */
+/* Wrap once. The existing onAuthStateChanged in the main JS file runs first,
+   sets CURRENT_USER, IS_ADMIN, etc. We apply our UI state after. */
+var _authApplied=false;
+function _onAuth(user){
+  win.CURRENT_USER=user;
+  if(user){
+    /* Only patch navs once after first login */
+    if(!_authApplied){
+      _authApplied=true;
+      /* Wrap showPage once now — safe because auth has resolved */
+      _wrapShowPage();
+      setTimeout(_patchStaticNavs,100);
+    }
+    _loadUserPlan(user);
+    _applyLandingState();
+    _syncAvatars();
+    _loadPublicText();
+  } else {
+    _authApplied=false;
+    _navPatched=false;
+    win._userPlan='free';win._userSubStatus='';win._trialEndsAt=null;
+    doc.body.classList.remove('s-in','s-free','s-preview');
+    qs('#sLockedOverlay').style.display='none';
+    qs('#sP-banner').classList.remove('on');
+    _applyLandingState();
+  }
+}
+
+/* ── WRAP showPage ONCE ── */
+function _wrapShowPage(){
+  if(win.showPage.__siriusV4) return;
+  var orig=win.showPage;
+  win._origShowPageSirius=orig;
+  win.showPage=function(id){
+    orig(id);
+    win.scrollTo(0,0);
+    _afterNav();
+    if(id==='userDashboardPage'||id==='adminDashboardPage'){
+      setTimeout(function(){_ensureSavedPanel(id);_ensureBanners(id);},60);
+    }
+  };
+  win.showPage.__siriusV4=true;
+}
+
+/* ── MODAL BACKDROP ── */
+['sSavedModal','sSettingsModal'].forEach(function(id){
+  var m=doc.getElementById(id);
+  if(m) m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});
+});
+
+/* ── GLOBAL ALIASES (existing code calls these) ── */
+win.syncSiriusNavs=function(){_syncAvatars();_applyLandingState();};
+win.updateLandingForUser=function(u){win.CURRENT_USER=u||win.CURRENT_USER;_applyLandingState();_syncAvatars();};
+win.resetLandingForVisitor=function(){doc.body.classList.remove('s-in','s-free','s-preview');qs('#sP-banner').classList.remove('on');_applyLandingState();};
+win.applySiriusLandingState=function(){_applyLandingState();_syncAvatars();};
+win.updateNavAvatar=function(n){var i=((n||'?').trim().split(/\s+/).map(function(w){return w[0]||''}).slice(0,2).join('')||'?').toUpperCase();qsa('.nav-profile-avatar-sm,.s-avatar-circle').forEach(function(el){el.textContent=i;});};
+win.routeAfterAuth=function(user){
+  /* Called by existing onAuthStateChanged in main JS. We ignore routing here —
+     routing is handled by _onAuth which is registered separately.
+     This prevents the double-routing that was sending admin to dashboard on every nav. */
+  win.CURRENT_USER=user||win.CURRENT_USER;
+  _applyLandingState();_syncAvatars();
+};
+win.goDashboard=function(){SiriusNav.openDashboard();};
+win.goToBuyerBreakdown=function(){SiriusNav.go('buyerBreakdownPage');};
+win.goToSellerBreakdown=function(){SiriusNav.go('sellerBreakdownPage');};
+win.openSavedCollection=function(col,title){win.Sirius.openSaved(col,title);};
+win.openSavedReports=function(){win.Sirius.openSaved('savedReports','Saved Property Evaluations');};
+win.openSiriusSettings=function(tab){win.Sirius.openSettings(tab||'plan');};
+win.closeSiriusSettings=function(){win.Sirius.closeSettings();};
+win.previewLandingAsVisitor=function(){SiriusNav.previewAsVisitor();};
+
+/* ── REGISTER AUTH LISTENER ── */
 try{
-  if(window.auth&&auth.onAuthStateChanged){
-    auth.onAuthStateChanged(function(user){
-      window.CURRENT_USER=user;
-      if(user){
-        _loadUserPlanData(user);
-        _applyLandingState();
-        _patchPageNavs();
-        _syncNavAvatars();
-        _loadPublicText();
-      } else {
-        window._userPlan='free';window._userSubStatus='';window._trialEndsAt=null;
-        document.body.classList.remove('sirius-logged-in','sirius-plan-free');
-        qs('#siriusLockedOverlay').style.display='none';
-        _applyLandingState();
-      }
-    });
+  if(win.auth&&auth.onAuthStateChanged){
+    auth.onAuthStateChanged(_onAuth);
   }
 }catch(e){}
 
 /* ── REAL-TIME CONFIG ── */
 try{
-  if(window.db&&db.collection){
+  if(win.db&&db.collection){
     db.collection('config').doc('publicLanding').onSnapshot(function(doc){
       if(doc.exists&&typeof applyLandingTexts==='function'){
-        var t=doc.data().texts||doc.data();applyLandingTexts(t);
+        applyLandingTexts(doc.data().texts||doc.data());
       }
     },function(){
       try{db.collection('config').doc('landingText').onSnapshot(function(doc){
-        if(doc.exists&&typeof applyLandingTexts==='function')applyLandingTexts(doc.data());
+        if(doc.exists&&typeof applyLandingTexts==='function') applyLandingTexts(doc.data());
       },function(){});}catch(e){}
     });
   }
 }catch(e){}
 
-/* ── SHOW PAGE WRAPPER ── */
-var _origShow=window.showPage;
-if(typeof _origShow==='function'&&!_origShow.__siriusV2){
-  window.showPage=function(id){
-    _origShow(id);
-    setTimeout(function(){
-      _applyLandingState();
-      _patchPageNavs();
-      _syncNavAvatars();
-      if(id==='userDashboardPage'||id==='adminDashboardPage'){
-        _ensureSavedWorkPanel();
-        _renderTrialBanner();
-        _renderUpgradeBanner();
-      }
-      window.scrollTo(0,0);
-    },30);
-  };
-  window.showPage.__siriusV2=true;
-}
-
-/* ── DASHBOARD WRAPPERS ── */
-var _origOpenUser=window.openUserDashboard;
-if(typeof _origOpenUser==='function'&&!_origOpenUser.__siriusV2){
-  window.openUserDashboard=function(){
-    _pushPage('userDashboardPage');_currentPage='userDashboardPage';
-    var r=_origOpenUser.apply(this,arguments);
-    setTimeout(function(){_ensureSavedWorkPanel();_patchPageNavs();_syncNavAvatars();_renderTrialBanner();_renderUpgradeBanner();},120);
-    return r;
-  };window.openUserDashboard.__siriusV2=true;
-}
-var _origOpenAdmin=window.openAdminDashboard;
-if(typeof _origOpenAdmin==='function'&&!_origOpenAdmin.__siriusV2){
-  window.openAdminDashboard=function(){
-    _pushPage('adminDashboardPage');_currentPage='adminDashboardPage';
-    var r=_origOpenAdmin.apply(this,arguments);
-    setTimeout(function(){_ensureSavedWorkPanel();_patchPageNavs();_syncNavAvatars();},120);
-    return r;
-  };window.openAdminDashboard.__siriusV2=true;
-}
-
-/* ── SIGN OUT WRAPPER ── */
-var _origOut=window.handleSignOut;
-if(typeof _origOut==='function'&&!_origOut.__siriusV2){
-  window.handleSignOut=function(){
-    window.closeNavDropdown();
-    document.body.classList.remove('sirius-logged-in','sirius-plan-free','sirius-preview-mode');
-    qs('#siriusPreviewBanner').classList.remove('visible');
-    qs('#siriusLockedOverlay').style.display='none';
-    window.CURRENT_USER=null;window.IS_ADMIN=false;window._userPlan='free';window._userSubStatus='';window._trialEndsAt=null;
-    _pageStack=['landing'];_currentPage='landing';
-    var r=_origOut.apply(this,arguments);
-    setTimeout(function(){_applyLandingState();_syncNavAvatars();},50);
-    return r;
-  };window.handleSignOut.__siriusV2=true;
-}
-
-/* ── GLOBAL ALIASES ── */
-window.syncSiriusNavs=function(){_patchPageNavs();_syncNavAvatars();_applyLandingState();};
-window.updateLandingForUser=function(u){window.CURRENT_USER=u||window.CURRENT_USER;_applyLandingState();_patchPageNavs();_syncNavAvatars();};
-window.resetLandingForVisitor=function(){document.body.classList.remove('sirius-logged-in','sirius-plan-free','sirius-preview-mode');qs('#siriusPreviewBanner').classList.remove('visible');_applyLandingState();};
-window.applySiriusLandingState=function(){_applyLandingState();_patchPageNavs();_syncNavAvatars();};
-window.updateNavAvatar=function(name){var i=((name||'?').trim().split(/\s+/).map(function(w){return w[0]||''}).slice(0,2).join('')||'?').toUpperCase();qsa('.nav-profile-avatar-sm,.sirius-avatar-circle').forEach(function(el){el.textContent=i;});};
-window.routeAfterAuth=function(user){window.CURRENT_USER=user||window.CURRENT_USER;_applyLandingState();_patchPageNavs();_syncNavAvatars();if(isAdmin()){if(typeof openAdminDashboard==='function')openAdminDashboard();}else if(user){if(typeof openUserDashboard==='function')openUserDashboard();}};
-window.openSavedCollection=function(col,title){SR.openSaved(col,title);};
-window.openSavedReports=function(){SR.openSaved('savedReports','Saved Property Evaluations');};
-window.openSiriusSettings=function(tab){SR.openSettings(tab||'plan');};
-window.closeSiriusSettings=function(){SR.closeSettings();};
-window.goDashboard=function(){SR.openDashboard();};
-window.goToBuyerBreakdown=function(){_pushPage(_currentPage);SR.go('buyerBreakdownPage');};
-window.goToSellerBreakdown=function(){_pushPage(_currentPage);SR.go('sellerBreakdownPage');};
-
-/* ── MODAL BACKDROP CLOSE ── */
-['siriusSavedWorkModal','siriusSettingsModal'].forEach(function(id){
-  var m=document.getElementById(id);
-  if(m) m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});
-});
-
 /* ── BOOT ── */
 function _boot(){
   _loadPublicText();
   _applyLandingState();
-  _patchPageNavs();
-  _syncNavAvatars();
   if(typeof renderPricing==='function') renderPricing();
 }
-if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',_boot);
+if(doc.readyState==='loading') doc.addEventListener('DOMContentLoaded',_boot);
 else _boot();
-window.addEventListener('load',function(){setTimeout(_boot,200);});
+win.addEventListener('load',function(){setTimeout(_boot,200);});
 
-})();
+})(window, document);
 </script>
 
 <!-- App Check -->
@@ -8578,12 +8586,13 @@ window.addEventListener('load',function(){setTimeout(_boot,200);});
 <script>
 window.addEventListener('load',function(){
   try{
-    firebase.appCheck().activate(new firebase.appCheck.ReCaptchaEnterpriseProvider('6LeyH-0sAAAAAFWyUIPSraFz_pAXxb2URsQ7WJx9'),true);
+    firebase.appCheck().activate(
+      new firebase.appCheck.ReCaptchaEnterpriseProvider('6LeyH-0sAAAAAFWyUIPSraFz_pAXxb2URsQ7WJx9'),true);
   }catch(e){console.warn('App Check:',e.message);}
 });
 function resetLandingForVisitor(){
-  document.body.classList.remove('sirius-logged-in','sirius-plan-free','sirius-preview-mode');
-  if(document.getElementById('siriusPreviewBanner')) document.getElementById('siriusPreviewBanner').classList.remove('visible');
+  document.body.classList.remove('s-in','s-free','s-preview');
+  var b=document.getElementById('sP-banner');if(b)b.classList.remove('on');
   if(typeof applySiriusLandingState==='function') applySiriusLandingState();
 }
 </script>
